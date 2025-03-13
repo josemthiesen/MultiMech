@@ -12,11 +12,11 @@ import matplotlib.pyplot as plt
 
 import source.tool_box.file_handling_tools as file_tools
 
-import source.tool_box.numerical_tools as n_tools
+import source.tool_box.numerical_tools as numerical_tools
 
-import source.tool_box.tensor_tools as t_tools
+import source.tool_box.tensor_tools as tensor_tools
 
-import source.tool_box.functional_tools as fun_tools
+import source.tool_box.functional_tools as functional_tools
 
 # Define the indices for Einstein summation notation
 
@@ -146,68 +146,6 @@ maximum_loadingSteps = 11
 mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction = file_tools.read_xdmfMesh(
 file_name)
 
-"""
-
-# Initializes the mesh object and reads the xdmf file
-
-mesh = Mesh()
-
-# Initializes a mesh value collection to store mesh data
-
-data_meshCollection = MeshValueCollection("size_t", mesh, mesh.topology(
-).dim())
-
-# Reads the mesh with domain physical groups
-
-with XDMFFile(file_name+"_domain.xdmf") as infile:
-
-    infile.read(mesh)
-
-    infile.read(data_meshCollection, "domain")
-
-ct = MeshFunction("size_t", mesh, data_meshCollection)
-
-data_meshCollection = MeshValueCollection("size_t", mesh, mesh.topology(
-).dim()-1)
-
-# Reads the mesh with surface physical groups
-
-with XDMFFile(file_name+"_boundary.xdmf") as infile:
-   
-    infile.read(data_meshCollection, "boundary")
-
-# Converts the mesh value collections to mesh functions, for mesh value
-# collections are low level and cannot be used for FEM integration and 
-# other higher level operations inside FEniCs
-
-ft = MeshFunction("size_t", mesh, data_meshCollection)
-
-# Sets the integration differentials, with domains of integration. The 
-# differentials have reserved number for each physical group:
-#
-# Volumetric physical groups:
-# dx(1) -> fibers outside the RVE
-# dx(2) -> matrix outside the RVE
-# dx(3) -> RVE_fiber
-# dx(4) -> RVE_matrix
-#
-# Surface physical groups:
-# ds(5) -> bottom
-# ds(6) -> front
-# ds(7) -> left
-# ds(8) -> back
-# ds(9) -> right
-# ds(10) -> top
-
-dx = Measure("dx", domain=mesh, subdomain_data=ct)
-
-ds = Measure("ds", domain=mesh, subdomain_data=ft)
-
-# Sets the normal vector to the mesh's boundary
-
-n  = FacetNormal(mesh)
-"""
-
 ########################################################################
 #                            Function space                            #
 ########################################################################
@@ -273,7 +211,7 @@ def curvature_tensor(phi):
     
     # Computes the micro-rotation tensor Rbar
      
-    R_bar = t_tools.rotation_tensorEulerRodrigues(phi)
+    R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
     
     # Computes the gradient of each component of R_bar to get a third 
     # order tensor, grad_Rbar
@@ -340,7 +278,7 @@ def Kirchhoff_Stress(u, phi):
 
     # Evaluates the rotation tensor given by the micropolar rotation
 
-    R_bar = t_tools.rotation_tensorEulerRodrigues(phi)
+    R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
 
     # Evaluates the micropolar stretch and the jacobian
     
@@ -381,7 +319,7 @@ def Couple_Kirchhoff_Stress(u, phi):
 
     # Evaluates the rotation tensor given by the micropolar rotation
 
-    R_bar = t_tools.rotation_tensorEulerRodrigues(phi)
+    R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
 
     # Evaluates the micropolar stretch and the jacobian
     
@@ -436,7 +374,7 @@ macro_gradMicrorotationName)
 # Converts the dictionary of shear modulus to a discontinuous Galerkin
 # function space
 
-mu = fun_tools.physical_groupToDGSpace(mu_materials, mesh, 
+mu = functional_tools.physical_groupToDGSpace(mu_materials, mesh, 
 domain_meshFunction)
 
 # Defines other material properties derived from the shear modulus (the
@@ -507,7 +445,7 @@ def BVP(time_step):
     Int_du = inner(stress, grad(v_displacement))*dx 
 
     Int_dphi = ((inner(couple_stress,grad(v_microrotation))*dx)-(inner(
-    stress*def_grad(new_displacement).T,t_tools.skew_2OrderTensor(
+    stress*def_grad(new_displacement).T,tensor_tools.skew_2OrderTensor(
     v_microrotation))*dx)) 
 
     Int_dlambu = ((1/v_tot)*((dot(v_lagrangeMultDisplacement,
