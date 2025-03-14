@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 
 import source.tool_box.file_handling_tools as file_tools
 
+import source.tool_box.mesh_handling_tools as mesh_tools
+
 import source.tool_box.numerical_tools as numerical_tools
 
 import source.tool_box.tensor_tools as tensor_tools
@@ -143,7 +145,7 @@ maximum_loadingSteps = 11
 
 # Reads the mesh and constructs some fenics objects using the xdmf file
 
-mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction = file_tools.read_xdmfMesh(
+mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction = mesh_tools.read_xdmfMesh(
 file_name)
 
 ########################################################################
@@ -597,6 +599,7 @@ while True:
     True)
 
     u.rename("Micro-scale Displacement", "Multiscale")
+
     phi.rename("Micro-scale Micro-rotation", "Multiscale")
     
     # Saves the values of the Lagrange multiplier relative to the gra-
@@ -605,6 +608,7 @@ while True:
     gradulag_value_at_t = gradulag.vector().get_local()
 
     # Extracts its components
+
     T11, T12, T13, T21, T22, T23, T31, T32, T33 = gradulag_value_at_t[0:9]
 
     # Writes time and tensor components to file

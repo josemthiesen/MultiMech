@@ -1,108 +1,158 @@
-# Import all necessary packages and modules
+# Routine to compute the micropolar macroscale problem
 
 from dolfin import *
+
 from mpi4py import MPI
+
 import ufl_legacy as ufl
+
 import numpy as np
+
 import matplotlib.pyplot as plt
+
 from mshr import *
-import periodic_structure as mesher
-import source.tool_box.homogenization_tools as ht
-import source.tool_box.file_handling_tools as file_handling_tools
+
+#import periodic_structure as mesher
+
+import source.tool_box.mesh_handling_tools as mesh_tools
+
+import source.tool_box.homogenization_tools as homogenization_tools
+
+import source.tool_box.file_handling_tools as file_tools
 
 # Define the indices for Einstein summation notation
+
 i, j, k, l = ufl.indices(4)
+
+########################################################################
+########################################################################
+##                      User defined parameters                       ##
+########################################################################
+########################################################################
+
+########################################################################
+#                         Material properties                          #
+########################################################################
+
+# Sets a dictionary for material property for each physical group in the
+# volumetric domain. The keys are the physical groups and the values are
+# the material properties
+
+mu_materials = dict()
+
+mu_materials[3] = 26.12
+
+mu_materials[4] = 26.12
+
+# Defines some micropolar constitutive parameters
+
+alpha = 0.0
+
+beta = 0.0
+
+gamma = 5.22e-8
+
+########################################################################
+#                          Macro deformations                          #
+########################################################################
+
+# A set of macro deformations are stored in txt files. One must define
+# their file names
+
+macro_displacementName = "u_RVE_homogenized"
+
+macro_gradDisplacementName = "grad_u_RVE_homogenized"
+
+macro_microrotationName = "phi_RVE_homogenized"
+
+macro_gradMicrorotationName = "grad_phi_RVE_homogenized"
+
+########################################################################
+#                                 Mesh                                 #
+########################################################################
+
+# Defines the name of the file to save the mesh in. Do not write the fi-
+# le termination, e.g. .msh or .xdmf; both options will be saved automa-
+# tically
+
+file_name = "test_meshes//macro_mesh"
+
+# Defines a flag to generate a new mesh or not
+
+flag_newMesh = False
+
+########################################################################
+#                            Function space                            #
+########################################################################
+
+# Defines the shape functions degree
+
+polynomial_degree = 1
+
+########################################################################
+#                           Solver parameters                          #
+########################################################################
+
+# Sets some parameters
 
 parameters["form_compiler"]["representation"] = "uflacs"
 parameters["allow_extrapolation"] = True
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
 
-# Defines the name of the file to save the mesh in. Do not write the fi-
-# le termination, e.g. .msh or .xdmf; both options will be saved automa-
-# tically
+# Sets the solver parameters
 
-file_name = "periodic_beam"
+linear_solver = "minres"
 
-# Defines a flag to generate a new mesh or not
+relative_tolerance = 1e-2
 
-flag_newMesh = True
+maximum_iterations = 50
 
-# Generates the mesh and writes it 
+preconditioner = "petsc_amg"
 
-if flag_newMesh:
+krylov_absoluteTolerance = 1e-6
 
-    mesher.generate_periodicMesh(file_name, flag_transfinite=0, verbose=
-    False, n_boxesX=3, n_boxesY=3, n_boxesZ=30)
+krylov_relativeTolerance = 1e-6
 
-#float(b)
+krylov_maximumIterations = 15000
 
-# Initializes the mesh object and reads the xdmf file
+krylov_monitorConvergence = False
 
-mesh = Mesh()
+# Sets the final pseudotime of the simulation
 
-print("\n-------------------------------------------------------------------------")
-print(" -                            Reads the mesh                            -")
+t_final = 1.0
 
-# Initializes a mesh value collection to store mesh data
+# Sets the maximum number of steps of loading
 
-data_meshCollection = MeshValueCollection("size_t", mesh, mesh.topology().dim())
+maximum_loadingSteps = 11
 
-# Reads the mesh with domain physical groups
+########################################################################
+########################################################################
+##               Calculation: Mr. User, take care ahead!              ##
+########################################################################
+########################################################################
 
-#with XDMFFile(file_name+"_domain.xdmf") as infile:
-with XDMFFile(mesh.mpi_comm(), file_name+"_domain.xdmf") as infile:
+########################################################################
+#                                 Mesh                                 #
+########################################################################
 
-    infile.read(mesh)
+# Reads the mesh and constructs some fenics objects using the xdmf file
 
-    infile.read(data_meshCollection, "domain")
+mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction = file_tools.read_xdmfMesh(
+file_name)
 
-ct = MeshFunction("size_t", mesh, data_meshCollection)
+# Defines the finite element spaces for the displacement field, u, and 
+# for the microrotation field, phi
 
-data_meshCollection = MeshValueCollection("size_t", mesh, mesh.topology().dim()-1)
+U = VectorElement("CG", mesh.ufl_cell(), polynomial_degree)
 
-# Reads the mesh with surface physical groups
-
-#with XDMFFile(file_name+"_boundary.xdmf") as infile:
-with XDMFFile(mesh.mpi_comm(), file_name+"_boundary.xdmf") as infile:
-   
-    infile.read(data_meshCollection, "boundary")
-
-# Converts the mesh value collections to a mesh functions, for mesh va-
-# lue collections are low level and cannot be used for FEM integration
-# and other higher level operations inside FEniCs
-
-ft = MeshFunction("size_t", mesh, data_meshCollection)
-
-dx = Measure("dx", domain=mesh, subdomain_data=ct)
-
-ds = Measure("ds", domain=mesh, subdomain_data=ft)
-
-n  = FacetNormal(mesh)
-
-# dx(1) -> outer_fiber
-# dx(2) -> outer_matrix
-# dx(3) -> RVE_fiber
-# dx(4) -> RVE_matrix
-
-# ds(5) -> bottom
-# ds(6) -> front
-# ds(7) -> left
-# ds(8) -> back
-# ds(9) -> right
-# ds(10) -> top
-
-# Define the finite element spaces for the displacement field "u" and for the microrotation field "phi"
-
-U = VectorElement("CG",mesh.ufl_cell(), 1) # Displacement, Q2
-
-V = VectorElement("CG",mesh.ufl_cell(), 1) # Microrotation, Q1
+V = VectorElement("CG", mesh.ufl_cell(), polynomial_degree)
 
 # Define the mixed element for the monolithic solution
 
-MicroPolarMixedElement = MixedElement([U,V])
+micropolar_mixedElement = MixedElement([U,V])
  
-UV = FunctionSpace(mesh, MicroPolarMixedElement)
+monolithic_functionSpace = FunctionSpace(mesh, micropolar_mixedElement)
 
 ########################################################################
 #                         RVE post-processing                          #
@@ -113,18 +163,18 @@ UV = FunctionSpace(mesh, MicroPolarMixedElement)
 
 for element in cells(mesh):
 
-    if ct[element]==4:
+    if domain_meshFunction[element]==4:
 
-        ct[element] = 3
+        domain_meshFunction[element] = 3
 
 # Creates a submesh for the RVE
 
-RVE_submesh = MeshView.create(ct,3)
+RVE_submesh = MeshView.create(domain_meshFunction,3)
 
 # Creates a function space for the displacement inside the submesh of 
 # the RVE
  
-UV_submesh = FunctionSpace(RVE_submesh, MicroPolarMixedElement)
+UV_submesh = FunctionSpace(RVE_submesh, micropolar_mixedElement)
 
 sol_RVE = Function(UV_submesh)
 
@@ -135,8 +185,8 @@ sol_RVE = Function(UV_submesh)
 U_rveDofMap = UV_submesh.sub(0).dofmap()
 V_rveDofMap = UV_submesh.sub(1).dofmap()
 
-U_parentDofMap = UV.sub(0).dofmap()
-V_parentDofMap = UV.sub(1).dofmap()
+U_parentDofMap = monolithic_functionSpace.sub(0).dofmap()
+V_parentDofMap = monolithic_functionSpace.sub(1).dofmap()
 
 # Creates the mapping of elements from the submesh to the parent mesh, 
 # i.e. given the element index in the submesh, it throws the index in 
@@ -155,7 +205,7 @@ mu_materials = [26.12,26.12]
 
 # Assign material properties based on region
 for cell in cells(mesh):
-    region_id = ct[cell]  # Get the region id from cf
+    region_id = domain_meshFunction[cell]  # Get the region id from cf
     if (region_id == 1) or (region_id == 3):
         vm.vector()[cell.index()] = mu_materials[0]
     elif (region_id == 2) or (region_id == 4):
@@ -172,8 +222,8 @@ I = Identity(3)
 
 load = Expression("t", t = 0.0, degree = 1)
 
-bc1 = DirichletBC(UV.sub(0), Constant((0.0, 0.0, 0.0)), ft, 5)
-bc2 = DirichletBC(UV.sub(1), Constant((0.0, 0.0, 0.0)), ft, 5)
+bc1 = DirichletBC(monolithic_functionSpace.sub(0), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
+bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
 
 bc = [bc1, bc2]
 
@@ -305,10 +355,10 @@ def def_grad(u):
 
 # The function that multiplied the PDE/residual is called test function. The unknown function u to be approximated is referred to as trial function.
 
-dsol, v = TrialFunction(UV), TestFunction(UV)
+dsol, v = TrialFunction(monolithic_functionSpace), TestFunction(monolithic_functionSpace)
 vu, vphi = split(v)
 
-sol_new = Function(UV)
+sol_new = Function(monolithic_functionSpace)
 
 u_new, phi_new = split(sol_new)
 
@@ -369,10 +419,10 @@ while t < Tf:
     u.rename("DNS Displacement", "DNS")
     phi.rename("DNS Micro-rotation", "DNS")
 
-    u_RVE_homogenized.append([t,ht.get_homogenized(u, dx).tolist()])
-    grad_u_RVE_homogenized.append([t,ht.get_homogenized_gradient(grad(u), dx).tolist()])
-    phi_RVE_homogenized.append([t,ht.get_homogenized(phi, dx).tolist()])
-    grad_phi_RVE_homogenized.append([t,ht.get_homogenized_gradient(grad(phi), dx).tolist()])
+    u_RVE_homogenized.append([t,homogenization_tools.get_homogenized(u, dx).tolist()])
+    grad_u_RVE_homogenized.append([t,homogenization_tools.get_homogenized_gradient(grad(u), dx).tolist()])
+    phi_RVE_homogenized.append([t,homogenization_tools.get_homogenized(phi, dx).tolist()])
+    grad_phi_RVE_homogenized.append([t,homogenization_tools.get_homogenized_gradient(grad(phi), dx).tolist()])
 
     # Iterates through the elements of the submesh
 
@@ -405,9 +455,9 @@ while t < Tf:
     load.t = t*u_r
     time_counter += 1
 
-    file_handling_tools.list_toTxt(u_RVE_homogenized, "u_RVE_homogenized")
-    file_handling_tools.list_toTxt(grad_u_RVE_homogenized, "grad_u_RVE_homogenized")
-    file_handling_tools.list_toTxt(phi_RVE_homogenized, "phi_RVE_homogenized")
-    file_handling_tools.list_toTxt(grad_phi_RVE_homogenized, "grad_phi_RVE_homogenized")
+    file_tools.list_toTxt(u_RVE_homogenized, "u_RVE_homogenized")
+    file_tools.list_toTxt(grad_u_RVE_homogenized, "grad_u_RVE_homogenized")
+    file_tools.list_toTxt(phi_RVE_homogenized, "phi_RVE_homogenized")
+    file_tools.list_toTxt(grad_phi_RVE_homogenized, "grad_phi_RVE_homogenized")
 
 print ('Simulation Completed')

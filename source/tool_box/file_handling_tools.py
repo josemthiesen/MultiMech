@@ -1,78 +1,7 @@
 # Routine to store methods for in-and-out processing, like reading and
 # writing files
 
-from dolfin import *
-
-########################################################################
-#                              Mesh files                              #
-########################################################################
-
-# Defines a function to read a mesh from a xdmf file
-
-def read_xdmfMesh(file_name):
-
-    # Verifies whether there is an extension in the file name
-
-    if ("." in file_name) or ('.' in file_name):
-
-        raise NameError("The name of the mesh file, "+file_name+", has"+
-        " an extension. This name musn't have a extension, for xdmf fi"+
-        "les only can be read with this method.\n")
-
-    # Initializes the mesh object and reads the xdmf file
-
-    mesh = Mesh()
-
-    # Initializes a mesh value collection to store mesh data of the do-
-    # main
-
-    data_meshCollection = MeshValueCollection("size_t", mesh, 
-    mesh.topology().dim())
-
-    # Reads the mesh with domain physical groups
-
-    with XDMFFile(file_name+"_domain.xdmf") as infile:
-
-        infile.read(mesh)
-
-        infile.read(data_meshCollection, "domain")
-
-    # Converts the mesh value collection to mesh function, for mesh va-
-    # lue collections are low level and cannot be used for FEM integra-
-    # tion and other higher level operations inside FEniCS
-
-    domain_meshFunction = MeshFunction("size_t", mesh, 
-    data_meshCollection)
-
-    # Reinitializes the mesh value colection to the boundary data
-
-    data_meshCollection = MeshValueCollection("size_t", mesh,
-    mesh.topology().dim()-1)
-
-    # Reads the mesh with surface physical groups
-
-    with XDMFFile(file_name+"_boundary.xdmf") as infile:
-    
-        infile.read(data_meshCollection, "boundary")
-
-    # Converts the mesh value collection to mesh function
-
-    boundary_meshFunction = MeshFunction("size_t", mesh, 
-    data_meshCollection)
-
-    # Sets the integration differentials
-
-    dx = Measure("dx", domain=mesh, subdomain_data=domain_meshFunction)
-
-    ds = Measure("ds", domain=mesh, subdomain_data=boundary_meshFunction)
-
-    # Sets the normal vector to the mesh's boundary
-
-    n  = FacetNormal(mesh)
-
-    # Returns these objects
-
-    return mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction
+import os
 
 ########################################################################
 #                              txt files                               #
@@ -122,9 +51,17 @@ def txt_toList(file_name):
 
     saved_string = ""
 
-    with open(file_name+".txt", "r") as infile:
+    try:
 
-        saved_string = infile.read()
+        with open(file_name+".txt", "r") as infile:
+
+            saved_string = infile.read()
+
+    except:
+
+        raise FileNotFoundError("The file "+file_name+".txt was not fo"+
+        "und while evaluating txt_toList method in file_handling_tools"+
+        ".py\n")
 
     # Iterates through the characters of the string, but takes the first
     # and last characters out as they are the outer brackets
