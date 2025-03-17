@@ -142,7 +142,7 @@ maximum_loadingSteps = 11
 
 # Reads the mesh and constructs some fenics objects using the xdmf file
 
-mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction = file_tools.read_xdmfMesh(
+mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction = mesh_tools.read_xdmfMesh(
 file_name)
 
 # Defines the finite element spaces for the displacement field, u, and 
