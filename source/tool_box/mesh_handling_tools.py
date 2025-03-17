@@ -221,3 +221,38 @@ function_spaceType=None):
     return (sub_mesh, cell_markers, submesh_functionSpace, 
     sub_meshMapping, parent_meshMapping, submesh_function, 
     sub_toParentCellMap)
+
+# Defines a function to update the field parameters vector of a submesh 
+# given the corresponding vector at the parent mesh
+
+def field_parentToSubmesh(submesh, field_submesh, field_parentMesh, 
+sub_toParentCellMap, sub_meshMapping, parent_meshMapping):
+
+    # Iterates through the elements of the submesh
+
+    for element in cells(submesh):
+
+        # Gets the index of the element in the submesh
+
+        submesh_index = element.index()
+
+        # Gets the index of the element in the parent mesh
+
+        parent_index = sub_toParentCellMap[submesh_index]
+
+        # Iterates through the fields of the meshes. If the mesh has on-
+        # ly one field, displacement for instance, the list of DOF map-
+        # ping has only one component
+
+        for i in range(len(sub_meshMapping)):
+
+            # Translates the values of the solution using the DOFs map-
+            # ping
+
+            field_submesh.vector()[sub_meshMapping[i].cell_dofs(
+            submesh_index)] = field_parentMesh.vector()[
+            parent_meshMapping[i].cell_dofs(parent_index)] 
+
+    # Returns the submesh field
+
+    return field_submesh

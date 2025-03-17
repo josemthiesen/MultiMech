@@ -438,6 +438,8 @@ while t < Tf:
     phi_RVE_homogenized.append([t,homogenization_tools.get_homogenized(phi, dx).tolist()])
     grad_phi_RVE_homogenized.append([t,homogenization_tools.get_homogenized_gradient(grad(phi), dx).tolist()])
 
+    """
+
     # Iterates through the elements of the submesh
 
     for element in cells(RVE_submesh):
@@ -454,6 +456,10 @@ while t < Tf:
 
         sol_RVE.vector()[U_rveDofMap.cell_dofs(submesh_index)] = sol_new.vector()[U_parentDofMap.cell_dofs(parent_index)] 
         sol_RVE.vector()[V_rveDofMap.cell_dofs(submesh_index)] = sol_new.vector()[V_parentDofMap.cell_dofs(parent_index)] 
+    """
+
+    sol_RVE = mesh_tools.field_parentToSubmesh(RVE_submesh, sol_RVE, 
+    sol_new, RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
 
     u_RVE, phi_RVE = sol_RVE.split(deepcopy=True)
 

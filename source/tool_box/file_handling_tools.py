@@ -1,8 +1,6 @@
 # Routine to store methods for in-and-out processing, like reading and
 # writing files
 
-import os
-
 ########################################################################
 #                              txt files                               #
 ########################################################################
