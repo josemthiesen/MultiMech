@@ -81,7 +81,14 @@ def read_xdmfMesh(file_name):
 
 # Defines a function to generate a submesh using MeshView and creates
 
-def create_submesh(mesh, original_cellMarkers, volume_physGroupsTags):
+def create_submesh(mesh, original_cellMarkers, volume_physGroupsTags, 
+parent_functionSpace, mixed_element=None, polynomial_degree=None, 
+function_spaceType=None):
+
+    # Copies the original cell markers object, so that it won't be af-
+    # fected elsewhere in the code
+
+    cell_markers = copy.deepcopy(original_cellMarkers)
 
     # If the submesh is meant to be constructed from different volume 
     # physical groups of the mesh, the object of cell_markers has to be
@@ -91,11 +98,6 @@ def create_submesh(mesh, original_cellMarkers, volume_physGroupsTags):
     # into a single marker; conventionally the first selected marker
 
     if isinstance(volume_physGroupsTags, list):
-
-        # Copies the original cell markers object, so that it won't be 
-        # affected elsewhere in the code
-
-        cell_markers = copy.deepcopy(original_cellMarkers)
 
         # Iterates through the elements of the parent mesh
 
@@ -119,8 +121,103 @@ def create_submesh(mesh, original_cellMarkers, volume_physGroupsTags):
 
     # Creates a submesh for the RVE
 
-    RVE_submesh = MeshView.create(cell_markers,volume_physGroupsTags)
+    sub_mesh = MeshView.create(cell_markers, volume_physGroupsTags)
 
-    # Returns the submesh
+    # Creates the mapping of elements from the submesh to the parent 
+    # mesh, i.e. given the element index in the submesh, it throws the 
+    # index in the parent mesh
 
-    return RVE_submesh
+    sub_toParentCellMap = sub_mesh.topology().mapping()[mesh.id()
+    ].cell_map()
+
+    # Creates the function spaces
+
+    submesh_functionSpace = 0
+
+    # If the mixed element is not None, it is used
+
+    if mixed_element!=None:
+
+        submesh_functionSpace = FunctionSpace(sub_mesh,mixed_element)
+
+    else:
+
+        # Handles the exception of the polynomial degree being not given
+
+        if (polynomial_degree==None or (not isinstance(polynomial_degree
+        ), int)):
+            
+            raise ValueError("In creat_submesh, mesh_handling_tools.py"+
+            ", if mixed_element was not prescribed, the function space"+
+            " is supposed as 'CG' per default. Thus, a polynomial degr"+
+            "ee must be provided, which wasn't: polynomial_degree="+str(
+            polynomial_degree))
+
+        # If the field is scalar
+
+        if function_spaceType=="scalar":
+
+            submesh_functionSpace = FunctionSpace(sub_mesh, "CG",
+            polynomial_degree)
+
+        # If the field is vector function
+
+        elif function_spaceType=="vector":
+
+            submesh_functionSpace = VectorFunctionSpace(sub_mesh, "CG", 
+            polynomial_degree)
+
+        # If the field is a tensor function
+
+        elif function_spaceType=="tensor":
+
+            submesh_functionSpace = TensorFunctionSpace(sub_mesh, "CG", 
+            polynomial_degree)
+
+        # Handle not implemented function spaces
+
+        else:
+
+            raise NameError("create_submesh in mesh_handling_tools.py "+
+            "does not support "+function_spaceType+" function space, f"+
+            "or it's not been implemented yet or it's not possible to "+
+            "implement.")
+        
+    # Initializes the function to the solution at the submesh
+
+    submesh_function = Function(submesh_functionSpace)
+
+    # Initializes the DOF mappings for the RVE and for the original mesh
+
+    sub_meshMapping = []
+
+    parent_meshMapping = []
+
+    # Verifies whether there is only on field
+
+    if mixed_element==None:
+
+        sub_meshMapping.append(submesh_functionSpace.dofmap())
+
+        parent_meshMapping.append(parent_functionSpace.dofmap())
+
+    # If there are multiple fields
+
+    else:
+
+        # Iterates through the number of fields
+
+        for i in range(mixed_element.num_sub_elements()):
+
+            # Adds the submesh mapping and the parent mesh mapping
+
+            sub_meshMapping.append(submesh_functionSpace.sub(i).dofmap())
+
+            parent_meshMapping.append(parent_functionSpace.sub(i).dofmap(
+            ))
+
+    # Returns the submesh, the updated cell markers, and the DOF mappings
+
+    return (sub_mesh, cell_markers, submesh_functionSpace, 
+    sub_meshMapping, parent_meshMapping, submesh_function, 
+    sub_toParentCellMap)

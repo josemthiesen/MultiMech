@@ -81,6 +81,10 @@ file_name = "test_meshes//macro_mesh"
 
 flag_newMesh = False
 
+# Defines the physical groups that belongs to the RVE
+
+volume_physGroupsRVE = [3, 4]
+
 ########################################################################
 #                            Function space                            #
 ########################################################################
@@ -158,6 +162,8 @@ monolithic_functionSpace = FunctionSpace(mesh, micropolar_mixedElement)
 #                         RVE post-processing                          #
 ########################################################################
 
+"""
+
 # Changes the cell markers of the RVE physical groups so they have the 
 # same marker
 
@@ -178,8 +184,6 @@ UV_submesh = FunctionSpace(RVE_submesh, micropolar_mixedElement)
 
 sol_RVE = Function(UV_submesh)
 
-# Creates the solution of the displacement field inside the RVE submesh
-
 # Creates the mappings of the degrees of freedom in both function spaces
 
 U_rveDofMap = UV_submesh.sub(0).dofmap()
@@ -194,6 +198,16 @@ V_parentDofMap = monolithic_functionSpace.sub(1).dofmap()
 
 RVE_toParentCellMap = RVE_submesh.topology().mapping()[mesh.id()
 ].cell_map()
+
+"""
+
+# Creates the RVE submesh and automatically constructs the function spa-
+# ces and the DOFs mapping between meshes
+
+(RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
+parent_meshMapping, sol_RVE, RVE_toParentCellMap) = mesh_tools.create_mesh(
+mesh, domain_meshFunction, volume_physGroupsRVE, 
+monolithic_functionSpace, mixed_element=micropolar_mixedElement)
 
 ###########################################################################################
 ###########################################################################################
