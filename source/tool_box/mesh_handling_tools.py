@@ -124,5 +124,3 @@ def create_submesh(mesh, original_cellMarkers, volume_physGroupsTags):
     # Returns the submesh
 
     return RVE_submesh
-
-# Teste
