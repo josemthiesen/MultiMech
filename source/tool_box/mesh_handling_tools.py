@@ -27,7 +27,7 @@ def read_xdmfMesh(file_name):
     # Initializes a mesh value collection to store mesh data of the do-
     # main
 
-    data_meshCollection = MeshValueCollection("size_t", mesh, 
+    domain_meshCollection = MeshValueCollection("size_t", mesh, 
     mesh.topology().dim())
 
     # Reads the mesh with domain physical groups
@@ -36,30 +36,30 @@ def read_xdmfMesh(file_name):
 
         infile.read(mesh)
 
-        infile.read(data_meshCollection, "domain")
+        infile.read(domain_meshCollection, "domain")
 
     # Converts the mesh value collection to mesh function, for mesh va-
     # lue collections are low level and cannot be used for FEM integra-
     # tion and other higher level operations inside FEniCS
 
     domain_meshFunction = MeshFunction("size_t", mesh, 
-    data_meshCollection)
+    domain_meshCollection)
 
     # Reinitializes the mesh value colection to the boundary data
 
-    data_meshCollection = MeshValueCollection("size_t", mesh,
+    boundary_meshCollection = MeshValueCollection("size_t", mesh,
     mesh.topology().dim()-1)
 
     # Reads the mesh with surface physical groups
 
     with XDMFFile(file_name+"_boundary.xdmf") as infile:
     
-        infile.read(data_meshCollection, "boundary")
+        infile.read(boundary_meshCollection, "boundary")
 
     # Converts the mesh value collection to mesh function
 
     boundary_meshFunction = MeshFunction("size_t", mesh, 
-    data_meshCollection)
+    boundary_meshCollection)
 
     # Sets the integration differentials
 
@@ -73,7 +73,8 @@ def read_xdmfMesh(file_name):
 
     # Returns these objects
 
-    return mesh, dx, ds, n, domain_meshFunction, boundary_meshFunction
+    return (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
+    boundary_meshCollection, boundary_meshFunction)
 
 ########################################################################
 #                              Submeshing                              #
@@ -81,14 +82,15 @@ def read_xdmfMesh(file_name):
 
 # Defines a function to generate a submesh using MeshView and creates
 
-def create_submesh(mesh, original_cellMarkers, volume_physGroupsTags, 
+def create_submesh(mesh, domain_meshCollection, volume_physGroupsTags, 
 parent_functionSpace, mixed_element=None, polynomial_degree=None, 
 function_spaceType=None):
 
-    # Copies the original cell markers object, so that it won't be af-
-    # fected elsewhere in the code
+    # creates a new cell markers object to not affect the mesh function
+    # at other parts of the code
 
-    cell_markers = copy.deepcopy(original_cellMarkers)
+    submesh_cellMarkers = cpp.mesh.MeshFunctionSizet(mesh, 
+    domain_meshCollection)
 
     # If the submesh is meant to be constructed from different volume 
     # physical groups of the mesh, the object of cell_markers has to be
@@ -108,11 +110,12 @@ function_spaceType=None):
                 # Tests if the cell marker is in the list of required 
                 # cell markers
 
-                if cell_markers[element] in volume_physGroupsTags:
+                if submesh_cellMarkers[element] in volume_physGroupsTags:
 
                     # Changes the cell marker to the first required one
 
-                    cell_markers[element] = volume_physGroupsTags[0]
+                    submesh_cellMarkers[element] = volume_physGroupsTags[
+                    0]
 
         # Collapses the volume physical groups tags list to the first 
         # component
@@ -121,7 +124,7 @@ function_spaceType=None):
 
     # Creates a submesh for the RVE
 
-    sub_mesh = MeshView.create(cell_markers, volume_physGroupsTags)
+    sub_mesh = MeshView.create(submesh_cellMarkers, volume_physGroupsTags)
 
     # Creates the mapping of elements from the submesh to the parent 
     # mesh, i.e. given the element index in the submesh, it throws the 
@@ -218,7 +221,7 @@ function_spaceType=None):
 
     # Returns the submesh, the updated cell markers, and the DOF mappings
 
-    return (sub_mesh, cell_markers, submesh_functionSpace, 
+    return (sub_mesh, submesh_cellMarkers, submesh_functionSpace, 
     sub_meshMapping, parent_meshMapping, submesh_function, 
     sub_toParentCellMap)
 
