@@ -136,13 +136,6 @@ maximum_loadingSteps = 11
 #                                 Mesh                                 #
 ########################################################################
 
-# Generates the mesh and writes it 
-
-#if flag_newMesh:
-
-#    mesher.generate_periodicMesh(file_name, flag_transfinite=0, verbose=
-#    True, lc=5e-4)
-
 # Reads the mesh and constructs some fenics objects using the xdmf file
 
 (mesh, dx, ds, n, domain_mehsCollection, domain_meshFunction, 
