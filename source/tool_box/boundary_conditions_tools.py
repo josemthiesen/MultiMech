@@ -12,10 +12,11 @@ from dolfin import *
 # fields must be provided because, if one programatically tries to count
 # the number of subfields in a function space and the function space is
 # a vector function space for instance, it will count the dimensionality
-# of the vector as subfields, which are not physical fields alone per se
+# of the vector as subfields, which are not physical fields alone per
+# se. If sub_fields is an empty list, all DOFs are constrained
 
 def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
+boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC=[]):
 
     # Initializes a list of boundary conditions objects
 
@@ -48,7 +49,7 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
                     # Verifies if this field is to be constrained or not
 
                     if (field in sub_fieldsToApplyBC or (
-                    sub_fieldsToApplyBC=="all")):
+                    sub_fieldsToApplyBC==[])):
 
                         # Adds this particular boundary condition to the 
                         # lot
@@ -81,7 +82,7 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
                 # Verifies if this field is to be constrained or not
 
                 if (field in sub_fieldsToApplyBC or (
-                sub_fieldsToApplyBC=="all")):
+                sub_fieldsToApplyBC==[])):
 
                     # Adds this particular boundary condition to the lot
 
@@ -94,7 +95,8 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
 
     return boundary_conditions
 
-# Defines a function to apply a simple support
+# Defines a function to apply a simple support. If sub_fields is an empty
+# list, all DOFs are constrained
 
 def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
 boundary_physicalGroups, list_constrainedDOFs, n_fields=1, 
@@ -138,7 +140,7 @@ sub_fieldsToApplyBC=[]):
                     # Verifies if this field is to be constrained or not
 
                     if (field in sub_fieldsToApplyBC or (
-                    sub_fieldsToApplyBC=="all")):
+                    sub_fieldsToApplyBC==[])):
                         
                         # Iterates through the DOFs to be constrained
 
@@ -185,7 +187,7 @@ sub_fieldsToApplyBC=[]):
                 # Verifies if this field is to be constrained or not
 
                 if (field in sub_fieldsToApplyBC or (
-                sub_fieldsToApplyBC=="all")):
+                sub_fieldsToApplyBC==[])):
                     
                     # Iterates through the DOFs to be constrained
 
