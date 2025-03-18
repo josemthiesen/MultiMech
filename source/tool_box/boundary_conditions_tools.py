@@ -96,6 +96,114 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
 # Defines a function to apply a simple support
 
 def simple_supportDirichletBC(field_function, boundary_meshFunction, 
-boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC=[]):
+boundary_physicalGroups, list_constrainedDOFs, n_fields=1, 
+sub_fieldsToApplyBC=[]):
 
-    pass
+    # Initializes a list of boundary conditions objects
+
+    boundary_conditions = []
+
+    # Verifies whether the boundary physical groups is a list or not
+
+    if isinstance(boundary_physicalGroups, list):
+
+        # Iterates through the regions
+
+        for physical_group in boundary_physicalGroups:
+
+            # Verifies if there is only one field
+
+            if n_fields==1:
+
+                # Iterates through the DOFs to be constrained
+
+                for i in range(field_function.function_space(
+                ).num_sub_spaces()):
+                    
+                    if i in list_constrainedDOFs:
+
+                        # Adds this particular boundary condition to the 
+                        # lot
+
+                        boundary_conditions.append(DirichletBC(
+                        field_function.sub(i),
+                        Constant(0.0), boundary_meshFunction, 
+                        physical_group))
+
+            # Otherwise, iterates through the fields
+
+            else:
+
+                for field in range(n_fields):
+
+                    # Verifies if this field is to be constrained or not
+
+                    if (field in sub_fieldsToApplyBC or (
+                    sub_fieldsToApplyBC=="all")):
+                        
+                        # Iterates through the DOFs to be constrained
+
+                        for i in range(field_function.sub(field
+                        ).function_space().num_sub_spaces()):
+                            
+                            if i in list_constrainedDOFs:
+
+                                # Adds this particular boundary condition 
+                                # to the lot
+
+                                boundary_conditions.append(DirichletBC(
+                                field_function.sub(field).sub(i), 
+                                Constant(0.0), boundary_meshFunction, 
+                                physical_group))
+
+    # Otherwise, if there is only one physical group to apply boundary 
+    # conditions
+
+    else:
+
+        # Verifies if there is only one field
+
+        if n_fields==1:
+
+            # Iterates through the DOFs to be constrained
+
+            for i in range(field_function.function_space(
+            ).num_sub_spaces()):
+                
+                if i in list_constrainedDOFs:
+
+                    # Adds this particular boundary condition to the lot
+
+                    boundary_conditions.append(DirichletBC(
+                    field_function.sub(i), Constant(0.0), 
+                    boundary_meshFunction, boundary_physicalGroups))
+
+        # Otherwise, iterates through the fields
+
+        else:
+
+            for field in range(n_fields):
+
+                # Verifies if this field is to be constrained or not
+
+                if (field in sub_fieldsToApplyBC or (
+                sub_fieldsToApplyBC=="all")):
+                    
+                    # Iterates through the DOFs to be constrained
+
+                    for i in range(field_function.sub(field
+                    ).function_space().num_sub_spaces()):
+                        
+                        if i in list_constrainedDOFs:
+
+                            # Adds this particular boundary condition to
+                            # the lot
+
+                            boundary_conditions.append(DirichletBC(
+                            field_function.sub(field).sub(i), Constant(
+                            0.0), boundary_meshFunction, 
+                            boundary_physicalGroups))
+
+    # Returns the boundary conditions list
+
+    return boundary_conditions
