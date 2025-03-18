@@ -14,7 +14,7 @@ from dolfin import *
 # a vector function space for instance, it will count the dimensionality
 # of the vector as subfields, which are not physical fields alone per se
 
-def cantilever_DirichletBC(field_function, boundary_meshFunction, 
+def fixed_supportDirichletBC(field_function, boundary_meshFunction, 
 boundary_physicalGroups, n_fields=1):
 
     # Initializes a list of boundary conditions objects
