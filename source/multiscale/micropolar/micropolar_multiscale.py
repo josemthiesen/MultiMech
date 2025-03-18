@@ -225,6 +225,27 @@ def curvature_tensor(phi):
     return K_second
 
 ########################################################################
+#                         Material properties                          #
+########################################################################
+
+# Converts the dictionary of shear modulus to a discontinuous Galerkin
+# function space
+
+mu = functional_tools.physical_groupToDGSpace(mu_materials, mesh, 
+domain_meshFunction)
+
+# Defines other material properties derived from the shear modulus (the
+# mu Lamé parameter)
+
+kappa = -0.15*mu
+
+lmbda = 63.84-(2*mu/3)
+
+# Calculates the volume of the RVE
+
+v_tot = assemble(1*dx)
+
+########################################################################
 #                        Constitutive modelling                        #
 ########################################################################
 
@@ -362,27 +383,6 @@ phi_RVE_homogenized = file_tools.txt_toList(macro_microrotationName)
 
 grad_phi_RVE_homogenized = file_tools.txt_toList(
 macro_gradMicrorotationName)
-
-########################################################################
-#                         Material properties                          #
-########################################################################
-
-# Converts the dictionary of shear modulus to a discontinuous Galerkin
-# function space
-
-mu = functional_tools.physical_groupToDGSpace(mu_materials, mesh, 
-domain_meshFunction)
-
-# Defines other material properties derived from the shear modulus (the
-# mu Lamé parameter)
-
-kappa = -0.15*mu
-
-lmbda = 63.84-(2*mu/3)
-
-# Calculates the volume of the RVE
-
-v_tot = assemble(1*dx)
 
 ########################################################################
 #                           Variational forms                          #
