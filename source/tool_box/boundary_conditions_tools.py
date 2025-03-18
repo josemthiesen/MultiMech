@@ -21,7 +21,8 @@ boundary_meshFunction, boundary_physicalGroups, n_fields=1):
 
     if isinstance(boundary_physicalGroups, list):
 
-        #
+        # Ckijkddk.vd
+        sdgd
 
     bc1 = DirichletBC(monolithic_functionSpace.sub(0), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
     bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
