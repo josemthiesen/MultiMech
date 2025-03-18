@@ -75,7 +75,7 @@ macro_gradMicrorotationName = "grad_phi_RVE_homogenized"
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-file_name = "test_meshes//RVE_mesh"
+file_name = "test_meshes//micro_mesh"
 
 # Defines a flag to generate a new mesh or not
 
