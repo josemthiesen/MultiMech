@@ -412,7 +412,7 @@ couple_stress = Couple_Kirchhoff_Stress(u_new,phi_new)
 
 Int_du = inner(stress*invgrad, grad(vu))*dx 
 
-Int_dphi = inner(couple_stress*invgrad, grad(vphi))*dx - inner(stress, W_matrix(vphi))*dx 
+Int_dphi = inner(couple_stress*invgrad, grad(vphi))*dx - inner(stress, tensor_tools.skew_2OrderTensor(vphi))*dx 
 
 l_du = dot(traction_boundary,vu)*ds(9)
 
