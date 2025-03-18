@@ -14,7 +14,7 @@ from dolfin import *
 # a vector function space for instance, it will count the dimensionality
 # of the vector as subfields, which are not physical fields alone per se
 
-def fixed_supportDirichletBC(field_function, boundary_meshFunction, 
+def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
 boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
 
     # Initializes a list of boundary conditions objects
@@ -35,9 +35,9 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
 
                 # Adds this particular boundary condition to the lot
 
-                boundary_conditions.append(DirichletBC(field_function,
-                Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 
-                physical_group))
+                boundary_conditions.append(DirichletBC(
+                field_functionSpace, Constant((0.0, 0.0, 0.0)), 
+                boundary_meshFunction, physical_group))
 
             # Otherwise, iterates through the fields
 
@@ -54,7 +54,7 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
                         # lot
 
                         boundary_conditions.append(DirichletBC(
-                        field_function.sub(field), Constant((0.0, 0.0, 
+                        field_functionSpace.sub(field), Constant((0.0, 0.0, 
                         0.0)), boundary_meshFunction, physical_group))
 
     # Otherwise, if there is only one physical group to apply boundary 
@@ -68,7 +68,7 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
 
             # Adds this particular boundary condition to the lot
 
-            boundary_conditions.append(DirichletBC(field_function,
+            boundary_conditions.append(DirichletBC(field_functionSpace,
             Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 
             boundary_physicalGroups))
 
@@ -86,8 +86,9 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
                     # Adds this particular boundary condition to the lot
 
                     boundary_conditions.append(DirichletBC(
-                    field_function.sub(field), Constant((0.0, 0.0, 0.0)), 
-                    boundary_meshFunction, boundary_physicalGroups))
+                    field_functionSpace.sub(field), Constant((0.0, 0.0, 
+                    0.0)), boundary_meshFunction, 
+                    boundary_physicalGroups))
 
     # Returns the boundary conditions list
 
@@ -95,7 +96,7 @@ boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
 
 # Defines a function to apply a simple support
 
-def simple_supportDirichletBC(field_function, boundary_meshFunction, 
+def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
 boundary_physicalGroups, list_constrainedDOFs, n_fields=1, 
 sub_fieldsToApplyBC=[]):
 
@@ -117,8 +118,7 @@ sub_fieldsToApplyBC=[]):
 
                 # Iterates through the DOFs to be constrained
 
-                for i in range(field_function.function_space(
-                ).num_sub_spaces()):
+                for i in range(field_functionSpace.num_sub_spaces()):
                     
                     if i in list_constrainedDOFs:
 
@@ -126,9 +126,8 @@ sub_fieldsToApplyBC=[]):
                         # lot
 
                         boundary_conditions.append(DirichletBC(
-                        field_function.sub(i),
-                        Constant(0.0), boundary_meshFunction, 
-                        physical_group))
+                        field_functionSpace.sub(i), Constant(0.0), 
+                        boundary_meshFunction, physical_group))
 
             # Otherwise, iterates through the fields
 
@@ -143,8 +142,8 @@ sub_fieldsToApplyBC=[]):
                         
                         # Iterates through the DOFs to be constrained
 
-                        for i in range(field_function.sub(field
-                        ).function_space().num_sub_spaces()):
+                        for i in range(field_functionSpace.sub(field
+                        ).num_sub_spaces()):
                             
                             if i in list_constrainedDOFs:
 
@@ -152,7 +151,7 @@ sub_fieldsToApplyBC=[]):
                                 # to the lot
 
                                 boundary_conditions.append(DirichletBC(
-                                field_function.sub(field).sub(i), 
+                                field_functionSpace.sub(field).sub(i), 
                                 Constant(0.0), boundary_meshFunction, 
                                 physical_group))
 
@@ -167,15 +166,14 @@ sub_fieldsToApplyBC=[]):
 
             # Iterates through the DOFs to be constrained
 
-            for i in range(field_function.function_space(
-            ).num_sub_spaces()):
+            for i in range(field_functionSpace.num_sub_spaces()):
                 
                 if i in list_constrainedDOFs:
 
                     # Adds this particular boundary condition to the lot
 
                     boundary_conditions.append(DirichletBC(
-                    field_function.sub(i), Constant(0.0), 
+                    field_functionSpace.sub(i), Constant(0.0), 
                     boundary_meshFunction, boundary_physicalGroups))
 
         # Otherwise, iterates through the fields
@@ -191,8 +189,8 @@ sub_fieldsToApplyBC=[]):
                     
                     # Iterates through the DOFs to be constrained
 
-                    for i in range(field_function.sub(field
-                    ).function_space().num_sub_spaces()):
+                    for i in range(field_functionSpace.sub(field
+                    ).num_sub_spaces()):
                         
                         if i in list_constrainedDOFs:
 
@@ -200,8 +198,8 @@ sub_fieldsToApplyBC=[]):
                             # the lot
 
                             boundary_conditions.append(DirichletBC(
-                            field_function.sub(field).sub(i), Constant(
-                            0.0), boundary_meshFunction, 
+                            field_functionSpace.sub(field).sub(i), 
+                            Constant(0.0), boundary_meshFunction, 
                             boundary_physicalGroups))
 
     # Returns the boundary conditions list

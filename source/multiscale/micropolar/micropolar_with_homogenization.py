@@ -22,6 +22,8 @@ import source.tool_box.file_handling_tools as file_tools
 
 import source.tool_box.functional_tools as functional_tools
 
+import source.tool_box.boundary_conditions_tools as BCs_tools
+
 # Define the indices for Einstein summation notation
 
 i, j, k, l = ufl.indices(4)
@@ -199,6 +201,8 @@ lmbda = 63.84-(2*mu/3)
 load = Expression("t", t = 0.0, degree = 1)
 
 # Defines the boundary conditions
+
+bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace,)
 
 bc1 = DirichletBC(monolithic_functionSpace.sub(0), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
 bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
