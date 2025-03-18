@@ -190,9 +190,15 @@ kappa = 0#-0.15*mu
 
 lmbda = 63.84-(2*mu/3)
 
-I = Identity(3)
+########################################################################
+#                          Boundary conditions                         #
+########################################################################
+
+# Defines a load expression
 
 load = Expression("t", t = 0.0, degree = 1)
+
+# Defines the boundary conditions
 
 bc1 = DirichletBC(monolithic_functionSpace.sub(0), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
 bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
@@ -200,6 +206,8 @@ bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), bo
 bc = [bc1, bc2]
 
 traction_boundary = as_vector([load,0.0,0.0])
+
+I = Identity(3)
 
 def safe_sqrt(a):
     return sqrt(a + 1.0e-12)
