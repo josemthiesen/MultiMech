@@ -24,6 +24,8 @@ import source.tool_box.functional_tools as functional_tools
 
 import source.tool_box.boundary_conditions_tools as BCs_tools
 
+import source.tool_box.tensor_tools as tensor_tools
+
 # Define the indices for Einstein summation notation
 
 i, j, k, l = ufl.indices(4)
@@ -197,6 +199,41 @@ mesh, domain_meshCollection, volume_physGroupsRVE,
 monolithic_functionSpace, mixed_element=micropolar_mixedElement)
 
 ########################################################################
+#                          Micropolar tensors                          #
+########################################################################
+
+# Constructs the three-dimensional identity tensor 
+
+I = Identity(3)
+
+# Defines the curvature tensor
+
+def curvature_tensor(phi):
+
+    # Defines the permutation tensor for 3D euclidean space
+
+    perm = ufl.PermutationSymbol(3)
+    
+    # Computes the micro-rotation tensor Rbar
+     
+    R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
+    
+    # Computes the gradient of each component of R_bar to get a third 
+    # order tensor, grad_Rbar
+
+    grad_Rbar = grad(R_bar)
+
+    # Constructs the third order curvature tensor K_third
+
+    K_third = as_tensor(R_bar[j,i]*grad_Rbar[j,k,l], (i,k,l))
+
+    # Contracts with the permutation tensor to form K_second
+
+    K_second = 0.5*as_tensor(perm[i,j,k]*K_third[k,j,l], (i,l))
+
+    return K_second
+
+########################################################################
 #                         Material properties                          #
 ########################################################################
 
@@ -222,65 +259,36 @@ lmbda = 63.84-(2*mu/3)
 bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace,
 boundary_meshFunction, fixed_supportPhysicalGroups, n_fields=2)
 
-I = Identity(3)
+########################################################################
+#                        Constitutive modelling                        #
+########################################################################
 
-def safe_sqrt(a):
-    return sqrt(a + 1.0e-12)
+# Sets the Helmholtz free energy density to a neo-hookean isotropic mo-
+# del. Uses the micropolar stretch as input
 
+def psi_NH(V_bar):
 
-def phi_angle(phi):
-    return safe_sqrt(dot(phi, phi))
+    energy = 0.5*mu*(tr(V_bar*V_bar.T)-3.0)
 
-def W_matrix(phi):
-   
-   perm = ufl.PermutationSymbol(3)
-   
-   W = as_tensor(perm[j,i,k]*phi[k], (i,j))
+    return energy
 
-   return W
-
-def MicroRotation_Tensor(phi):
-
-    rotation_angle = phi_angle(phi)
-
-    W_phi = W_matrix(phi)
-
-    R_bar = ufl.cos(rotation_angle)*I + (ufl.sin(rotation_angle)/rotation_angle)*W_phi \
-                + ((1-ufl.cos(rotation_angle))/(rotation_angle**2))*ufl.outer(phi,phi)
-
-    return R_bar
-
-def curvature_tensor(phi):
-
-    # Define the permutation tensor for 3D
-    perm = ufl.PermutationSymbol(3)
-    
-    # Compute the micro-rotation tensor `Rbar` 
-    Rbar = MicroRotation_Tensor(phi)
-    
-    # Compute the gradient of each component of Rbar to get a third-order tensor `gradRbar`
-    # Here we assume that Rbar has dimensions (3, 3), and we calculate the gradient manually
-    gradRbar = grad(Rbar)
-
-    # Construct the third-order curvature tensor Kthird
-    Kthird = as_tensor(Rbar[j, i] * gradRbar[j,k,l], (i, k, l))
-
-    # Contract with the permutation tensor to form Ksecond
-    Ksecond = (1/2)*as_tensor(perm[i, j, k] * Kthird[k, j, l], (i, l))
-
-    return Ksecond
+# Sets the volumetric part of the Helmholtz free energy density
 
 def psi_vol(Vbar):
 
     J = det(Vbar)
 
-    energy = ((lmbda/4)*((J**2) - 1)) - ((lmbda/2)*(ln(J))) - (mu*ln(J))
+    energy = ((lmbda*0.25)*((J**2)-1))-((lmbda*0.5)*ln(J))-(mu*ln(J))
 
     return energy
 
-def psi_NH(Vbar):
+# Sets the energy density related to the curvature
 
-    energy = 0.5*mu*(tr(Vbar*Vbar.T)-3)
+def psi_k(K_curvature):
+
+    energy = ((0.5*(alpha*(tr(K_curvature)**2)+(beta*tr(K_curvature*
+    K_curvature))+(gamma*tr(K_curvature*K_curvature.T)))))
+
     return energy
 
 def psi_hat(Vbar):
@@ -289,64 +297,104 @@ def psi_hat(Vbar):
 
     return energy
 
-def psi_k(K_curvature):
-
-    energy = 0.5*(alpha*(tr(K_curvature)**2) + beta*tr(K_curvature*K_curvature) + gamma*tr(K_curvature*K_curvature.T))
-
-    return energy
-
+# Defines the micropolar Kirchhoff stress tensor
 
 def Kirchhoff_Stress(u, phi):
 
+    # Sets the identity tensor and the deformation gradient
+
     I = Identity(3)
+
     F = grad(u) + I
 
-    R_bar = MicroRotation_Tensor(phi)
+    # Evaluates the rotation tensor given by the micropolar rotation
+
+    R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
+
+    # Evaluates the micropolar stretch and the jacobian
     
     V_bar = F*(R_bar.T)
+
     J = det(V_bar)
 
-    #K_curvature = curvature_tensor(phi)
-    #k_curvature_spatial = R_bar*K_curvature*R_bar.T
+    # Evaluates the curvature tensor and its push-forward
 
-    #V_bar_trans = variable(V_bar.T)
-    #k_curvature_spatial = variable(k_curvature_spatial.T)
+    K_curvature = curvature_tensor(phi)
 
-    #psi_total = psi_NH(V_bar_trans.T) + psi_vol(V_bar_trans.T) +  psi_hat(V_bar_trans.T) + psi_k(k_curvature_spatial)
+    k_curvatureSpatial = R_bar*K_curvature*R_bar.T
 
-    #tau = J*V_bar*diff(psi_total, V_bar_trans)
+    V_barTransposed = variable(V_bar.T)
 
-    tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
+    # Evaluates the total energy density
 
-    return tau
+    psi_total = (psi_NH(V_barTransposed.T)+psi_vol(V_barTransposed.T)+
+    psi_hat(V_barTransposed.T)+psi_k(k_curvatureSpatial))
+
+    # Evaluates the micropolar Kirchhoff stress
+
+    tau = V_bar*diff(psi_total,V_barTransposed)
+
+    #tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/
+    #2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
+
+    # Pulls back to the reference configuration
+
+    return J*tau*inv(def_grad(u)).T
+
+# Definition of the Kirchhoff couple stress 
 
 def Couple_Kirchhoff_Stress(u, phi):
 
+    # Sets the identity tensor and the deformation gradient
+
     I = Identity(3)
+
     F = grad(u) + I
-    
-    R_bar = MicroRotation_Tensor(phi)
+
+    # Evaluates the rotation tensor given by the micropolar rotation
+
+    R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
+
+    # Evaluates the micropolar stretch and the jacobian
     
     V_bar = F*(R_bar.T)
+
     J = det(V_bar)
 
+    # Evaluates the curvature tensor and its push-forward
+
     K_curvature = curvature_tensor(phi)
-    k_curvature_spatial = R_bar*K_curvature*R_bar.T
 
-    #V_bar = variable(V_bar.T)
-    #k_curvature_spatial_trans = variable(k_curvature_spatial.T)
+    k_curvatureSpatial = R_bar*K_curvature*R_bar.T
+    
+    k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
 
-    #psi_total = psi_NH(V_bar) + psi_vol(V_bar) +  psi_hat(V_bar) + psi_k(k_curvature_spatial_trans.T)
+    # Evaluates the total energy density
 
-    #tau = J*V_bar*diff(psi_total, k_curvature_spatial_trans)
+    psi_total = (psi_NH(V_bar)+psi_vol(V_bar)+psi_hat(V_bar)+psi_k(
+    k_curvatureSpatialTransposed.T))
 
-    tau = V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*k_curvature_spatial) + (gamma*k_curvature_spatial.T))
+    # Evaluates the couple micropolar Kirchhof stress
 
-    return tau
+    tau = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
+    #tau = V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*
+    #k_curvature_spatial) + (gamma*k_curvature_spatial.T))
+
+    # Pulls back to the reference configuration
+
+    return J*tau*inv(def_grad(u)).T
+
+# Definition of the deformation gradient
 
 def def_grad(u):
+
     I = Identity(3)
+
     return I + grad(u)
+
+########################################################################
+#                           Variational forms                          #
+########################################################################
 
 # The function that multiplied the PDE/residual is called test function. The unknown function u to be approximated is referred to as trial function.
 
