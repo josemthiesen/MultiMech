@@ -163,45 +163,6 @@ monolithic_functionSpace = FunctionSpace(mesh, micropolar_mixedElement)
 #                         RVE post-processing                          #
 ########################################################################
 
-"""
-
-# Changes the cell markers of the RVE physical groups so they have the 
-# same marker
-
-for element in cells(mesh):
-
-    if domain_meshFunction[element]==4:
-
-        domain_meshFunction[element] = 3
-
-# Creates a submesh for the RVE
-
-RVE_submesh = MeshView.create(domain_meshFunction,3)
-
-# Creates a function space for the displacement inside the submesh of 
-# the RVE
- 
-UV_submesh = FunctionSpace(RVE_submesh, micropolar_mixedElement)
-
-sol_RVE = Function(UV_submesh)
-
-# Creates the mappings of the degrees of freedom in both function spaces
-
-U_rveDofMap = UV_submesh.sub(0).dofmap()
-V_rveDofMap = UV_submesh.sub(1).dofmap()
-
-U_parentDofMap = monolithic_functionSpace.sub(0).dofmap()
-V_parentDofMap = monolithic_functionSpace.sub(1).dofmap()
-
-# Creates the mapping of elements from the submesh to the parent mesh, 
-# i.e. given the element index in the submesh, it throws the index in 
-# the parent mesh
-
-RVE_toParentCellMap = RVE_submesh.topology().mapping()[mesh.id()
-].cell_map()
-
-"""
-
 # Creates the RVE submesh and automatically constructs the function spa-
 # ces and the DOFs mapping between meshes
 
