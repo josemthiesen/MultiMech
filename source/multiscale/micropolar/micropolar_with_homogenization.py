@@ -20,6 +20,8 @@ import source.tool_box.homogenization_tools as homogenization_tools
 
 import source.tool_box.file_handling_tools as file_tools
 
+import source.tool_box.functional_tools as functional_tools
+
 # Define the indices for Einstein summation notation
 
 i, j, k, l = ufl.indices(4)
@@ -50,7 +52,7 @@ alpha = 0.0
 
 beta = 0.0
 
-gamma = 5.22e-8
+gamma = 1e-12#5.22e-8 #5.22e-8 #((1e-5)**2)*2*mu # 43.265e-6
 
 ########################################################################
 #                          Macro deformations                          #
@@ -171,29 +173,23 @@ parent_meshMapping, sol_RVE, RVE_toParentCellMap) = mesh_tools.create_mesh(
 mesh, domain_meshFunction, volume_physGroupsRVE, 
 monolithic_functionSpace, mixed_element=micropolar_mixedElement)
 
-###########################################################################################
-###########################################################################################
+########################################################################
+#                         Material properties                          #
+########################################################################
 
-Vm = FunctionSpace(mesh, "DG", 0)
-vm = Function(Vm)
+# Converts the dictionary of shear modulus to a discontinuous Galerkin
+# function space
 
-mu_materials = [26.12,26.12]
+mu = functional_tools.physical_groupToDGSpace(mu_materials, mesh, 
+domain_meshFunction)
 
-# Assign material properties based on region
-for cell in cells(mesh):
-    region_id = domain_meshFunction[cell]  # Get the region id from cf
-    if (region_id == 1) or (region_id == 3):
-        vm.vector()[cell.index()] = mu_materials[0]
-    elif (region_id == 2) or (region_id == 4):
-        vm.vector()[cell.index()] = mu_materials[1]
+# Defines other material properties derived from the shear modulus (the
+# mu Lamé parameter)
 
-# Define material parameters for the micropolar material
-mu = vm
 kappa = 0#-0.15*mu
-alpha = 0.0
-beta = 0.0
-gamma = 1e-12#5.22e-8 #5.22e-8 #((1e-5)**2)*2*mu # 43.265e-6
+
 lmbda = 63.84-(2*mu/3)
+
 I = Identity(3)
 
 load = Expression("t", t = 0.0, degree = 1)
