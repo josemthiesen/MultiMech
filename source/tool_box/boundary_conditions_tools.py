@@ -8,10 +8,14 @@ from dolfin import *
 
 # Defines a function to apply homogeneous boundary conditions to a vec-
 # tor field over all the 3 directions. The field can be mixed, i.e. the-
-# re can be multiple field within the same solution
+# re can be multiple field within the same solution. The number of 
+# fields must be provided because, if one programatically tries to count
+# the number of subfields in a function space and the function space is
+# a vector function space for instance, it will count the dimensionality
+# of the vector as subfields, which are not physical fields alone per se
 
-def cantilever_DirichletBC(field_function, supported_dofsList, 
-boundary_meshFunction, boundary_physicalGroups, n_fields=1):
+def cantilever_DirichletBC(field_function, boundary_meshFunction, 
+boundary_physicalGroups, n_fields=1):
 
     # Initializes a list of boundary conditions objects
 
@@ -46,6 +50,33 @@ boundary_meshFunction, boundary_physicalGroups, n_fields=1):
                     boundary_conditions.append(DirichletBC(
                     field_function.sub(field), Constant((0.0, 0.0, 0.0)), 
                     boundary_meshFunction, physical_group))
+
+    # Otherwise, if there is only one physical group to apply boundary 
+    # conditions
+
+    else:
+
+        # Verifies if there is only one field
+
+        if n_fields==1:
+
+            # Adds this particular boundary condition to the lot
+
+            boundary_conditions.append(DirichletBC(field_function,
+            Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 
+            boundary_physicalGroups))
+
+        # Otherwise, iterates through the fields
+
+        else:
+
+            for field in range(n_fields):
+
+                # Adds this particular boundary condition to the lot
+
+                boundary_conditions.append(DirichletBC(
+                field_function.sub(field), Constant((0.0, 0.0, 0.0)), 
+                boundary_meshFunction, boundary_physicalGroups))
 
     # Returns the boundary conditions list
 
