@@ -186,7 +186,7 @@ monolithic_functionSpace = FunctionSpace(mesh, micropolar_mixedElement)
 
 (RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
 parent_meshMapping, sol_RVE, RVE_toParentCellMap) = mesh_tools.create_submesh(
-mesh, domain_meshFunction, volume_physGroupsRVE, 
+mesh, domain_meshCollection, volume_physGroupsRVE, 
 monolithic_functionSpace, mixed_element=micropolar_mixedElement)
 
 ########################################################################
