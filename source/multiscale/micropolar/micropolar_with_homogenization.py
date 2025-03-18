@@ -98,6 +98,20 @@ volume_physGroupsRVE = [3, 4]
 polynomial_degree = 1
 
 ########################################################################
+#                          Boundary conditions                         #
+########################################################################
+
+# Defines a load expression
+
+load = Expression("t", t = 0.0, degree = 1)
+
+# Defines the boundary physical groups to apply fixed support boundary
+# condition. This variable can be either a list of physical groups tags
+# or simply a tag
+
+fixed_supportPhysicalGroups = 5
+
+########################################################################
 #                           Solver parameters                          #
 ########################################################################
 
@@ -202,12 +216,13 @@ load = Expression("t", t = 0.0, degree = 1)
 
 # Defines the boundary conditions
 
-bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace,)
+bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace,
+boundary_meshFunction, fixed_supportPhysicalGroups, n_fields=2)
 
-bc1 = DirichletBC(monolithic_functionSpace.sub(0), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
-bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
+#bc1 = DirichletBC(monolithic_functionSpace.sub(0), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
+#bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
 
-bc = [bc1, bc2]
+#bc = [bc1, bc2]
 
 traction_boundary = as_vector([load,0.0,0.0])
 
