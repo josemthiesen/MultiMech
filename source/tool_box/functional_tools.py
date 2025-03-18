@@ -3,10 +3,13 @@
 from dolfin import *
 
 ########################################################################
-#     Creation and pre-evaluation of discontinuous function spaces
+#     Creation and pre-evaluation of discontinuous function spaces     #
+########################################################################
 
 # Defines a function to create a R^3 -> R discontinuous function space
-# and populates it with values using physical groups information
+# and populates it with values using physical groups information. The 
+# keys are the physical groups tags and the values are the values of the
+# property to be interpolated using a function space
 
 def physical_groupToDGSpace(physical_dictionary, mesh, mesh_function):
 
