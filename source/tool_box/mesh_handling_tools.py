@@ -86,7 +86,7 @@ def create_submesh(mesh, domain_meshCollection, volume_physGroupsTags,
 parent_functionSpace, mixed_element=None, polynomial_degree=None, 
 function_spaceType=None):
 
-    # creates a new cell markers object to not affect the mesh function
+    # Creates a new cell markers object to not affect the mesh function
     # at other parts of the code
 
     submesh_cellMarkers = cpp.mesh.MeshFunctionSizet(mesh, 
