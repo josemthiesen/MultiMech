@@ -21,8 +21,32 @@ boundary_meshFunction, boundary_physicalGroups, n_fields=1):
 
     if isinstance(boundary_physicalGroups, list):
 
-        # Ckijkddk.vd
-        sdgd
+        # Iterates through the regions
 
-    bc1 = DirichletBC(monolithic_functionSpace.sub(0), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
-    bc2 = DirichletBC(monolithic_functionSpace.sub(1), Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)
+        for physical_group in boundary_physicalGroups:
+
+            # Verifies if there is only one field
+
+            if n_fields==1:
+
+                # Adds this particular boundary condition to the lot
+
+                boundary_conditions.append(DirichletBC(field_function,
+                Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 
+                physical_group))
+
+            # Otherwise, iterates through the fields
+
+            else:
+
+                for field in range(n_fields):
+
+                    # Adds this particular boundary condition to the lot
+
+                    boundary_conditions.append(DirichletBC(
+                    field_function.sub(field), Constant((0.0, 0.0, 0.0)), 
+                    boundary_meshFunction, physical_group))
+
+    # Returns the boundary conditions list
+
+    return boundary_conditions
