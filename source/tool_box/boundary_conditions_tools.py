@@ -15,7 +15,7 @@ from dolfin import *
 # of the vector as subfields, which are not physical fields alone per se
 
 def fixed_supportDirichletBC(field_function, boundary_meshFunction, 
-boundary_physicalGroups, n_fields=1):
+boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC="all"):
 
     # Initializes a list of boundary conditions objects
 
@@ -45,11 +45,17 @@ boundary_physicalGroups, n_fields=1):
 
                 for field in range(n_fields):
 
-                    # Adds this particular boundary condition to the lot
+                    # Verifies if this field is to be constrained or not
 
-                    boundary_conditions.append(DirichletBC(
-                    field_function.sub(field), Constant((0.0, 0.0, 0.0)), 
-                    boundary_meshFunction, physical_group))
+                    if (field in sub_fieldsToApplyBC or (
+                    sub_fieldsToApplyBC=="all")):
+
+                        # Adds this particular boundary condition to the 
+                        # lot
+
+                        boundary_conditions.append(DirichletBC(
+                        field_function.sub(field), Constant((0.0, 0.0, 
+                        0.0)), boundary_meshFunction, physical_group))
 
     # Otherwise, if there is only one physical group to apply boundary 
     # conditions
@@ -72,12 +78,24 @@ boundary_physicalGroups, n_fields=1):
 
             for field in range(n_fields):
 
-                # Adds this particular boundary condition to the lot
+                # Verifies if this field is to be constrained or not
 
-                boundary_conditions.append(DirichletBC(
-                field_function.sub(field), Constant((0.0, 0.0, 0.0)), 
-                boundary_meshFunction, boundary_physicalGroups))
+                if (field in sub_fieldsToApplyBC or (
+                sub_fieldsToApplyBC=="all")):
+
+                    # Adds this particular boundary condition to the lot
+
+                    boundary_conditions.append(DirichletBC(
+                    field_function.sub(field), Constant((0.0, 0.0, 0.0)), 
+                    boundary_meshFunction, boundary_physicalGroups))
 
     # Returns the boundary conditions list
 
     return boundary_conditions
+
+# Defines a function to apply a simple support
+
+def simple_supportDirichletBC(field_function, boundary_meshFunction, 
+boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC=[]):
+
+    pass
