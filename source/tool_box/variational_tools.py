@@ -9,6 +9,10 @@ from dolfin import *
 
 def traction_work(traction_dictionary, field_variation, ds):
 
+    # Gets the physical groups tags
+
+    physical_groupsTags = set(ds.sub_domain_data().array())
+
     # Initializes the variational form
 
     traction_form = 0.0
@@ -16,6 +20,16 @@ def traction_work(traction_dictionary, field_variation, ds):
     # Iterates through the dictionary
 
     for physical_group, traction in traction_dictionary.items():
+
+        # Verifies if this physical group is indeed in ds
+
+        if not (physical_group in physical_groupsTags):
+
+            raise NameError("The boundary physical group with tag "+str(
+            physical_group)+" was attempted to construct the variation"+
+            "al form of the traction work, but it does not exist insid"+
+            "e the ds object. Probably the mesh does not have this bou"+
+            "ndary physical group")
 
         traction_form += dot(traction, field_variation)*ds(
         physical_group)
