@@ -15,4 +15,4 @@ import ufl_legacy as ufl
 
 def safe_sqrt(a):
 
-    return sqrt(a+1.0e-15)
+    return ufl.sqrt(a+1.0e-15)

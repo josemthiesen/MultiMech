@@ -7,7 +7,7 @@ import ufl_legacy as ufl
 
 import numpy as np
 
-import source.tool_box.numerical_tools as n_tools
+import source.tool_box.numerical_tools as numerical_tools
 
 # Define the indices for Einstein summation notation
 
@@ -21,7 +21,7 @@ i, j, k, l = ufl.indices(4)
 
 def L2_normVector(vector):
 
-    return n_tools.safe_sqrt(dot(vector, vector))
+    return numerical_tools.safe_sqrt(dot(vector, vector))
 
 ########################################################################
 #                        Skew tensor operations                        #
