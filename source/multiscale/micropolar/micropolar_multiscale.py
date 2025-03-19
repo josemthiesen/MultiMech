@@ -480,6 +480,10 @@ def BVP(time_step):
     Res = NonlinearVariationalProblem(residual, sol_new, None, J=
     derivative_residual)
 
+    ####################################################################
+    #                    Solver parameters setting                     #
+    ####################################################################
+
     solver = NonlinearVariationalSolver(Res)
 
     solver.parameters["nonlinear_solver"] = "newton"

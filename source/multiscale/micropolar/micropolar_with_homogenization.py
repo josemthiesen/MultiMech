@@ -116,6 +116,8 @@ linear_solver = "minres"
 
 relative_tolerance = 1e-2
 
+absolute_tolerance = 1e-2
+
 maximum_iterations = 50
 
 preconditioner = "petsc_amg"
@@ -396,18 +398,27 @@ def def_grad(u):
 #                           Variational forms                          #
 ########################################################################
 
-# The function that multiplied the PDE/residual is called test function. The unknown function u to be approximated is referred to as trial function.
+# Defines the trial and test functions
 
-dsol, v = TrialFunction(monolithic_functionSpace), TestFunction(monolithic_functionSpace)
-vu, vphi = split(v)
+dsol = TrialFunction(monolithic_functionSpace) 
+
+v = TestFunction(monolithic_functionSpace)
+
+# Creates the function for the updated solution, i.e. the vector of pa-
+# rameters
 
 sol_new = Function(monolithic_functionSpace)
 
+# Splits the solution and the test function into their respective fields
+
 u_new, phi_new = split(sol_new)
+
+vu, vphi = split(v)
 
 invgrad = inv(def_grad(u_new)).T
 
 stress = Kirchhoff_Stress(u_new,phi_new)
+
 couple_stress = Couple_Kirchhoff_Stress(u_new,phi_new)
 
 Int_du = inner(stress*invgrad, grad(vu))*dx 
@@ -422,12 +433,40 @@ F_Int = Int_du + Int_dphi - l_du #- l_dphi
 
 Gain = derivative(F_Int , sol_new, dsol)
 Res = NonlinearVariationalProblem(F_Int, sol_new, bc, J=Gain)
+
+########################################################################
+#                      Solver parameters setting                       #
+########################################################################
+
 solver = NonlinearVariationalSolver(Res)
-solver.parameters['nonlinear_solver'] = 'newton'
-solver.parameters['newton_solver']['relative_tolerance'] = 1e-10
-solver.parameters['newton_solver']['maximum_iterations'] = 10
-solver.parameters['newton_solver']['linear_solver'] = 'mumps'
-solver.parameters['newton_solver']['absolute_tolerance'] = 1e-10
+
+solver.parameters["nonlinear_solver"] = "newton"
+
+solver.parameters["newton_solver"]["linear_solver"] = linear_solver
+
+solver.parameters["newton_solver"]["relative_tolerance"] = (
+relative_tolerance)
+
+solver.parameters["newton_solver"]["absolute_tolerance"] = (
+absolute_tolerance)
+
+solver.parameters["newton_solver"]["maximum_iterations"] = (
+maximum_iterations)
+
+solver.parameters["newton_solver"]["preconditioner"] = (
+preconditioner)
+
+solver.parameters['newton_solver']['krylov_solver']['absolute_tole'+
+'rance'] = krylov_absoluteTolerance
+
+solver.parameters['newton_solver']['krylov_solver']['relative_tole'+
+'rance'] = krylov_relativeTolerance
+
+solver.parameters['newton_solver']['krylov_solver']['maximum_itera'+
+'tions'] = krylov_maximumIterations
+
+solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
+'rgence'] = krylov_monitorConvergence
 
 conc_u = File("./ResultsDir/u.pvd")
 conc_phi = File("./ResultsDir/phi.pvd")
