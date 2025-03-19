@@ -130,6 +130,10 @@ krylov_maximumIterations = 15000
 
 krylov_monitorConvergence = False
 
+# Sets the initial time
+
+t = 0.0
+
 # Sets the final pseudotime of the simulation
 
 t_final = 1.0
@@ -144,7 +148,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-load = Expression("(t/t_final)*maximum_load", t=0.0, t_final=t_final,
+load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 degree=0)
 
 traction_boundary = as_vector([load, 0.0, 0.0])
@@ -415,15 +419,20 @@ u_new, phi_new = split(sol_new)
 
 vu, vphi = split(v)
 
-invgrad = inv(def_grad(u_new)).T
+# Initializes objects for the stresses at the reference configuration
 
 stress = Kirchhoff_Stress(u_new,phi_new)
 
 couple_stress = Couple_Kirchhoff_Stress(u_new,phi_new)
 
-Int_du = inner(stress*invgrad, grad(vu))*dx 
+# Constructs the variational forms for the inner work
 
-Int_dphi = inner(couple_stress*invgrad, grad(vphi))*dx - inner(stress, tensor_tools.skew_2OrderTensor(vphi))*dx 
+Int_du = inner(stress, grad(vu))*dx 
+
+Int_dphi = (inner(couple_stress, grad(vphi))*dx)-(inner(stress, 
+tensor_tools.skew_2OrderTensor(vphi))*dx) 
+
+# Constructs the variational forms for the traction work
 
 l_du = dot(traction_boundary,vu)*ds(9)
 
@@ -432,6 +441,7 @@ l_du = dot(traction_boundary,vu)*ds(9)
 F_Int = Int_du + Int_dphi - l_du #- l_dphi
 
 Gain = derivative(F_Int , sol_new, dsol)
+
 Res = NonlinearVariationalProblem(F_Int, sol_new, bc, J=Gain)
 
 ########################################################################
@@ -468,43 +478,76 @@ solver.parameters['newton_solver']['krylov_solver']['maximum_itera'+
 solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
 'rgence'] = krylov_monitorConvergence
 
+########################################################################
+#                         Files initialization                         #
+########################################################################
+
 conc_u = File("./ResultsDir/u.pvd")
+
 conc_phi = File("./ResultsDir/phi.pvd")
 
 conc_u_RVE = File("./ResultsDir/u_RVE.pvd")
+
 conc_phi_RVE = File("./ResultsDir/phi_RVE.pvd")
 
-iter = 0
-t = 0.0
-Tf = 1.0
-u_r = 0.05
-deltaT = 0.1
+########################################################################
+#                   Solution and pseudotime stepping                   #
+########################################################################
 
-u_RVE_homogenized = []
-grad_u_RVE_homogenized = []
-
-phi_RVE_homogenized = []
-grad_phi_RVE_homogenized =[]
+# Initializes the pseudotime counter
 
 time_counter = 0
 
-while t < Tf:
+# Evaluates the pseudotime step
 
-    print("\n-------------------------------------------------------------------------")
-    print("-              Incremental step:", time_counter+1, "; current time:", t, "                 -")
-    print("-------------------------------------------------------------------------\n")
+delta_t = (t_final-t)/maximum_loadingSteps
+
+# Initializes the lists to save information for the microscale
+
+u_RVE_homogenized = []
+
+grad_u_RVE_homogenized = []
+
+phi_RVE_homogenized = []
+
+grad_phi_RVE_homogenized =[]
+
+# Iterates through the pseudotime stepping
+
+while t<t_final:
+
+    print("###########################################################"+
+    "#############\n#                 Incremental step: "+str(
+    time_counter+1)+"; current time: "+str(t)+"               #\n#####"+
+    "#################################################################"+
+    "##\n")
+
+    # Solves the nonlinear variational problem 
 
     solver.solve()
 
-    u,phi = sol_new.split(deepcopy=True)
+    # Splits the solution in their corresponding fields
+
+    u, phi = sol_new.split(deepcopy=True)
 
     u.rename("DNS Displacement", "DNS")
+
     phi.rename("DNS Micro-rotation", "DNS")
 
-    u_RVE_homogenized.append([t,homogenization_tools.get_homogenized(u, dx).tolist()])
-    grad_u_RVE_homogenized.append([t,homogenization_tools.get_homogenized_gradient(grad(u), dx).tolist()])
-    phi_RVE_homogenized.append([t,homogenization_tools.get_homogenized(phi, dx).tolist()])
-    grad_phi_RVE_homogenized.append([t,homogenization_tools.get_homogenized_gradient(grad(phi), dx).tolist()])
+    # Appends the quantities to be sent to the microscale
+
+    u_RVE_homogenized.append([t, homogenization_tools.get_homogenized(u, 
+    dx).tolist()])
+
+    grad_u_RVE_homogenized.append([t,
+    homogenization_tools.get_homogenized_gradient(grad(u), dx).tolist()])
+
+    phi_RVE_homogenized.append([t,homogenization_tools.get_homogenized(
+    phi, dx).tolist()])
+
+    grad_phi_RVE_homogenized.append([t,
+    homogenization_tools.get_homogenized_gradient(grad(phi), dx).tolist(
+    )])
 
     """
 
@@ -526,26 +569,56 @@ while t < Tf:
         sol_RVE.vector()[V_rveDofMap.cell_dofs(submesh_index)] = sol_new.vector()[V_parentDofMap.cell_dofs(parent_index)] 
     """
 
+    # Takes the values of the solution to the submesh of the RVE
+
     sol_RVE = mesh_tools.field_parentToSubmesh(RVE_submesh, sol_RVE, 
     sol_new, RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
+
+    # Splits the solution in the RVE submesh
 
     u_RVE, phi_RVE = sol_RVE.split(deepcopy=True)
 
     u_RVE.rename("DNS-Subdomain Displacement", "DNS-Subdomain ")
+
     phi_RVE.rename("DNS-Subdomain Micro-rotation", "DNS-Subdomain ")
 
+    # Updates the files
+
     conc_u << u
+
     conc_phi << phi
+
     conc_u_RVE << u_RVE
+
     conc_phi_RVE << phi_RVE
 
-    t += deltaT
-    load.t = t*u_r
+    # Updates the pseudo time variables, the load, and the counter
+
+    t += delta_t
+
+    load.t = t
+    
     time_counter += 1
 
-    file_tools.list_toTxt(u_RVE_homogenized, "u_RVE_homogenized")
-    file_tools.list_toTxt(grad_u_RVE_homogenized, "grad_u_RVE_homogenized")
-    file_tools.list_toTxt(phi_RVE_homogenized, "phi_RVE_homogenized")
-    file_tools.list_toTxt(grad_phi_RVE_homogenized, "grad_phi_RVE_homogenized")
+    if time_counter>=maximum_loadingSteps:
 
-print ('Simulation Completed')
+        print("The maximum number of loading steps,",
+        maximum_loadingSteps, "has just been reached. Stops the simula"+
+        "tion immediatly\n")
+
+        break
+
+    # Saves the microscale quantities as they are to be able to be re-
+    # trieved later if the simulation crashes before its completion
+
+    file_tools.list_toTxt(u_RVE_homogenized, macro_displacementName)
+
+    file_tools.list_toTxt(grad_u_RVE_homogenized, 
+    macro_gradDisplacementName)
+
+    file_tools.list_toTxt(phi_RVE_homogenized, macro_microrotationName)
+
+    file_tools.list_toTxt(grad_phi_RVE_homogenized, 
+    macro_gradMicrorotationName)
+
+print ("\nSimulation completed")
