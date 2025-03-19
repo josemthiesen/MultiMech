@@ -26,6 +26,8 @@ import source.tool_box.boundary_conditions_tools as BCs_tools
 
 import source.tool_box.tensor_tools as tensor_tools
 
+import source.tool_box.variational_tools as variational_tools
+
 # Define the indices for Einstein summation notation
 
 i, j, k, l = ufl.indices(4)
@@ -152,6 +154,12 @@ load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 degree=0)
 
 traction_boundary = as_vector([load, 0.0, 0.0])
+
+# Defines a dictionary of tractions
+
+traction_dictionary = dict()
+
+traction_dictionary[9] = traction_boundary
 
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags
@@ -434,7 +442,8 @@ tensor_tools.skew_2OrderTensor(vphi))*dx)
 
 # Constructs the variational forms for the traction work
 
-l_du = dot(traction_boundary,vu)*ds(9)
+#l_du = dot(traction_boundary,vu)*ds(9)
+l_du = variational_tools.traction_work(traction_dictionary, vu, ds)
 
 #l_dphi = dot(moment,vphi)*ds(10)
 
