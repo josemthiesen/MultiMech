@@ -51,15 +51,13 @@ def skew_2OrderTensor(axial_vector):
 # which sets the axis where the rotation is carried about, as well as 
 # the angle of rotation in radians from its L2 norm
 
-def rotation_tensorEulerRodrigues(phi):
+def rotation_tensorEulerRodrigues(phi, I=Identity(3)):
 
     # Evaluates the rotation angle
 
     rotation_angle = L2_normVector(phi)
 
-    # Evaluates the skew tensor and the identity tensor
-
-    I = Identity(3)
+    # Evaluates the skew tensor
 
     W = skew_2OrderTensor(phi)
 
