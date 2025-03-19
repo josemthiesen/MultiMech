@@ -101,6 +101,10 @@ volume_physGroupsRVE = [3, 4]
 
 polynomial_degree = 1
 
+# Sets the number of fields per element
+
+n_fields = 2
+
 ########################################################################
 #                           Solver parameters                          #
 ########################################################################
@@ -273,7 +277,7 @@ lmbda = 63.84-(2*mu/3)
 # Defines the boundary conditions
 
 bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace,
-boundary_meshFunction, fixed_supportPhysicalGroups, n_fields=2)
+boundary_meshFunction, fixed_supportPhysicalGroups, n_fields=n_fields)
 
 ########################################################################
 #                        Constitutive modelling                        #
