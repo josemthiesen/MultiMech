@@ -11,7 +11,7 @@ def traction_work(traction_dictionary, field_variation, ds):
 
     # Gets the physical groups tags
 
-    physical_groupsTags = set(ds.sub_domain_data().array())
+    physical_groupsTags = set(ds.subdomain_data().array())
 
     # Initializes the variational form
 
