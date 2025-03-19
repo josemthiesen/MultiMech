@@ -150,8 +150,10 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
+maximum_load = 2.0
+
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
-degree=0)
+maximum_load=maximum_load, degree=0)
 
 traction_boundary = as_vector([load, 0.0, 0.0])
 

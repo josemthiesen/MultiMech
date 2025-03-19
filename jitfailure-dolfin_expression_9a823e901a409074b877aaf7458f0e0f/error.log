@@ -1,0 +1,12 @@
+/tmp/tmp4b1t1fxk/dolfin_expression_9a823e901a409074b877aaf7458f0e0f.cpp: In member function ‘virtual void dolfin::dolfin_expression_9a823e901a409074b877aaf7458f0e0f::eval(Eigen::Ref<Eigen::Matrix<double, -1, 1> >, Eigen::Ref<const Eigen::Matrix<double, -1, 1> >) const’:
+/tmp/tmp4b1t1fxk/dolfin_expression_9a823e901a409074b877aaf7458f0e0f.cpp:63:35: error: ‘maximum_load’ was not declared in this scope; did you mean ‘fmaximum_mag’?
+   63 |           values[0] = (t/t_final)*maximum_load;
+      |                                   ^~~~~~~~~~~~
+      |                                   fmaximum_mag
+/tmp/tmp4b1t1fxk/dolfin_expression_9a823e901a409074b877aaf7458f0e0f.cpp: In member function ‘virtual double dolfin::dolfin_expression_9a823e901a409074b877aaf7458f0e0f::get_property(std::string) const’:
+/tmp/tmp4b1t1fxk/dolfin_expression_9a823e901a409074b877aaf7458f0e0f.cpp:75:11: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   75 |           if (name == "t") return t;          if (name == "t_final") return t_final;
+      |           ^~
+/tmp/tmp4b1t1fxk/dolfin_expression_9a823e901a409074b877aaf7458f0e0f.cpp:75:47: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   75 |           if (name == "t") return t;          if (name == "t_final") return t_final;
+      |                                               ^~
