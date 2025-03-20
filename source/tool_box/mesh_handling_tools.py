@@ -10,11 +10,61 @@ import meshio
 
 # Defines a function to read a mesh from a msh file
 
-def read_mshMesh(file_name):
+def read_mshMesh(file_name, desired_elements=['tetra', 'triangle'],
+data_sets=["domain", "boundary"]):
 
     # Reads the saved gmsh mesh using meshio
 
     mesh_reading = meshio.read(file_name+".msh")
+
+    # Initializes the dictionary of cells and the list of cell data
+
+    cells_dictionary = dict()
+
+    cell_dataList = []
+
+    # Gets the cells which consist of the desired element
+
+    for i in range(len(desired_elements)):
+
+        print("Saves the mesh of", data_sets[i], "dataset\n")
+
+        cells_dictionary[desired_elements[i]] = (
+        mesh_reading.get_cells_type(desired_elements[i]))
+
+        # Gets the physical cell data for this element
+
+        cell_dataPhysical = mesh_reading.get_cell_data("gmsh:physical", 
+        desired_elements[i])
+
+        # Gets the geometric cell data for this element
+
+        cell_dataGeometric = mesh_reading.get_cell_data("gmsh:geometri"+
+        "cal", desired_elements[i])
+
+        # Adds the geometric cell data to the list of cell data
+
+        cell_dataList.append(cell_dataGeometric)
+
+        # Creates a mesh for this data set and saves it
+
+        mesh_set = meshio.Mesh(points=mesh_reading.points, cells={
+        desired_elements[i]: cells_dictionary[desired_elements[i]]},
+        cell_data={data_sets[i]: [cell_dataPhysical]})
+
+        meshio.write(file_name+"_"+data_sets[i]+".xdmf", mesh_set)
+
+    # Creates the mesh with all information, including geometric infor-
+    # mation and saves it
+    
+    whole_mesh = meshio.Mesh(points=mesh_reading.points, cells=
+    cells_dictionary, cell_data={"whole_mesh": cell_dataList})
+
+    meshio.write(file_name+".xdmf", whole_mesh)
+
+    # Then, calls the xdmf reader and returns its output
+
+    return read_xdmfMesh(file_name)
 
 # Defines a function to read a mesh from a xdmf file
 
