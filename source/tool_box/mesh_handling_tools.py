@@ -2,11 +2,19 @@
 
 from dolfin import *
 
-import copy
+import meshio
 
 ########################################################################
 #                              Mesh files                              #
 ########################################################################
+
+# Defines a function to read a mesh from a msh file
+
+def read_mshMesh(file_name):
+
+    # Reads the saved gmsh mesh using meshio
+
+    mesh_reading = meshio.read(file_name+".msh")
 
 # Defines a function to read a mesh from a xdmf file
 

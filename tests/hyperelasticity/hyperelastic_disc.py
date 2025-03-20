@@ -1,184 +1,301 @@
-# Hyperelasticity
+# Routine to test a hyperelastic disc
 
-from fenics import *
+from dolfin import *
 
-# Form compiler options
-parameters["form_compiler"]["optimize"]     = True
+from mpi4py import MPI
+
+import ufl_legacy as ufl
+
+import numpy as np
+
+import matplotlib.pyplot as plt
+
+from mshr import *
+
+#import periodic_structure as mesher
+
+import source.tool_box.mesh_handling_tools as mesh_tools
+
+import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as constitutive_models
+
+import source.tool_box.functional_tools as functional_tools
+
+import source.tool_box.boundary_conditions_tools as BCs_tools
+
+import source.tool_box.tensor_tools as tensor_tools
+
+import source.tool_box.variational_tools as variational_tools
+
+########################################################################
+########################################################################
+##                      User defined parameters                       ##
+########################################################################
+########################################################################
+
+########################################################################
+#                         Material properties                          #
+########################################################################
+
+# Sets the Young modulus and the Poisson ratio
+
+E = 100E6
+
+v = 0.4
+
+# Sets the material as a neo-hookean material using the corresponding
+# class
+
+constitutive_model = constitutive_models.Neo_Hookean([E, v])
+
+########################################################################
+#                                 Mesh                                 #
+########################################################################
+
+# Defines the name of the file to save the mesh in. Do not write the fi-
+# le termination, e.g. .msh or .xdmf; both options will be saved automa-
+# tically
+
+file_name = "tests//test_meshes//disc_mesh"
+
+########################################################################
+#                            Function space                            #
+########################################################################
+
+# Defines the shape functions degree
+
+polynomial_degree = 1
+
+########################################################################
+#                           Solver parameters                          #
+########################################################################
+
+# Sets some parameters
+
+parameters["form_compiler"]["representation"] = "uflacs"
+parameters["allow_extrapolation"] = True
 parameters["form_compiler"]["cpp_optimize"] = True
+parameters["form_compiler"]["quadrature_degree"] = 2
 
-##################################################
-#                Pseudotime control              #
-##################################################
+# Sets the solver parameters
 
-# Defines materials properties
+linear_solver = "minres"
 
-E_young = 200E6
+relative_tolerance = 1e-2
 
-nu = 0.3
+absolute_tolerance = 1e-2
 
-mu = E_young/(2*(1+nu))
+maximum_iterations = 50
 
-lmbda = (E_young*nu)/((1+nu)*(1-2*nu))
+preconditioner = "petsc_amg"
+
+krylov_absoluteTolerance = 1e-6
+
+krylov_relativeTolerance = 1e-6
+
+krylov_maximumIterations = 15000
+
+krylov_monitorConvergence = False
+
+# Sets the initial time
 
 t = 0.0
 
+# Sets the final pseudotime of the simulation
+
 t_final = 1.0
 
-n_steps = 10
+# Sets the maximum number of steps of loading
 
-delta_t = t_final/n_steps
+maximum_loadingSteps = 11
 
-# Defines a mesh
+########################################################################
+#                          Boundary conditions                         #
+########################################################################
 
-z_max = 0.1
+# Defines a load expression
 
-mesh = BoxMesh(Point(0.0,0.0,0.0),Point(0.01,0.01,z_max),2,2,15)
+maximum_load = 2E2
 
-# Defines a vectorial function space
+load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
+maximum_load=maximum_load, degree=0)
 
-V = VectorFunctionSpace(mesh, "P", 2)
+traction_boundary = as_vector([0.0, 0.0, load])
 
-# Defines a trial function
+# Defines a dictionary of tractions
 
-Delta_u = TrialFunction(V)
+traction_dictionary = dict()
 
-u = Function(V)
+traction_dictionary[5] = traction_boundary
 
-# Defines a test function
+# Defines the boundary physical groups to apply fixed support boundary
+# condition. This variable can be either a list of physical groups tags
+# or simply a tag
 
-du = TestFunction(V)
+fixed_supportPhysicalGroups = 4
 
-# Defines Dirichlet boundary conditions
+########################################################################
+########################################################################
+##               Calculation: Mr. User, take care ahead!              ##
+########################################################################
+########################################################################
 
-#uz_max = 0.0*z_max
+########################################################################
+#                                 Mesh                                 #
+########################################################################
 
-below = CompiledSubDomain('near(x[2],z_boundary) && on_boundary', z_boundary=0.0)
+# Reads the mesh and constructs some fenics objects using the xdmf file
 
-above = CompiledSubDomain('near(x[2],z_boundary) && on_boundary', z_boundary=z_max)
+(mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
+boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_xdmfMesh(
+file_name)
 
-#expression_above = Expression(("(t/t_final)*uz_max"),
-#t_final=t_final, uz_max=uz_max, t=0.0, degree=1)
+########################################################################
+#                            Function space                            #
+########################################################################
 
-expression_below = Constant(("0.0", "0.0", "0.0"))
+# Defines the finite element spaces for the displacement field, u
 
-bc_dirichlet = [DirichletBC(V, expression_below, below)]#,DirichletBC(V.sub(2), expression_above, above)]
+U = VectorFunctionSpace("CG", mesh.ufl_cell(), polynomial_degree)
 
-# Defines Neumann boundary conditions
+########################################################################
+#                          Boundary conditions                         #
+########################################################################
 
-boundaries = MeshFunction("size_t", mesh, mesh.topology().dim()-1,0)
+# Defines the boundary conditions for fixed facets
 
-above.mark(boundaries,1)
+bc = BCs_tools.fixed_supportDirichletBC(U, boundary_meshFunction, 
+fixed_supportPhysicalGroups)
 
-ds = Measure('ds', domain=mesh, subdomain_data=boundaries)
+########################################################################
+#                           Variational forms                          #
+########################################################################
 
-# Defines the traction vector
+# Defines the trial and test functions
 
-T_max = 0.0#1E6
+dsol = TrialFunction(U) 
 
-T = Expression(("0.0", "(t/t_final)*T_max", "0.0"), t_final=t_final,
-t=0.0, T_max=T_max, degree=0) 
+v = TestFunction(U)
 
-# Defines the body forces vector
+# Creates the function for the updated solution, i.e. the vector of pa-
+# rameters
 
-B = Constant(("0.0","0.0","0.0"))
+u_new = Function(U)
 
-###################################################
-#                    Tensorial                    #
-###################################################
+# Creates the deformation gradient object
 
 I = Identity(3)
 
-u.interpolate(Constant((0,0,0)))
+F = grad(u_new)+I
 
-# Defines the deformation gradient
+# Initializes objects for the stresses at the reference configuration
 
-F = grad(u)+I 
+first_piola = constitutive_model.first_piolaStress(F)
 
-# Defines the Euler-Lagrange strain tensor
+# Constructs the variational forms for the inner work
 
-C = variable((F.T)*F) 
+internal_VarForm = inner(first_piola, grad(v))*dx 
 
-E = 0.5*(C-I)
+# Constructs the variational forms for the traction work
 
-# Defines the Saint Venant energy function
+traction_VarForm = variational_tools.traction_work(traction_dictionary,
+v, ds)
 
-#psi = (mu*inner(E,E))+(0.5*lmbda*(tr(E)**2))
+# Assembles the residual, takes the Gateaux derivative and assembles the
+# nonlinear problem object
 
-I1 = tr(C)
+residual_form = internal_VarForm-traction_VarForm
 
-J = sqrt(det(C))
+residual_derivative = derivative(residual_form , u_new, dsol)
 
-psi = mu/2*(I1 - 3) + lmbda*((0.5*pow((J-1), 2))-ln(J))# = 0.5*mu*(I1-3)+0.5*lmbda*(pow((J-1),2))
+Res = NonlinearVariationalProblem(residual_form, u_new, bc, J=
+residual_derivative)
 
-# Defines the second Piola-Kirchhof stress tensor
+########################################################################
+#                      Solver parameters setting                       #
+########################################################################
 
-S = 2*diff(psi, C)#(lmbda*tr(E)*I)+(2*mu*E)#2*diff(psi, C)
+solver = NonlinearVariationalSolver(Res)
 
-# Defines the first Piola-Kirchhof stress tensor
+solver.parameters["nonlinear_solver"] = "newton"
 
-P = F*S
+solver.parameters["newton_solver"]["linear_solver"] = linear_solver
 
-dF = grad(du)
+solver.parameters["newton_solver"]["relative_tolerance"] = (
+relative_tolerance)
 
-###################################################
-#                  Variational                    #
-# #################################################
+solver.parameters["newton_solver"]["absolute_tolerance"] = (
+absolute_tolerance)
 
-# Defines the bilinear form
+solver.parameters["newton_solver"]["maximum_iterations"] = (
+maximum_iterations)
 
-a = inner(P,dF)*dx
+solver.parameters["newton_solver"]["preconditioner"] = (
+preconditioner)
 
-# Defines the linear form
+solver.parameters['newton_solver']['krylov_solver']['absolute_tole'+
+'rance'] = krylov_absoluteTolerance
 
-L = (dot(B,du)*dx)+(dot(T,du)*ds(1))
+solver.parameters['newton_solver']['krylov_solver']['relative_tole'+
+'rance'] = krylov_relativeTolerance
 
-residue = a-L
+solver.parameters['newton_solver']['krylov_solver']['maximum_itera'+
+'tions'] = krylov_maximumIterations
 
-Jacobian = derivative(residue, u, Delta_u)
+solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
+'rgence'] = krylov_monitorConvergence
 
-problem = NonlinearVariationalProblem(residue, u, bc_dirichlet, J=Jacobian)
+########################################################################
+#                         Files initialization                         #
+########################################################################
 
-solution = NonlinearVariationalSolver(problem)
+displacement_file = File("./ResultsDir/u.pvd")
 
-solution.parameters["nonlinear_solver"] = "newton"
+########################################################################
+#                   Solution and pseudotime stepping                   #
+########################################################################
 
-solution.parameters["newton_solver"]["absolute_tolerance"] = 1E-8
+# Initializes the pseudotime counter
 
-solution.parameters["newton_solver"]["relative_tolerance"] = 1E-8
+time_counter = 0
 
-solution.parameters["newton_solver"]["maximum_iterations"] = 50
+# Evaluates the pseudotime step
 
-solution.parameters["newton_solver"]["linear_solver"] = "mumps"
+delta_t = (t_final-t)/maximum_loadingSteps
 
-# Sweeps through the pseudotime steps
+# Iterates through the pseudotime stepping
 
-reaction_z = 0.0
+while t<t_final:
 
-# Creates the displacement file
+    print("###########################################################"+
+    "#############\n#                 Incremental step: "+str(
+    time_counter+1)+"; current time: "+str(t)+"               #\n#####"+
+    "#################################################################"+
+    "##\n")
 
-file = File("displacement.pvd")
+    # Solves the nonlinear variational problem 
 
-for i in range(n_steps):
+    solver.solve()
 
-    print("\nRuns pseudotime", i, ":", t, "\n")
+    u_new.rename("DNS Displacement", "DNS")
 
-    T.t = t
+    # Updates the files
 
-    #expression_above.t = t
+    displacement_file << u_new
 
-    # Solves the system
-
-    solution.solve()
-
-    N = as_vector([0.0,0.0,1.0])
-
-    reaction_z = assemble((dot(N,P*N))*ds)
-
-    print("\nThe reaction in the z direction is:",
-    reaction_z, "\n")
-
-    file << u
-
-    # Updates time and the traction vector
+    # Updates the pseudo time variables, the load, and the counter
 
     t += delta_t
+
+    load.t = t
+    
+    time_counter += 1
+
+    if time_counter>=maximum_loadingSteps:
+
+        print("The maximum number of loading steps,",
+        maximum_loadingSteps, "has just been reached. Stops the simula"+
+        "tion immediatly\n")
+
+        break
+
+print ("\nSimulation completed")
