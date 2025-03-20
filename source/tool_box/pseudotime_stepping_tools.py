@@ -107,12 +107,12 @@ def set_solverParameters(solver, solver_parameters):
 
     if "nonlinear_solver" in parameter_types:
 
-        solver.parameters["nonlinear_solver"] = "newton"
+        solver.parameters["nonlinear_solver"] = solver_parameters["non"+
+        "linear_solver"]
 
     else:
 
-        solver.parameters["nonlinear_solver"] = solver_parameters["non"+
-        "linear_solver"]
+        solver.parameters["nonlinear_solver"] = "newton"
 
     if "linear_solver" in parameter_types:
 
@@ -147,17 +147,17 @@ def set_solverParameters(solver, solver_parameters):
     if "krylov_relative_tolerance" in parameter_types:
 
         solver.parameters['newton_solver']['krylov_solver']['relative_'+
-        'tolerance'] = parameter_types["krylov_relative_tolerance"]
+        'tolerance'] = solver_parameters["krylov_relative_tolerance"]
 
     if "krylov_maximum_iterations" in parameter_types:
 
         solver.parameters['newton_solver']['krylov_solver']['maximum_i'+
-        'terations'] = parameter_types["krylov_maximum_iterations"]
+        'terations'] = solver_parameters["krylov_maximum_iterations"]
 
     if "krylov_monitor_convergence" in parameter_types:
 
         solver.parameters['newton_solver']['krylov_solver']['monitor_c'+
-        'onvergence'] = parameter_types["krylov_monitor_convergence"]
+        'onvergence'] = solver_parameters["krylov_monitor_convergence"]
 
     # Returns the updated solver
 
