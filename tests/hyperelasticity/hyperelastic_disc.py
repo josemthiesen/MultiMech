@@ -145,6 +145,12 @@ maximum_load = 2E7
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
 
+# Assembles this load into the list of Neumann boundary conditions
+
+neumann_loads = [load]
+
+# Assemble the traction vector using this load expression
+
 traction_boundary = as_vector([0.0, 0.0, load])
 
 # Defines a dictionary of tractions
@@ -264,5 +270,5 @@ delta_t = (t_final-t)/maximum_loadingSteps
 # Iterates through the pseudotime stepping algortihm 
 
 newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
-maximum_loadingSteps, solver, u_new, displacement_file, neumann_loads=[
-load], solver_parameters=solver_parameters)
+maximum_loadingSteps, solver, u_new, displacement_file, neumann_loads=
+neumann_loads, solver_parameters=solver_parameters)
