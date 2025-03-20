@@ -100,25 +100,27 @@ parameters["allow_extrapolation"] = True
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
 
-# Sets the solver parameters
+# Sets the solver parameters in a dictionary
 
-linear_solver = "minres"
+solver_parameters = dict()
 
-relative_tolerance = 1e-4
+solver_parameters["linear_solver"] = "minres"
 
-absolute_tolerance = 1e-4
+solver_parameters["newton_relative_tolerance"] = 1e-4
 
-maximum_iterations = 50
+solver_parameters["newton_absolute_tolerance"] = 1e-4
 
-preconditioner = "petsc_amg"
+solver_parameters["newton_maximum_iterations"] = 50
 
-krylov_absoluteTolerance = 1e-6
+solver_parameters["preconditioner"] = "petsc_amg"
 
-krylov_relativeTolerance = 1e-6
+solver_parameters["krylov_absolute_tolerance"] = 1e-6
 
-krylov_maximumIterations = 15000
+solver_parameters["krylov_relative_tolerance"] = 1e-6
 
-krylov_monitorConvergence = False
+solver_parameters["krylov_maximum_iterations"] = 15000
+
+solver_parameters["krylov_monitor_convergence"] = False
 
 # Sets the initial time
 
@@ -263,4 +265,4 @@ delta_t = (t_final-t)/maximum_loadingSteps
 
 newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
 maximum_loadingSteps, solver, u_new, displacement_file, neumann_loads=[
-load])
+load], solver_parameters=solver_parameters)

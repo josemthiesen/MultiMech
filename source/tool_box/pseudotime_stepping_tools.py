@@ -81,7 +81,29 @@ neumann_loads=[], solver_parameters=dict()):
 
 def set_solverParameters(solver, solver_parameters):
 
+    # Sets a list of implemented solver parameters
+
+    admissible_keys = ["nonlinear_solver", "linear_solver", "newton_re"+
+    "lative_tolerance", "newton_absolute_tolerance", "newton_maximum_i"+
+    "terations", "preconditioner", "krylov_absolute_tolerance", "krylo"+
+    "v_relative_tolerance", "krylov_maximum_iterations", "krylov_monit"+
+    "or_convergence"]
+
+    # Gets the keys of the solver parameters dictionary
+
     parameter_types = solver_parameters.keys()
+
+    # Iterates the keys of the solver parameters to verify if any of 
+    # them is not admissible
+
+    for key in parameter_types:
+
+        if not (key in admissible_keys):
+
+            raise NameError("The key "+str(key)+" is not an admissible"+
+            " key to set solver parameters.")
+        
+    # Sets the solver parameters
 
     if "nonlinear_solver" in parameter_types:
 
