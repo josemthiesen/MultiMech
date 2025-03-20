@@ -15,9 +15,13 @@ import ufl_legacy as ufl
 import source.tool_box.tensor_tools as tensor_tools
 
 # Defines an abstract class to force all classes ahead to have the same
-# methods. To enforce it, the abstract method is used before the methods
+# methods. To enforce it, the abstract method is used before the methods.
+# The material model classes have four methods in the case of hyperelas-
+# ticity: the Helmholtz potential (strain energy); the second Piola-
+# Kirchhoff stress tensor; the first Piola-Kirchhoff stress tensor; and
+# the Cauchy stress tensor.
 
-class MaterialModel(ABC):
+class HyperelasticMaterialModel(ABC):
 
     @abstractmethod
 
@@ -28,7 +32,15 @@ class MaterialModel(ABC):
 
         pass
 
-    def stress_tensor(self, Measure):
+    def first_piolaStress(self, Measure):
+
+        pass
+
+    def second_piolaStress(self, Measure):
+
+        pass
+
+    def cauchy_stress(self, Measure):
 
         pass
 
@@ -38,7 +50,7 @@ class MaterialModel(ABC):
 # 6/UM36-4.1.4.11.html, where it is called unconstrained Holzapfel-
 # Gasser-Ogden
 
-class Holzapfel_Gasser_Ogden_Unconstrained(MaterialModel):
+class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
     # Initializes the properties
 
