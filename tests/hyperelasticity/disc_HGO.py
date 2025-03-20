@@ -14,7 +14,7 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 
 import source.tool_box.file_handling_tools as file_handling_tools
 
-import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as constitutive_models
+import source.constitutive_models.hiperelasticity.anisotropic_hyperelasticity as constitutive_models
 
 import source.tool_box.functional_tools as functional_tools
 
@@ -56,14 +56,29 @@ v = 0.4
 
 material_properties = dict()
 
-material_properties["E"] = E
+material_properties["c"] = 10E6
 
-material_properties["v"] = v
+material_properties["k1"] = 10E7
+
+material_properties["k2"] = 5.0
+
+material_properties["kappa"] = 15E6
+
+material_properties["gamma"] = 30.0
+
+material_properties["k"] = 5E6
+
+material_properties["local system of coordinates: a direction"] = (
+as_vector([1.0, 0.0, 0.0]))
+
+material_properties["local system of coordinates: d direction"] = (
+as_vector([0.0, 1.0, 0.0]))
 
 # Sets the material as a neo-hookean material using the corresponding
 # class
 
-constitutive_model = constitutive_models.Neo_Hookean(material_properties)
+constitutive_model = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
+material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -134,7 +149,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = -2E7
+maximum_load = -2E1
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
