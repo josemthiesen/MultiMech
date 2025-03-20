@@ -2,6 +2,8 @@
 
 from dolfin import *
 
+import os
+
 from mpi4py import MPI
 
 import ufl_legacy as ufl
@@ -15,6 +17,8 @@ from mshr import *
 #import periodic_structure as mesher
 
 import source.tool_box.mesh_handling_tools as mesh_tools
+
+import source.tool_box.file_handling_tools as file_handling_tools
 
 import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as constitutive_models
 
@@ -31,6 +35,16 @@ import source.tool_box.variational_tools as variational_tools
 ##                      User defined parameters                       ##
 ########################################################################
 ########################################################################
+
+########################################################################
+#                          Simulation results                          #
+########################################################################
+
+# Defines the path to the results directory 
+
+results_path = os.getcwd()+"//tests//hyperelasticity//results"
+
+displacement_fileName = "displacement.pvd"
 
 ########################################################################
 #                         Material properties                          #
@@ -256,9 +270,12 @@ solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
 #                         Files initialization                         #
 ########################################################################
 
-# 
+# Creates the path to the displacement file
 
-displacement_file = File()
+displacement_file = file_handling_tools.verify_path(results_path, 
+displacement_fileName)
+
+displacement_file = File(displacement_file)
 
 ########################################################################
 #                   Solution and pseudotime stepping                   #
