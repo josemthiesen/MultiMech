@@ -1,6 +1,27 @@
 # Routine to store methods for in-and-out processing, like reading and
 # writing files
 
+import os
+
+########################################################################
+#                              Path tools                              #
+########################################################################
+
+# Defines a function to verify if a path exists or not. If not, create
+# it
+
+def verify_path(parent_path, file_name):
+
+    # Checks if the parent path exists
+
+    if not os.path.exists(parent_path):
+
+        os.mkdir(parent_path)
+
+    # Joins everything together
+
+    return parent_path+"//"+file_name
+
 ########################################################################
 #                              txt files                               #
 ########################################################################

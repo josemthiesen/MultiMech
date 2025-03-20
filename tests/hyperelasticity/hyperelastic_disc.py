@@ -256,7 +256,9 @@ solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
 #                         Files initialization                         #
 ########################################################################
 
-displacement_file = File("./ResultsDir/u.pvd")
+# 
+
+displacement_file = File()
 
 ########################################################################
 #                   Solution and pseudotime stepping                   #
