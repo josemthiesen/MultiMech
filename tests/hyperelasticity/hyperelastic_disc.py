@@ -42,10 +42,18 @@ E = 100E6
 
 v = 0.4
 
+# Sets a dictionary of properties
+
+material_properties = dict()
+
+material_properties["E"] = E
+
+material_properties["v"] = v
+
 # Sets the material as a neo-hookean material using the corresponding
 # class
 
-constitutive_model = constitutive_models.Neo_Hookean([E, v])
+constitutive_model = constitutive_models.Neo_Hookean(material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -114,7 +122,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 2E2
+maximum_load = 2E4
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -146,7 +154,7 @@ fixed_supportPhysicalGroups = 4
 # Reads the mesh and constructs some fenics objects using the xdmf file
 
 (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_xdmfMesh(
+boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_mshMesh(
 file_name)
 
 ########################################################################
@@ -155,7 +163,7 @@ file_name)
 
 # Defines the finite element spaces for the displacement field, u
 
-U = VectorFunctionSpace("CG", mesh.ufl_cell(), polynomial_degree)
+U = VectorFunctionSpace(mesh, "Lagrange", polynomial_degree)
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -266,8 +274,8 @@ delta_t = (t_final-t)/maximum_loadingSteps
 
 while t<t_final:
 
-    print("###########################################################"+
-    "#############\n#                 Incremental step: "+str(
+    print("\n#########################################################"+
+    "###############\n#                 Incremental step: "+str(
     time_counter+1)+"; current time: "+str(t)+"               #\n#####"+
     "#################################################################"+
     "##\n")
