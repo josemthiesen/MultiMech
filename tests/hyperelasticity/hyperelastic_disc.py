@@ -30,6 +30,8 @@ import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.variational_tools as variational_tools
 
+import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
+
 ########################################################################
 ########################################################################
 ##                      User defined parameters                       ##
@@ -238,34 +240,6 @@ residual_derivative)
 
 solver = NonlinearVariationalSolver(Res)
 
-solver.parameters["nonlinear_solver"] = "newton"
-
-solver.parameters["newton_solver"]["linear_solver"] = linear_solver
-
-solver.parameters["newton_solver"]["relative_tolerance"] = (
-relative_tolerance)
-
-solver.parameters["newton_solver"]["absolute_tolerance"] = (
-absolute_tolerance)
-
-solver.parameters["newton_solver"]["maximum_iterations"] = (
-maximum_iterations)
-
-solver.parameters["newton_solver"]["preconditioner"] = (
-preconditioner)
-
-solver.parameters['newton_solver']['krylov_solver']['absolute_tole'+
-'rance'] = krylov_absoluteTolerance
-
-solver.parameters['newton_solver']['krylov_solver']['relative_tole'+
-'rance'] = krylov_relativeTolerance
-
-solver.parameters['newton_solver']['krylov_solver']['maximum_itera'+
-'tions'] = krylov_maximumIterations
-
-solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
-'rgence'] = krylov_monitorConvergence
-
 ########################################################################
 #                         Files initialization                         #
 ########################################################################
@@ -281,46 +255,12 @@ displacement_file = File(displacement_file)
 #                   Solution and pseudotime stepping                   #
 ########################################################################
 
-# Initializes the pseudotime counter
-
-time_counter = 0
-
 # Evaluates the pseudotime step
 
 delta_t = (t_final-t)/maximum_loadingSteps
 
-# Iterates through the pseudotime stepping
+# Iterates through the pseudotime stepping algortihm 
 
-while t<t_final:
-
-    print("\n#########################################################"+
-    "###############\n#                 Incremental step: "+str(
-    time_counter+1)+"; current time: "+str(t)+"               #\n#####"+
-    "#################################################################"+
-    "##\n")
-
-    # Solves the nonlinear variational problem 
-
-    solver.solve()
-
-    u_new.rename("DNS Displacement", "DNS")
-
-    # Updates the files
-
-    displacement_file << u_new
-
-    # Updates the pseudo time variables, the load, and the counter
-
-    t += delta_t
-
-    load.t = t
-    
-    time_counter += 1
-
-    if time_counter>=maximum_loadingSteps:
-
-        print("\nThe maximum number of loading steps,",
-        maximum_loadingSteps, "has just been reached. Stops the simula"+
-        "tion immediatly\n")
-
-        break
+newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
+maximum_loadingSteps, solver, u_new, displacement_file, neumann_loads=[
+load])
