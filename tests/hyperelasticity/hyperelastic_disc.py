@@ -55,7 +55,7 @@ constitutive_model = constitutive_models.Neo_Hookean([E, v])
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-file_name = "tests//test_meshes//disc_mesh"
+file_name = "tests//test_meshes//intervertebral_disc"
 
 ########################################################################
 #                            Function space                            #
