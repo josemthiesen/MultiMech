@@ -97,8 +97,7 @@ class Holzapfel_Gasser_Ogden_Unconstrained(MaterialModel):
         W = ufl.variable(W)
 
         # Identity matrix
-        I = ufl.Identity(3)
-        I = ufl.variable(I)
+        I = ufl.variable(ufl.Identity(3))
 
         R1 = ufl.cos(self.gamma) * I + ufl.sin(self.gamma) * W + (1 - ufl.cos(self.gamma)) * (ufl.outer(n, n))
         R2 = ufl.cos(-self.gamma) * I + ufl.sin(-self.gamma) * W + (1 - ufl.cos(-self.gamma)) * (ufl.outer(n, n))
