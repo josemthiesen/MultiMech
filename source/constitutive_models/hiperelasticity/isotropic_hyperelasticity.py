@@ -14,6 +14,8 @@ import ufl_legacy as ufl
 
 import source.tool_box.tensor_tools as tensor_tools
 
+import source.tool_box.constitutive_tools as constitutive_tools
+
 # Defines an abstract class to force all classes ahead to have the same
 # methods. To enforce it, the abstract method is used before the methods.
 # The material model classes have four methods in the case of hyperelas-
@@ -92,22 +94,7 @@ class Neo_Hookean(HyperelasticMaterialModel):
 
     def second_piolaStress(self, F):
 
-        # Evaluates the right Cauchy-Green strain tensor, C. Makes C a 
-        # variable to differentiate the Helmholtz potential with respect 
-        # to C
-
-        C = (F.T)*F
-        
-        C = variable(C)  
-
-        # Evaluates the Helmholtz potential
-
-        W = self.strain_energy(C)
-
-        # Evaluates the second Piola-Kirchhoff stress tensor differenti-
-        # ating the potential w.r.t. C
-
-        S = 2*diff(W,C)
+        S = constitutive_tools.S_fromDPsiDC(F, self.strain_energy)
 
         return S
 
@@ -116,11 +103,10 @@ class Neo_Hookean(HyperelasticMaterialModel):
 
     def first_piolaStress(self, F):
 
-        # Evaluates the second Piola-Kirchhoff stress tensor
+        # Evaluates the second Piola-Kirchhoff stress tensor and pulls
+        # it back to the first Piola-Kirchhoff stress tensor
 
         S = self.second_piolaStress(F)
-
-        # Pulls back to the first Piola-Kirchhoff stress tensor
         
         P = F*S
 
@@ -131,16 +117,11 @@ class Neo_Hookean(HyperelasticMaterialModel):
     
     def cauchy_stress(self, F):
 
-        # Evaluates the second Piola-Kirchhoff stress tensor
+        # Evaluates the second Piola-Kirchhoff stress tensor and pushes 
+        # it forward to the deformed configuration
 
         S = self.second_piolaStress(F)
 
-        # Evaluates the determinant of the deformation gradient
-
-        J = ufl.det(F)
-
-        # Pushes forward to the deformed configuration
-
-        sigma = (1.0/J)*F*S*F.T
+        sigma = constitutive_tools.push_forwardS(S, F)
 
         return sigma
