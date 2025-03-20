@@ -92,8 +92,6 @@ class Neo_Hookean(HyperelasticMaterialModel):
 
     def second_piolaStress(self, F):
 
-        #F = variable(F)
-
         # Evaluates the right Cauchy-Green strain tensor, C. Makes C a 
         # variable to differentiate the Helmholtz potential with respect 
         # to C
