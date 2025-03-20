@@ -6,12 +6,6 @@ import os
 
 from mpi4py import MPI
 
-import ufl_legacy as ufl
-
-import numpy as np
-
-import matplotlib.pyplot as plt
-
 from mshr import *
 
 #import periodic_structure as mesher
@@ -140,7 +134,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 2E7
+maximum_load = -2E7
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -151,7 +145,7 @@ neumann_loads = [load]
 
 # Assemble the traction vector using this load expression
 
-traction_boundary = as_vector([0.0, 0.0, load])
+traction_boundary = as_vector([0.0, load, 0.0])
 
 # Defines a dictionary of tractions
 

@@ -2,6 +2,8 @@
 
 from dolfin import *
 
+import numpy as np
+
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of a single field
 
@@ -28,11 +30,9 @@ neumann_loads=[], solver_parameters=dict()):
 
     while t<t_final:
 
-        print("\n#########################################################"+
-        "###############\n#                 Incremental step: "+str(
-        time_counter+1)+"; current time: "+str(t)+"               #\n#####"+
-        "#################################################################"+
-        "##\n")
+        # Prints step information
+
+        print_stepInfo(time_counter+1, t)
 
         # Solves the nonlinear variational problem 
 
@@ -74,7 +74,7 @@ neumann_loads=[], solver_parameters=dict()):
             break
 
 ########################################################################
-#                       Solver parameters
+#                              Utilities                               #
 ########################################################################
 
 # Defines a function to update solver parameters
@@ -162,3 +162,97 @@ def set_solverParameters(solver, solver_parameters):
     # Returns the updated solver
 
     return solver
+
+# Defines a function to print the stepping information
+
+def print_stepInfo(step, time):
+
+    # Transforms the time and the step into strings
+
+    step = str(step)
+
+    time = str(time)
+
+    # Evaluates the number of characters 
+
+    n_characters = len(step)+len(time)
+
+    # Verifies if there is enough space for the whole step information
+
+    if n_characters<=36:
+
+        # Calculates the clearance to each side
+
+        clearance_left = int(np.ceil(0.5*(36-n_characters)))
+
+        clearance_right = 36-clearance_left-n_characters
+
+        # Makes the clearance space
+
+        clearance_spaceLeft = ""
+
+        clearance_spaceRight = ""
+
+        for i in range(clearance_left):
+
+            clearance_spaceLeft += " "
+
+        for i in range(clearance_right):
+
+            clearance_spaceRight += " "
+
+        print("\n#####################################################"+
+        "###################\n#"+clearance_spaceLeft+"Incremental step"+
+        ": "+step+"; current time: "+time+clearance_spaceRight+"#\n###"+
+        "#############################################################"+
+        "########\n")
+
+    else:
+
+        # Calculates the clearance to each side
+
+        clearance_left = int(np.ceil(0.5*(52-len(step))))
+
+        clearance_right = 52-clearance_left-len(step)
+
+        # Makes the clearance space
+
+        clearance_spaceLeft = ""
+
+        clearance_spaceRight = ""
+
+        for i in range(clearance_left):
+
+            clearance_spaceLeft += " "
+
+        for i in range(clearance_right):
+
+            clearance_spaceRight += " "
+
+        print("\n#####################################################"+
+        "###################\n#"+clearance_spaceLeft+"Incremental step"+
+        ": "+step+clearance_spaceRight+"#")
+
+        # Calculates the clearance to each side
+
+        clearance_left = int(np.ceil(0.5*(56-len(time))))
+
+        clearance_right = 56-clearance_left-len(time)
+
+        # Makes the clearance space
+
+        clearance_spaceLeft = ""
+
+        clearance_spaceRight = ""
+
+        for i in range(clearance_left):
+
+            clearance_spaceLeft += " "
+
+        for i in range(clearance_right):
+
+            clearance_spaceRight += " "
+
+        print("#"+clearance_spaceLeft+"current time: "+time+
+        clearance_spaceRight+"#\n#####################################"+
+        "###################################\n")
