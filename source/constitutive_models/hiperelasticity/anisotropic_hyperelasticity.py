@@ -14,6 +14,8 @@ import ufl_legacy as ufl
 
 import source.tool_box.tensor_tools as tensor_tools
 
+import source.tool_box.constitutive_tools as constitutive_tools
+
 # Defines an abstract class to force all classes ahead to have the same
 # methods. To enforce it, the abstract method is used before the methods.
 # The material model classes have four methods in the case of hyperelas-
@@ -100,7 +102,12 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
         I1_C = ufl.variable(ufl.tr(C))
 
-        # Defines the rotation axis vector
+        # Initializes the second order identity tensor as a variable to
+        # differentiate it later
+
+        I = ufl.variable(ufl.Identity(3))
+
+        """# Defines the rotation axis vector
         n = self.e3
         norm_n = tensor_tools.L2_normVector(self.e3)
 
@@ -112,50 +119,96 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
         W = ufl.variable(W)
 
-        # Identity matrix
-        I = ufl.variable(ufl.Identity(3))
-
         R1 = ufl.cos(self.gamma) * I + ufl.sin(self.gamma) * W + (1 - ufl.cos(self.gamma)) * (ufl.outer(n, n))
-        R2 = ufl.cos(-self.gamma) * I + ufl.sin(-self.gamma) * W + (1 - ufl.cos(-self.gamma)) * (ufl.outer(n, n))
+        R2 = ufl.cos(-self.gamma) * I + ufl.sin(-self.gamma) * W + (1 - ufl.cos(-self.gamma)) * (ufl.outer(n, n))"""
 
-        alpha_1 = R1 * self.e1
-        alpha_2 = R2 * self.e1
+        # Evaluates the two rotation matrices (for + and - gamma). Uses
+        # the local e_3 direction as axial vector
 
-        I4_alpha_1 = ufl.dot(alpha_1, (C * alpha_1))
-        I4_alpha_2 = ufl.dot(alpha_2, (C * alpha_2))
+        R1 = tensor_tools.rotation_tensorEulerRodrigues(self.gamma*self.e3, I=I)
 
-        I4_alpha_1 = ufl.variable(I4_alpha_1)
-        I4_alpha_2 = ufl.variable(I4_alpha_2)
+        R2 = tensor_tools.rotation_tensorEulerRodrigues(-self.gamma*self.e3, I=I)
+
+        # Evaluates the two fiber directional vectors
+
+        alpha_1 = R1*self.e1
+
+        alpha_2 = R2*self.e1
+
+        # Evaluates the anisotropic invariants
+
+        I4_alpha_1 = ufl.variable(ufl.dot(alpha_1, C*alpha_1))
+
+        I4_alpha_2 = ufl.variable(ufl.dot(alpha_2, C*alpha_2))
+
+        # Defines the Macauley bracket operator
 
         def Macaulay(variable):
+
             return ufl.conditional(ufl.lt(variable, 0), 0, variable)
-
-        E_alpha_1 = self.kappa * (I1_C - 3) + (1 - 3 * self.kappa) * (I4_alpha_1 - 1)
-        E_alpha_1 = ufl.variable(E_alpha_1)
-        E_alpha_2 = self.kappa * (I1_C - 3) + (1 - 3 * self.kappa) * (I4_alpha_2 - 1)
-        E_alpha_2 = ufl.variable(E_alpha_2)
-
-        energy_matrix = self.c * (I1_C - 3) 
-
-        energy_fiber_1 = (self.k1 / (2 * self.k2)) * (ufl.exp(self.k2 * ((Macaulay(E_alpha_1) ** 2))) - 1)
-        energy_fiber_2 = (self.k1 / (2 * self.k2)) * (ufl.exp(self.k2 * ((Macaulay(E_alpha_2) ** 2))) - 1)
-
-        energy_volumetric = ((self.k) * ((((J**2)-1)/2) - ufl.ln(J)))  - (2*self.c * ufl.ln(J))
-
-        return (energy_matrix + energy_fiber_1 + energy_fiber_2 + energy_volumetric)
-
-    def stress_tensor(self, F):
         
-        C = (F.T)*F
+        # Evaluates the energy parcels
         
-        C = ufl.variable(C)
+        E_alpha_1 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
+        ))*(I4_alpha_1-1)))
+        
+        E_alpha_2 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
+        ))*(I4_alpha_2-1)))
 
-        W = self.strain_energy(C)
+        # Evaluates the energy relative to the neo-hookean matrix
 
-        # Second Piola-Kirchhoff stress tensor
-        S = 2 * diff(W, C)
+        energy_matrix = self.c*(I1_C-3) 
 
-        # First Piola-Kirchhoff stress tensor
-        P = F * S
+        # Evaluates the energy parcels relative to the fibers
+
+        energy_fiber1 = ((self.k1/(2*self.k2))*(ufl.exp(self.k2*((
+        Macaulay(E_alpha_1)**2)))-1))
+
+        energy_fiber2 = ((self.k1/(2*self.k2))*(ufl.exp(self.k2*((
+        Macaulay(E_alpha_2)**2)))-1))
+
+        # Evaluates the volumetric energy
+
+        energy_volumetric = ((self.k*((((J**2)-1)*0.5)-ufl.ln(J)))-(2*
+        self.c*ufl.ln(J)))
+
+        return (energy_matrix+energy_fiber1+energy_fiber2+
+        energy_volumetric)
+    
+    # Defines a function to evaluate the second Piola-Kirchhoff stress 
+    # tensor as the derivative of the Helmholtz free energy density po-
+    # tential
+
+    def second_piolaStress(self, F):
+
+        S = constitutive_tools.S_fromDPsiDC(F, self.strain_energy)
+
+        return S
+
+    # Defines a function to evaluate the first Piola-Kirchhoff stress 
+    # tensor as the result of the proper operation over the second one
+
+    def first_piolaStress(self, F):
+
+        # Evaluates the second Piola-Kirchhoff stress tensor and pulls
+        # it back to the first Piola-Kirchhoff stress tensor
+
+        S = self.second_piolaStress(F)
+        
+        P = F*S
 
         return P
+    
+    # Defines a function to evaluate the Cauchy stress tensor as the 
+    # push forward of the second Piola-Kirchhoff stress tensor
+    
+    def cauchy_stress(self, F):
+
+        # Evaluates the second Piola-Kirchhoff stress tensor and pushes 
+        # it forward to the deformed configuration
+
+        S = self.second_piolaStress(F)
+
+        sigma = constitutive_tools.push_forwardS(S, F)
+
+        return sigma
