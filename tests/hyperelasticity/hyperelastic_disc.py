@@ -102,9 +102,9 @@ parameters["form_compiler"]["quadrature_degree"] = 2
 
 linear_solver = "minres"
 
-relative_tolerance = 1e-2
+relative_tolerance = 1e-4
 
-absolute_tolerance = 1e-2
+absolute_tolerance = 1e-4
 
 maximum_iterations = 50
 
@@ -136,7 +136,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 2E4
+maximum_load = 2E7
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -194,7 +194,7 @@ fixed_supportPhysicalGroups)
 
 # Defines the trial and test functions
 
-dsol = TrialFunction(U) 
+delta_u = TrialFunction(U) 
 
 v = TestFunction(U)
 
@@ -227,7 +227,7 @@ v, ds)
 
 residual_form = internal_VarForm-traction_VarForm
 
-residual_derivative = derivative(residual_form , u_new, dsol)
+residual_derivative = derivative(residual_form , u_new, delta_u)
 
 Res = NonlinearVariationalProblem(residual_form, u_new, bc, J=
 residual_derivative)
@@ -319,10 +319,8 @@ while t<t_final:
 
     if time_counter>=maximum_loadingSteps:
 
-        print("The maximum number of loading steps,",
+        print("\nThe maximum number of loading steps,",
         maximum_loadingSteps, "has just been reached. Stops the simula"+
         "tion immediatly\n")
 
         break
-
-print ("\nSimulation completed")
