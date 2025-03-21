@@ -18,11 +18,7 @@ import source.constitutive_models.hiperelasticity.anisotropic_hyperelasticity as
 
 import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as isotropic_constitutiveModels
 
-import source.tool_box.functional_tools as functional_tools
-
 import source.tool_box.boundary_conditions_tools as BCs_tools
-
-import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.variational_tools as variational_tools
 

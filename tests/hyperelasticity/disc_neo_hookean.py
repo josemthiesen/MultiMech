@@ -16,11 +16,7 @@ import source.tool_box.file_handling_tools as file_handling_tools
 
 import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as constitutive_models
 
-import source.tool_box.functional_tools as functional_tools
-
 import source.tool_box.boundary_conditions_tools as BCs_tools
-
-import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.variational_tools as variational_tools
 
