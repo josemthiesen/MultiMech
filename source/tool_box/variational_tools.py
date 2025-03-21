@@ -7,9 +7,10 @@ from dolfin import *
 # class (when the whole domain has only one constitutive model); or it 
 # can be a dictionary, when the domain is heterogeneous. The keys of the
 # dictionaries are the volumetric physical groups, whereas the values 
-# are the constitutive model classes
+# are the constitutive model classes. This internal work is calculated 
+# using the first Piola-Kirchhoff stress tensor
 
-def hyperelastic_internalWork(trial_function, test_function, 
+def hyperelastic_internalWorkFirstPiola(trial_function, test_function, 
 constitutive_modelDictionary, dx):
     
     # Gets the physical groups from the domain mesh function

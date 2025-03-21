@@ -269,8 +269,8 @@ u_new = Function(U)
 
 # Constructs the variational form for the inner work
 
-internal_VarForm = variational_tools.hyperelastic_internalWork(u_new, v,
-constitutive_model, dx)
+internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
+u_new, v, constitutive_model, dx)
 
 # Constructs the variational forms for the traction work
 
