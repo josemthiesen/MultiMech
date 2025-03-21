@@ -48,9 +48,9 @@ class HyperelasticMaterialModel(ABC):
 
 # Defines a function to implement the strain energy and the stress ten-
 # sor for the Holzapfel-Gasser-Ogden unconstrained material model. This
-# implementation was done as in https://help.febio.org/docs/FEBioUser-3-
-# 6/UM36-4.1.4.11.html, where it is called unconstrained Holzapfel-
-# Gasser-Ogden
+# implementation was done as in 
+# https://help.febio.org/docs/FEBioUser-3-6/UM36-4.1.4.11.html, where it
+# is called unconstrained Holzapfel-Gasser-Ogden
 
 class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
@@ -63,6 +63,8 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
         self.k1 = material_properties["k1"]
 
         self.k2 = material_properties["k2"]
+
+        # Converts the angle from degrees to radians
 
         self.gamma = material_properties["gamma"]*(ufl.pi/180.0)
 
@@ -104,32 +106,14 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
         J = ufl.sqrt(I2_C)
 
-        # Initializes the second order identity tensor as a variable to
-        # differentiate it later
-
-        I = ufl.Identity(3)#ufl.variable(ufl.Identity(3))
-
-        """# Defines the rotation axis vector
-        n = self.e3
-        norm_n = tensor_tools.L2_normVector(self.e3)
-
-        n = n/norm_n
-
-        W = ufl.as_tensor([[0, -n[2], n[1]],
-                       [n[2], 0, -n[0]],
-                       [-n[1], n[0], 0]])
-
-        W = ufl.variable(W)
-
-        R1 = ufl.cos(self.gamma) * I + ufl.sin(self.gamma) * W + (1 - ufl.cos(self.gamma)) * (ufl.outer(n, n))
-        R2 = ufl.cos(-self.gamma) * I + ufl.sin(-self.gamma) * W + (1 - ufl.cos(-self.gamma)) * (ufl.outer(n, n))"""
-
         # Evaluates the two rotation matrices (for + and - gamma). Uses
         # the local e_3 direction as axial vector
 
-        R1 = tensor_tools.rotation_tensorEulerRodrigues(self.gamma*self.e3, I=I)
+        R1 = tensor_tools.rotation_tensorEulerRodrigues(self.gamma*
+        self.e3)
 
-        R2 = tensor_tools.rotation_tensorEulerRodrigues(-self.gamma*self.e3, I=I)
+        R2 = tensor_tools.rotation_tensorEulerRodrigues(-self.gamma*
+        self.e3)
 
         # Evaluates the two fiber directional vectors
 
@@ -139,9 +123,9 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
         # Evaluates the anisotropic invariants
 
-        I4_alpha_1 = ufl.dot(alpha_1, C*alpha_1)#ufl.variable(ufl.dot(alpha_1, C*alpha_1))
+        I4_alpha_1 = ufl.dot(alpha_1, C*alpha_1)
 
-        I4_alpha_2 = ufl.dot(alpha_2, C*alpha_2)#ufl.variable(ufl.dot(alpha_2, C*alpha_2))
+        I4_alpha_2 = ufl.dot(alpha_2, C*alpha_2)
 
         # Defines the Macauley bracket operator
 
@@ -153,13 +137,9 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
         
         E_alpha_1 = (self.kappa*(I1_C-3))+((1-(3*self.kappa))*(
         I4_alpha_1-1))
-        #E_alpha_1 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
-        #))*(I4_alpha_1-1)))
         
         E_alpha_2 = (self.kappa*(I1_C-3))+((1-(3*self.kappa))*(
         I4_alpha_2-1))
-        #E_alpha_2 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
-        #))*(I4_alpha_2-1)))
 
         # Evaluates the energy relative to the neo-hookean matrix
 

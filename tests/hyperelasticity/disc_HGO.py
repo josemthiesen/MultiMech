@@ -16,6 +16,8 @@ import source.tool_box.file_handling_tools as file_handling_tools
 
 import source.constitutive_models.hiperelasticity.anisotropic_hyperelasticity as constitutive_models
 
+import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as test
+
 import source.tool_box.functional_tools as functional_tools
 
 import source.tool_box.boundary_conditions_tools as BCs_tools
@@ -46,27 +48,34 @@ displacement_fileName = "displacement.pvd"
 #                         Material properties                          #
 ########################################################################
 
-# Sets the Young modulus and the Poisson ratio
-
-E = 100E6
-
-v = 0.4
-
 # Sets a dictionary of properties
 
 material_properties = dict()
 
+# Shearing modulus
+
 material_properties["c"] = 10E6
 
-material_properties["k1"] = 10E7
+# k1 is the fiber modulus and k2 is the exponential coefficient
+
+material_properties["k1"] = 10E4
 
 material_properties["k2"] = 5.0
 
-material_properties["kappa"] = 15E6
+# Kappa is the fiber dispersion and it is bounded between 0 and 1/3. A 
+# third is an isotropic material
 
-material_properties["gamma"] = 30.0
+material_properties["kappa"] = 0.2
 
-material_properties["k"] = 5E6
+# Gamma is the fiber angle in degrees
+
+material_properties["gamma"] = 0.0
+
+# k is the matrix bulk modulus
+
+material_properties["k"] = 15E6
+
+# The vectors ahead form a plane where the fiber is locally present
 
 material_properties["local system of coordinates: a direction"] = (
 as_vector([1.0, 0.0, 0.0]))
@@ -79,6 +88,20 @@ as_vector([0.0, 1.0, 0.0]))
 
 constitutive_model = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
 material_properties)
+
+"""E = 100E6
+
+v = 0.4
+
+# Sets a dictionary of properties
+
+material_properties = dict()
+
+material_properties["E"] = E
+
+material_properties["v"] = v
+
+constitutive_model = test.Neo_Hookean(material_properties)"""
 
 ########################################################################
 #                                 Mesh                                 #
@@ -149,7 +172,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = -2E1
+maximum_load = -2E5
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
