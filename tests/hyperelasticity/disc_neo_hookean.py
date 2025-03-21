@@ -207,19 +207,10 @@ v = TestFunction(U)
 
 u_new = Function(U)
 
-# Creates the deformation gradient object
+# Constructs the variational form for the inner work
 
-I = Identity(3)
-
-F = grad(u_new)+I
-
-# Initializes objects for the stresses at the reference configuration
-
-first_piola = constitutive_model.first_piolaStress(F)
-
-# Constructs the variational forms for the inner work
-
-internal_VarForm = inner(first_piola, grad(v))*dx 
+internal_VarForm = variational_tools.hyperelastic_internalWork(u_new, v,
+constitutive_model, dx)
 
 # Constructs the variational forms for the traction work
 

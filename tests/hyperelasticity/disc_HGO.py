@@ -89,20 +89,6 @@ as_vector([0.0, 1.0, 0.0]))
 constitutive_model = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
 material_properties)
 
-"""E = 100E6
-
-v = 0.4
-
-# Sets a dictionary of properties
-
-material_properties = dict()
-
-material_properties["E"] = E
-
-material_properties["v"] = v
-
-constitutive_model = test.Neo_Hookean(material_properties)"""
-
 ########################################################################
 #                                 Mesh                                 #
 ########################################################################
@@ -245,19 +231,10 @@ v = TestFunction(U)
 
 u_new = Function(U)
 
-# Creates the deformation gradient object
+# Constructs the variational form for the inner work
 
-I = Identity(3)
-
-F = grad(u_new)+I
-
-# Initializes objects for the stresses at the reference configuration
-
-first_piola = constitutive_model.first_piolaStress(F)
-
-# Constructs the variational forms for the inner work
-
-internal_VarForm = inner(first_piola, grad(v))*dx 
+internal_VarForm = variational_tools.hyperelastic_internalWork(u_new, v,
+constitutive_model, dx)
 
 # Constructs the variational forms for the traction work
 

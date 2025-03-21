@@ -2,6 +2,65 @@
 
 from dolfin import *
 
+# Defines a function to construct the variational form of a non-dissipa-
+# tive solid mechanics problem. The constitutive model can be either a
+# class (when the whole domain has only one constitutive model); or it 
+# can be a dictionary, when the domain is heterogeneous. The keys of the
+# dictionaries are the volumetric physical groups, whereas the values 
+# are the constitutive model classes
+
+def hyperelastic_internalWork(trial_function, test_function, 
+constitutive_modelDictionary, dx):
+    
+    # Initializes the second order identity tensor and the deformation 
+    # gradient
+    
+    I = Identity(3)
+
+    F = grad(trial_function)+I
+
+    # Initializes the variational form of the inner work
+
+    inner_work = 0.0
+
+    # If the constitutive model is a dictionary, the domain is heteroge-
+    # neous
+
+    if isinstance(constitutive_modelDictionary, dict):
+
+        # Iterates through the dictionary
+
+        for physical_group, constitutive_model in (
+        constitutive_modelDictionary.items()):
+
+            # Initializes objects for the stresses at the reference con-
+            # figuration
+
+            first_piola = constitutive_model.first_piolaStress(F)
+
+            # Constructs the variational forms for the inner work
+
+            inner_work += (inner(first_piola, grad(test_function))*dx(
+            physical_group))
+
+    # If the constitutive model is not a dictionary, the domain is homo-
+    # geneous
+
+    else:
+
+        # Initializes objects for the stresses at the reference configu-
+        # ration
+
+        first_piola = constitutive_modelDictionary.first_piolaStress(F)
+
+        # Constructs the variational forms for the inner work
+
+        inner_work = inner(first_piola, grad(test_function))*dx
+
+    # Returns the inner work variational form
+
+    return inner_work
+
 # Defines a function to construct the variational form of the work done
 # by the traction vector in the reference configuration given a dictio-
 # nary of traction loads, where the keys are the corresponding boundary
