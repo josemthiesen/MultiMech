@@ -12,6 +12,10 @@ from dolfin import *
 def hyperelastic_internalWork(trial_function, test_function, 
 constitutive_modelDictionary, dx):
     
+    # Gets the physical groups from the domain mesh function
+
+    physical_groupsList = set(dx.subdomain_data().array())
+    
     # Initializes the second order identity tensor and the deformation 
     # gradient
     
@@ -34,7 +38,7 @@ constitutive_modelDictionary, dx):
         constitutive_modelDictionary.items()):
             
             # Tuples can be used as physical groups to integrate over 
-            # mutliple physical groups simultaneously
+            # multiple physical groups simultaneously
 
             if (not isinstance(physical_group, int)) and (not isinstance(
             physical_group, tuple)):
@@ -43,6 +47,33 @@ constitutive_modelDictionary, dx):
                 "stitutive models dictionary must be either an integer"+
                 " or a tuple (for multiple physical groups with the sa"+
                 "me constitutive model).")
+            
+            # Verifies if this or these physical groups are valid physi-
+            # cal groups
+            
+            elif isinstance(physical_group, tuple):
+
+                # Iterates through the physical groups in the tuple
+
+                for group in physical_group:
+
+                    if not (group in physical_groupsList):
+
+                        raise NameError("The physical group tag "+str(
+                        group)+" was used to build the hyperelastic in"+
+                        "ternal work, but it is not a valid physical g"+
+                        "roup. Here is the list of the valid physical "+
+                        "groups:\n"+str(physical_groupsList))
+                    
+            else:
+
+                if not (physical_group in physical_groupsList):
+
+                    raise NameError("The physical group tag "+str(
+                    physical_group)+" was used to build the hyperelast"+
+                    "ic internal work, but it is not a valid physical "+
+                    "group. Here is the list of the valid physical gro"+
+                    "ups:\n"+str(physical_groupsList))
 
             # Initializes objects for the stresses at the reference 
             # configuration

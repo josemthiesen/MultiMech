@@ -120,8 +120,10 @@ elif option==2:
     constitutive_model[tuple([2,3])] = isotropic_constitutiveModels.Neo_Hookean(
     material_properties2)
 
-#constitutive_model = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
-#material_properties)
+elif option==3:
+
+    constitutive_model = anisotropic_constitutiveModels.Holzapfel_Gasser_Ogden_Unconstrained(
+    material_properties1)
 
 ########################################################################
 #                                 Mesh                                 #
