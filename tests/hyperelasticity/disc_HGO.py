@@ -14,9 +14,9 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 
 import source.tool_box.file_handling_tools as file_handling_tools
 
-import source.constitutive_models.hiperelasticity.anisotropic_hyperelasticity as constitutive_models
+import source.constitutive_models.hiperelasticity.anisotropic_hyperelasticity as anisotropic_constitutiveModels
 
-import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as test
+import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as isotropic_constitutiveModels
 
 import source.tool_box.functional_tools as functional_tools
 
@@ -50,45 +50,78 @@ displacement_fileName = "displacement.pvd"
 
 # Sets a dictionary of properties
 
-material_properties = dict()
+material_properties1 = dict()
 
 # Shearing modulus
 
-material_properties["c"] = 10E6
+material_properties1["c"] = 10E6
 
 # k1 is the fiber modulus and k2 is the exponential coefficient
 
-material_properties["k1"] = 10E4
+material_properties1["k1"] = 10E4
 
-material_properties["k2"] = 5.0
+material_properties1["k2"] = 5.0
 
 # Kappa is the fiber dispersion and it is bounded between 0 and 1/3. A 
 # third is an isotropic material
 
-material_properties["kappa"] = 0.2
+material_properties1["kappa"] = 0.2
 
 # Gamma is the fiber angle in degrees
 
-material_properties["gamma"] = 0.0
+material_properties1["gamma"] = 45.0
 
 # k is the matrix bulk modulus
 
-material_properties["k"] = 15E6
+material_properties1["k"] = 15E6
 
 # The vectors ahead form a plane where the fiber is locally present
 
-material_properties["local system of coordinates: a direction"] = (
+material_properties1["local system of coordinates: a direction"] = (
 as_vector([1.0, 0.0, 0.0]))
 
-material_properties["local system of coordinates: d direction"] = (
-as_vector([0.0, 1.0, 0.0]))
+material_properties1["local system of coordinates: d direction"] = (
+as_vector([0.0, 0.0, 1.0]))
+
+material_properties2 = dict()
+
+material_properties2["E"] = 1E7
+
+material_properties2["v"] = 0.4
+
+material_properties3 = dict()
+
+material_properties3["E"] = 1E8
+
+material_properties3["v"] = 0.35
 
 # Sets the material as a HGO material
 
 constitutive_model = dict()
 
-constitutive_model[tuple([1,2,3])] = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
-material_properties)
+option = 2
+
+if option==1:
+
+    constitutive_model[1] = anisotropic_constitutiveModels.Holzapfel_Gasser_Ogden_Unconstrained(
+    material_properties1)
+
+    constitutive_model[2] = isotropic_constitutiveModels.Neo_Hookean(
+    material_properties2)
+
+    constitutive_model[3] = isotropic_constitutiveModels.Neo_Hookean(
+    material_properties3)
+
+elif option==2:
+
+    constitutive_model[1] = anisotropic_constitutiveModels.Holzapfel_Gasser_Ogden_Unconstrained(
+    material_properties1)
+
+    constitutive_model[tuple([2,3])] = isotropic_constitutiveModels.Neo_Hookean(
+    material_properties2)
+
+#constitutive_model = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
+#material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -151,7 +184,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 11
+maximum_loadingSteps = 30
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -159,7 +192,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = -2E5
+maximum_load = 8E6
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -170,7 +203,7 @@ neumann_loads = [load]
 
 # Assemble the traction vector using this load expression
 
-traction_boundary = as_vector([0.0, load, 0.0])
+traction_boundary = as_vector([0.0, 0.0, load])
 
 # Defines a dictionary of tractions
 
