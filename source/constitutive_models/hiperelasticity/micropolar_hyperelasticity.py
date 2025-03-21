@@ -30,98 +30,158 @@ class HyperelasticMaterialModel(ABC):
     # The following methods have the pass argument only because they 
     # will be defined in the child classes
 
-    def strain_energy(self, strain_tensor):
+    def strain_energy(self, strain_tensor, curvature_tensor):
 
         pass
 
-    def second_piolaStress(self, strain_tensor):
+    def second_piolaStress(self, displacement, microrotation):
 
         pass
 
-    def first_piolaStress(self, strain_tensor):
+    def first_piolaStress(self, displacement, microrotation):
 
         pass
 
-    def cauchy_stress(self, strain_tensor):
+    def cauchy_stress(self, displacement, microrotation):
 
         pass
 
 # Defines a class to evaluate the strain energy and the respective
 # first Piola-Kirchhoff stress tensor for the neo-hookean hyperelastic 
-# model from Javier Bonet, the same as in https://help.febio.org/docs/FE
-# BioUser-3-6/UM36-4.1.3.17.html. It is called there as unconstrained
-# Neo-Hookean material
+# micropolar model. This implementation is the same as from Bauer et al-
+# Micropolar hyperelasticity: constitutive model, consistent lineariza-
+# tion and simulation of 3D scale effects
 
-class Neo_Hookean(HyperelasticMaterialModel):
+class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
     def __init__(self, material_properties):
 
-        self.E = material_properties["E"]
+        self.mu = material_properties["mu"]
 
-        self.v = material_properties["v"]
+        self.lmbda = material_properties["lambda"]
 
-        # Evaluates the Lamé parameters
+        self.kappa = material_properties["kappa"]
 
-        self.mu = self.E/(2*(1+self.v))
+        self.alpha = material_properties["alpha"]
 
-        self.lmbda = self.v*self.E/((1+self.v)*(1-2*self.v))
+        self.beta = material_properties["beta"]
+
+        self.gamma = material_properties["gamma"]
 
     # Defines a function to evaluate the Helmholtz free energy density
 
-    def strain_energy(self, C):
+    def strain_energy(self, V_bar, k_curvatureSpatial):
 
-        # Evaluates the right Cauchy-Green strain tensor invariants
+        # Evaluates the traces
 
-        I1_C = ufl.tr(C)
+        I1 = tr(V_bar*V_bar.T)
 
-        I2_C = ufl.det(C)
+        I2 = tr(V_bar*V_bar)
 
-        J = ufl.sqrt(I2_C)
-        
-        # Evaluates the trace-related part
+        I3 = tr(k_curvatureSpatial)
 
-        psi_1 = (self.mu/2)*(I1_C - 3)
+        I4 = tr(k_curvatureSpatial*k_curvatureSpatial)
 
-        # Evaluates the jacobian-related part
+        I5 = tr(k_curvatureSpatial*k_curvatureSpatial.T)
 
-        psi_2 = -(self.mu*ufl.ln(J))+((self.lmbda*0.5)*((ufl.ln(J))**2))
+        # And the determinant
 
-        return psi_1+psi_2
+        J = det(V_bar)
+
+        # Evaluates the energy parcels from Bauer et al
+
+        psi_NH = 0.5*self.mu*(I1-3.0)
+
+        psi_vol = ((0.25*self.lmbda*((J**2)-1))-(0.5*self.lmbda*ln(J))-
+        self.mu*ln(J))
+
+        psi_hat = 0.25*self.kappa*(I1-I2)
+
+        psi_tilde = (0.5*((self.alpha*(I3**2))+(self.beta*I4)+(
+        self.gamma*I5)))
+
+        return psi_NH+psi_vol+psi_hat+psi_tilde
     
     # Defines a function to evaluate the second Piola-Kirchhoff stress 
-    # tensor as the derivative of the Helmholtz free energy density po-
-    # tential
+    # tensors using a pull-back operation over the Cauchy stress tensors
 
-    def second_piolaStress(self, F):
+    def second_piolaStress(self, u, phi):
 
-        S = constitutive_tools.S_fromDPsiDC(F, self.strain_energy)
+        # Evaluates the Cauchy stress and the couple stress
 
-        return S
+        sigma, sigma_couple = self.cauchy_stress(self, u, phi)
+
+        # Evaluates the second Piola-Kirchhoff stress tensors using the
+        # pull back operation
+
+        S = constitutive_tools.S_fromCauchy(sigma, u)
+
+        S_couple = constitutive_tools.S_fromCauchy(sigma_couple, u)
+
+        return S, S_couple
 
     # Defines a function to evaluate the first Piola-Kirchhoff stress 
-    # tensor as the result of the proper operation over the second one
+    # and its couple from the Cauchy stress
 
-    def first_piolaStress(self, F):
+    def first_piolaStress(self, u, phi):
 
-        # Evaluates the second Piola-Kirchhoff stress tensor and pulls
-        # it back to the first Piola-Kirchhoff stress tensor
+        # Evaluates the Cauchy stress and the couple stress
 
-        S = self.second_piolaStress(F)
-        
-        P = F*S
+        sigma, sigma_couple = self.cauchy_stress(self, u, phi)
 
-        return P
+        # Evaluates the first Piola-Kirchhoff stress tensors using the
+        # Piola transformation
+
+        P = constitutive_tools.P_fromCauchy(sigma, u)
+
+        P_couple = constitutive_tools.P_fromCauchy(sigma_couple, u)
+
+        return P, P_couple
     
-    # Defines a function to evaluate the Cauchy stress tensor as the 
-    # push forward of the second Piola-Kirchhoff stress tensor
+    # Defines a function to evaluate the Cauchy stress tensor using the 
+    # derivative of the Helmholtz potential with respect to the V_bar 
+    # tensor. This function receives the deformation gradient, the rota-
+    # tion tensor of the microrotation field, and the curvature tensor 
+    # in the referential configuration
     
-    def cauchy_stress(self, F):
+    def cauchy_stress(self, u, phi):
 
-        # Evaluates the second Piola-Kirchhoff stress tensor and pushes 
-        # it forward to the deformed configuration
+        # Evaluates the deformation gradient
 
-        S = self.second_piolaStress(F)
+        I = Identity(3)
 
-        sigma = constitutive_tools.push_forwardS(S, F)
+        F = grad(u)+I 
 
-        return sigma
+        # Evaluates the rotation tensor using phi
+
+        R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
+
+        # Evaluates the curvature tensor in the referential configuration
+
+        K_curvatureReferential = constitutive_tools.micropolar_curvatureTensor(
+        phi)
+
+        # Evaluates the micropolar stretch and the jacobian
+    
+        V_bar = F*(R_bar.T)
+
+        # Evaluates the push-forward of the curvature tensor
+
+        k_curvatureSpatial = variable(R_bar*K_curvatureReferential*
+        R_bar.T)
+
+        V_bar = variable(V_bar)
+
+        # Evaluates the total energy density
+
+        psi_total = self.strain_energy(V_bar, k_curvatureSpatial)
+
+        # Evaluates the Cauchy and the couple Cauchy stress tensors
+
+        sigma = V_bar*diff(psi_total, V_bar.T)
+
+        sigma_couple = V_bar*diff(psi_total, k_curvatureSpatial.T)
+
+        # Returns them
+
+        return sigma, sigma_couple

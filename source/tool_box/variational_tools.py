@@ -15,13 +15,6 @@ constitutive_modelDictionary, dx):
     # Gets the physical groups from the domain mesh function
 
     physical_groupsList = set(dx.subdomain_data().array())
-    
-    # Initializes the second order identity tensor and the deformation 
-    # gradient
-    
-    I = Identity(3)
-
-    F = grad(trial_function)+I
 
     # Initializes the variational form of the inner work
 
@@ -78,7 +71,8 @@ constitutive_modelDictionary, dx):
             # Initializes objects for the stresses at the reference 
             # configuration
 
-            first_piola = constitutive_model.first_piolaStress(F)
+            first_piola = constitutive_model.first_piolaStress(
+            trial_function)
 
             # Constructs the variational forms for the inner work
 
@@ -93,7 +87,8 @@ constitutive_modelDictionary, dx):
         # Initializes objects for the stresses at the reference configu-
         # ration
 
-        first_piola = constitutive_modelDictionary.first_piolaStress(F)
+        first_piola = constitutive_modelDictionary.first_piolaStress(
+        trial_function)
 
         # Constructs the variational forms for the inner work
 

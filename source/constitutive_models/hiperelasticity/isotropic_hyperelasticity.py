@@ -34,15 +34,15 @@ class HyperelasticMaterialModel(ABC):
 
         pass
 
-    def second_piolaStress(self, strain_tensor):
+    def second_piolaStress(self, displacement):
 
         pass
 
-    def first_piolaStress(self, strain_tensor):
+    def first_piolaStress(self, displacement):
 
         pass
 
-    def cauchy_stress(self, strain_tensor):
+    def cauchy_stress(self, displacement):
 
         pass
 
@@ -92,36 +92,36 @@ class Neo_Hookean(HyperelasticMaterialModel):
     # tensor as the derivative of the Helmholtz free energy density po-
     # tential
 
-    def second_piolaStress(self, F):
+    def second_piolaStress(self, u):
 
-        S = constitutive_tools.S_fromDPsiDC(F, self.strain_energy)
+        S = constitutive_tools.S_fromDPsiDC(self.strain_energy, u)
 
         return S
 
     # Defines a function to evaluate the first Piola-Kirchhoff stress 
     # tensor as the result of the proper operation over the second one
 
-    def first_piolaStress(self, F):
+    def first_piolaStress(self, u):
 
         # Evaluates the second Piola-Kirchhoff stress tensor and pulls
         # it back to the first Piola-Kirchhoff stress tensor
 
-        S = self.second_piolaStress(F)
+        S = self.second_piolaStress(u)
         
-        P = F*S
+        P = constitutive_tools.P_fromS(S, u)
 
         return P
     
     # Defines a function to evaluate the Cauchy stress tensor as the 
     # push forward of the second Piola-Kirchhoff stress tensor
     
-    def cauchy_stress(self, F):
+    def cauchy_stress(self, u):
 
         # Evaluates the second Piola-Kirchhoff stress tensor and pushes 
         # it forward to the deformed configuration
 
-        S = self.second_piolaStress(F)
+        S = self.second_piolaStress(u)
 
-        sigma = constitutive_tools.push_forwardS(S, F)
+        sigma = constitutive_tools.push_forwardS(S, u)
 
         return sigma

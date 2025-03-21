@@ -28,7 +28,7 @@ import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.variational_tools as variational_tools
 
-# Define the indices for Einstein summation notation
+# Defines the indices for Einstein summation notation
 
 i, j, k, l = ufl.indices(4)
 
