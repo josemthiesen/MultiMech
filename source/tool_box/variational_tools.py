@@ -32,16 +32,27 @@ constitutive_modelDictionary, dx):
 
         for physical_group, constitutive_model in (
         constitutive_modelDictionary.items()):
+            
+            # Tuples can be used as physical groups to integrate over 
+            # mutliple physical groups simultaneously
 
-            # Initializes objects for the stresses at the reference con-
-            # figuration
+            if (not isinstance(physical_group, int)) and (not isinstance(
+            physical_group, tuple)):
+                
+                raise ValueError("The physical group as key of the con"+
+                "stitutive models dictionary must be either an integer"+
+                " or a tuple (for multiple physical groups with the sa"+
+                "me constitutive model).")
+
+            # Initializes objects for the stresses at the reference 
+            # configuration
 
             first_piola = constitutive_model.first_piolaStress(F)
 
             # Constructs the variational forms for the inner work
 
-            inner_work += (inner(first_piola, grad(test_function))*dx(
-            physical_group))
+            inner_work += (inner(first_piola, grad(test_function))*
+            dx(physical_group))
 
     # If the constitutive model is not a dictionary, the domain is homo-
     # geneous

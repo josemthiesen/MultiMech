@@ -83,10 +83,11 @@ as_vector([1.0, 0.0, 0.0]))
 material_properties["local system of coordinates: d direction"] = (
 as_vector([0.0, 1.0, 0.0]))
 
-# Sets the material as a neo-hookean material using the corresponding
-# class
+# Sets the material as a HGO material
 
-constitutive_model = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
+constitutive_model = dict()
+
+constitutive_model[tuple([1,2,3])] = constitutive_models.Holzapfel_Gasser_Ogden_Unconstrained(
 material_properties)
 
 ########################################################################
