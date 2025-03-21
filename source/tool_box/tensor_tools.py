@@ -21,7 +21,7 @@ i, j, k, l = ufl.indices(4)
 
 def L2_normVector(vector):
 
-    return numerical_tools.safe_sqrt(dot(vector, vector))
+    return numerical_tools.safe_sqrt(ufl.dot(vector, vector))
 
 ########################################################################
 #                        Skew tensor operations                        #
@@ -38,7 +38,7 @@ def skew_2OrderTensor(axial_vector):
 
    # Constructs the skew second order tensor W
    
-   W = as_tensor(perm[j,i,k]*axial_vector[k], (i,j))
+   W = ufl.as_tensor(perm[j,i,k]*axial_vector[k], (i,j))
 
    return W
 

@@ -98,14 +98,16 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
         # Evaluates the invariants of the right Cauhcy-Green tensor
         
-        J = ufl.variable(ufl.sqrt(ufl.det(C)))
+        I1_C = ufl.tr(C)
 
-        I1_C = ufl.variable(ufl.tr(C))
+        I2_C = ufl.det(C)
+
+        J = ufl.sqrt(I2_C)
 
         # Initializes the second order identity tensor as a variable to
         # differentiate it later
 
-        I = ufl.variable(ufl.Identity(3))
+        I = ufl.Identity(3)#ufl.variable(ufl.Identity(3))
 
         """# Defines the rotation axis vector
         n = self.e3
@@ -137,9 +139,9 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
         # Evaluates the anisotropic invariants
 
-        I4_alpha_1 = ufl.variable(ufl.dot(alpha_1, C*alpha_1))
+        I4_alpha_1 = ufl.dot(alpha_1, C*alpha_1)#ufl.variable(ufl.dot(alpha_1, C*alpha_1))
 
-        I4_alpha_2 = ufl.variable(ufl.dot(alpha_2, C*alpha_2))
+        I4_alpha_2 = ufl.dot(alpha_2, C*alpha_2)#ufl.variable(ufl.dot(alpha_2, C*alpha_2))
 
         # Defines the Macauley bracket operator
 
@@ -149,11 +151,15 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
         
         # Evaluates the energy parcels
         
-        E_alpha_1 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
-        ))*(I4_alpha_1-1)))
+        E_alpha_1 = (self.kappa*(I1_C-3))+((1-(3*self.kappa))*(
+        I4_alpha_1-1))
+        #E_alpha_1 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
+        #))*(I4_alpha_1-1)))
         
-        E_alpha_2 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
-        ))*(I4_alpha_2-1)))
+        E_alpha_2 = (self.kappa*(I1_C-3))+((1-(3*self.kappa))*(
+        I4_alpha_2-1))
+        #E_alpha_2 = ufl.variable((self.kappa*(I1_C-3))+((1-(3*self.kappa
+        #))*(I4_alpha_2-1)))
 
         # Evaluates the energy relative to the neo-hookean matrix
 
