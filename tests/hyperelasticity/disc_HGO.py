@@ -30,7 +30,12 @@ import source.physics.hyperelastic_solid as variational_framework
 
 results_path = os.getcwd()+"//tests//hyperelasticity//results"
 
-displacement_fileName = "displacement.pvd"
+displacement_fileName = "displacement.xdmf"
+
+post_processes = dict()
+
+post_processes["save field"] = {"directory path":results_path, 
+"file name":displacement_fileName}
 
 ########################################################################
 #                         Material properties                          #
@@ -217,6 +222,6 @@ fixed_supportPhysicalGroups = 4
 
 variational_framework.hyperelasticity_displacementBased(
 constitutive_model, traction_dictionary, neumann_loads, 
-maximum_loadingSteps, t_final, results_path, displacement_fileName, 
-mesh_fileName, solver_parameters, polynomial_degree=polynomial_degree, 
-t=t, fixed_supportPhysicalGroups=fixed_supportPhysicalGroups)
+maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
+solver_parameters, polynomial_degree=polynomial_degree, t=t, 
+fixed_supportPhysicalGroups=fixed_supportPhysicalGroups)

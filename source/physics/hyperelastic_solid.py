@@ -13,14 +13,16 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
+import source.tool_box.post_processing_tools as post_processing_tools
+
 # Defines a function to model a hyperelastic problem with a displacement
 # field only
 
 def hyperelasticity_displacementBased(constitutive_model, 
 traction_dictionary, neumann_loads, maximum_loadingSteps, t_final, 
-results_path, displacement_fileName, mesh_fileName, solver_parameters, 
-polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0, 
-simple_supportPhysicalGroups=dict()):
+post_processes, mesh_fileName, solver_parameters, polynomial_degree=2, 
+t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
+)):
 
     ####################################################################
     #                               Mesh                               #
@@ -97,15 +99,15 @@ simple_supportPhysicalGroups=dict()):
     solver = NonlinearVariationalSolver(Res)
 
     ####################################################################
-    #                       Files initialization                       #
+    #    Post-processing methods identification and initialization     #
     ####################################################################
 
-    # Creates the path to the displacement file
-
-    displacement_file = file_handling_tools.verify_path(results_path, 
-    displacement_fileName)
-
-    displacement_file = File(displacement_file)
+    # Transforms the dictionary of post-processing methods instructions
+    # into a live-wire dictionary with the proper methods and needed in-
+    # formation
+    
+    post_processesDict = post_processing_tools.post_processingSelectionSingleField(
+    post_processes) 
 
     ####################################################################
     #                 Solution and pseudotime stepping                 #
@@ -118,5 +120,5 @@ simple_supportPhysicalGroups=dict()):
     # Iterates through the pseudotime stepping algortihm 
 
     newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
-    maximum_loadingSteps, solver, u_new, displacement_file,neumann_loads=
+    maximum_loadingSteps, solver, u_new, post_processes, neumann_loads=
     neumann_loads, solver_parameters=solver_parameters)

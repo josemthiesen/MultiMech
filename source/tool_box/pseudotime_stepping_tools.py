@@ -12,8 +12,18 @@ import numpy as np
 # ational problem of a single field
 
 def newton_raphsonSingleField(t, t_final, delta_t, maximum_loadingSteps,
-solver, solution_field, solution_fieldFile, dirichlet_loads=[],
+solver, solution_field, post_processes, dirichlet_loads=[],
 neumann_loads=[], solver_parameters=dict()):
+    
+    # Initializes a dictionary of post processes objects, files for e-
+    # xample
+
+    post_processingObjects = dict()
+
+    for post_processName, post_process in post_processes.items():
+
+        post_processingObjects[post_processName] = post_process[0](
+        post_process[2])
     
     # Updates the solver parameters
 
@@ -44,9 +54,12 @@ neumann_loads=[], solver_parameters=dict()):
 
         solution_field.rename("DNS Displacement", "DNS")
 
-        # Updates the files
+        # Updates the post processes objects
 
-        solution_fieldFile << solution_field
+        for post_processName, post_process in post_processes.items():
+
+            post_processingObjects[post_processName] = post_process[1](
+            post_processingObjects[post_processName], solution_field, t)
 
         # Updates the pseudo time variables and the counter
 
