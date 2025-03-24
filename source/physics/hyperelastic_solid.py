@@ -53,7 +53,7 @@ simple_supportPhysicalGroups=dict()):
     # Adds boundary conditions for simply supported facets
 
     bc = BCs_tools.simple_supportDirichletBC(U, boundary_meshFunction,
-    simple_supportPhysicalGroups)
+    simple_supportPhysicalGroups, boundary_conditions=bc)
 
     ####################################################################
     #                         Variational forms                        #

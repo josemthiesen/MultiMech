@@ -103,8 +103,17 @@ boundary_conditions=[]):
 # list, all DOFs are constrained
 
 def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups=dict(), n_fields=1, sub_fieldsToApplyBC=[], 
+boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC=[], 
 boundary_conditions=[]):
+    
+    # Verifies if the boundary physical groups is a dictionary
+
+    if not isinstance(boundary_physicalGroups, dict):
+
+        raise ValueError("The boundary_physicalGroups variable in the "+
+        "simple_supportDirichletBC method must be a dictionary, where "+
+        "the keys are the physical groups of the boundary regions and "+
+        "values are the list of DOFs to be constrained.")
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
