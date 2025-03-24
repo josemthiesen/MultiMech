@@ -32,26 +32,26 @@ polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
     boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_mshMesh(
     mesh_fileName)
 
-    ########################################################################
-    #                            Function space                            #
-    ########################################################################
+    ####################################################################
+    #                          Function space                          #
+    ####################################################################
 
     # Defines the finite element spaces for the displacement field, u
 
     U = VectorFunctionSpace(mesh, "Lagrange", polynomial_degree)
 
-    ########################################################################
-    #                          Boundary conditions                         #
-    ########################################################################
+    ####################################################################
+    #                        Boundary conditions                       #
+    ####################################################################
 
     # Defines the boundary conditions for fixed facets
 
     bc = BCs_tools.fixed_supportDirichletBC(U, boundary_meshFunction, 
     fixed_supportPhysicalGroups)
 
-    ########################################################################
-    #                           Variational forms                          #
-    ########################################################################
+    ####################################################################
+    #                         Variational forms                        #
+    ####################################################################
 
     # Defines the trial and test functions
 
@@ -59,8 +59,8 @@ polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
 
     v = TestFunction(U)
 
-    # Creates the function for the updated solution, i.e. the vector of pa-
-    # rameters
+    # Creates the function for the updated solution, i.e. the vector of 
+    # parameters
 
     u_new = Function(U)
 
@@ -71,11 +71,11 @@ polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
 
     # Constructs the variational forms for the traction work
 
-    traction_VarForm = variational_tools.traction_work(traction_dictionary,
-    v, ds)
+    traction_VarForm = variational_tools.traction_work(
+    traction_dictionary, v, ds)
 
-    # Assembles the residual, takes the Gateaux derivative and assembles the
-    # nonlinear problem object
+    # Assembles the residual, takes the Gateaux derivative and assembles
+    # the nonlinear problem object
 
     residual_form = internal_VarForm-traction_VarForm
 
@@ -84,15 +84,15 @@ polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
     Res = NonlinearVariationalProblem(residual_form, u_new, bc, J=
     residual_derivative)
 
-    ########################################################################
-    #                      Solver parameters setting                       #
-    ########################################################################
+    ####################################################################
+    #                    Solver parameters setting                     #
+    ####################################################################
 
     solver = NonlinearVariationalSolver(Res)
 
-    ########################################################################
-    #                         Files initialization                         #
-    ########################################################################
+    ####################################################################
+    #                       Files initialization                       #
+    ####################################################################
 
     # Creates the path to the displacement file
 
@@ -101,9 +101,9 @@ polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
 
     displacement_file = File(displacement_file)
 
-    ########################################################################
-    #                   Solution and pseudotime stepping                   #
-    ########################################################################
+    ####################################################################
+    #                 Solution and pseudotime stepping                 #
+    ####################################################################
 
     # Evaluates the pseudotime step
 
@@ -112,5 +112,5 @@ polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
     # Iterates through the pseudotime stepping algortihm 
 
     newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
-    maximum_loadingSteps, solver, u_new, displacement_file, neumann_loads=
+    maximum_loadingSteps, solver, u_new, displacement_file,neumann_loads=
     neumann_loads, solver_parameters=solver_parameters)

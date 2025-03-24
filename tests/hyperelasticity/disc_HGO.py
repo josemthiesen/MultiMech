@@ -24,6 +24,8 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
+import source.physics.hyperelastic_solid as hyperelastic_solid
+
 ########################################################################
 ########################################################################
 ##                      User defined parameters                       ##
