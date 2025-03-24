@@ -19,7 +19,8 @@ import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 def hyperelasticity_displacementBased(constitutive_model, 
 traction_dictionary, neumann_loads, maximum_loadingSteps, t_final, 
 results_path, displacement_fileName, mesh_fileName, solver_parameters, 
-polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
+polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0, 
+simple_supportPhysicalGroups=dict()):
 
     ####################################################################
     #                               Mesh                               #
@@ -48,6 +49,11 @@ polynomial_degree=2, t= 0.0, fixed_supportPhysicalGroups=0):
 
     bc = BCs_tools.fixed_supportDirichletBC(U, boundary_meshFunction, 
     fixed_supportPhysicalGroups)
+
+    # Adds boundary conditions for simply supported facets
+
+    bc = BCs_tools.simple_supportDirichletBC(U, boundary_meshFunction,
+    simple_supportPhysicalGroups)
 
     ####################################################################
     #                         Variational forms                        #
