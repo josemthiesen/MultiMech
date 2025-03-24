@@ -32,10 +32,15 @@ results_path = os.getcwd()+"//tests//hyperelasticity//results"
 
 displacement_fileName = "displacement.xdmf"
 
+stress_fileName = "cauchy_stress.xdmf"
+
 post_processes = dict()
 
 post_processes["save field"] = {"directory path":results_path, 
 "file name":displacement_fileName}
+
+post_processes["save stress field"] = {"directory path":results_path,
+"file name":stress_fileName, "polynomial degree":1}
 
 ########################################################################
 #                         Material properties                          #

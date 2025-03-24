@@ -107,7 +107,7 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
     # formation
     
     post_processesDict = post_processing_tools.post_processingSelectionSingleField(
-    post_processes) 
+    post_processes, mesh, constitutive_model, dx) 
 
     ####################################################################
     #                 Solution and pseudotime stepping                 #

@@ -23,7 +23,7 @@ neumann_loads=[], solver_parameters=dict()):
     for post_processName, post_process in post_processes.items():
 
         post_processingObjects[post_processName] = post_process[0](
-        post_process[2])
+        post_process[2], post_process[3])
     
     # Updates the solver parameters
 

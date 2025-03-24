@@ -134,3 +134,28 @@ def traction_work(traction_dictionary, field_variation, ds):
     # Returns the variational form
 
     return traction_form
+
+########################################################################
+#                              Utilities                               #
+########################################################################
+
+# Defines a function to project a field over a region of the domain
+
+def projection_overRegion(field, V, dx, subdomain):
+
+    # Creates the projected field
+
+    projected_fieldTrial = TrialFunction(V)
+
+    v = TestFunction(V)
+
+    projected_field = Function(V)
+
+    # Assembles and solves the variational form
+
+    solve((inner(projected_fieldTrial, v)*dx==(inner(field, v)*dx(
+    subdomain))), projected_field)
+
+    # Returns the projected field
+
+    return projected_field
