@@ -14,7 +14,7 @@ import source.constitutive_models.hiperelasticity.anisotropic_hyperelasticity as
 
 import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as isotropic_constitutiveModels
 
-import source.physics.hyperelastic_solid as hyperelastic_solid
+import source.physics.hyperelastic_solid as variational_framework
 
 ########################################################################
 ########################################################################
@@ -215,8 +215,8 @@ fixed_supportPhysicalGroups = 4
 
 # Solves the variational problem
 
-hyperelastic_solid.hyperelasticity_displacementBased(constitutive_model,
-traction_dictionary, neumann_loads, maximum_loadingSteps, t_final,
-results_path, displacement_fileName, mesh_fileName, solver_parameters,
-polynomial_degree=polynomial_degree, t=t, fixed_supportPhysicalGroups=
-fixed_supportPhysicalGroups)
+variational_framework.hyperelasticity_displacementBased(
+constitutive_model, traction_dictionary, neumann_loads, 
+maximum_loadingSteps, t_final, results_path, displacement_fileName, 
+mesh_fileName, solver_parameters, polynomial_degree=polynomial_degree, 
+t=t, fixed_supportPhysicalGroups=fixed_supportPhysicalGroups)
