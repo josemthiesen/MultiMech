@@ -28,7 +28,7 @@ import source.physics.hyperelastic_solid as variational_framework
 
 results_path = os.getcwd()+"//tests//hyperelasticity//results"
 
-displacement_fileName = "displacement.pvd"
+displacement_fileName = "displacement.xdmf"
 
 post_processes = dict()
 

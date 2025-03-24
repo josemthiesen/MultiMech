@@ -139,7 +139,7 @@ mesh_fileName = "tests//test_meshes//intervertebral_disc"
 
 # Defines the shape functions degree
 
-polynomial_degree = 1
+polynomial_degree = 2
 
 ########################################################################
 #                           Solver parameters                          #
