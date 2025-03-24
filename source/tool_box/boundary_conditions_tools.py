@@ -16,11 +16,18 @@ from dolfin import *
 # se. If sub_fields is an empty list, all DOFs are constrained
 
 def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC=[]):
+boundary_physicalGroups=0, n_fields=1, sub_fieldsToApplyBC=[]):
 
     # Initializes a list of boundary conditions objects
 
     boundary_conditions = []
+
+    # If the physical groups variable is null, returns the empty list of
+    # boundary conditions
+
+    if boundary_physicalGroups==0:
+
+        return boundary_conditions
 
     # Verifies whether the boundary physical groups is a list or not
 
