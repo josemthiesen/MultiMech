@@ -4,6 +4,10 @@ from dolfin import *
 
 import numpy as np
 
+########################################################################
+#                        Newton-Raphson schemes                        #
+########################################################################
+
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of a single field
 
