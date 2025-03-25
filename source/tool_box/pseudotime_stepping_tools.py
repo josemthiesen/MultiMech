@@ -230,7 +230,7 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
 
             for i in range(n_fields):
 
-                # Updates the name
+                # Updates the name of the fields
 
                 if len(solution_name)==n_fields:
 
