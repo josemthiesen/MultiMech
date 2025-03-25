@@ -4,6 +4,8 @@ from dolfin import *
 
 import numpy as np
 
+import source.tool_box.mesh_handling_tools as mesh_tools
+
 ########################################################################
 #                        Newton-Raphson schemes                        #
 ########################################################################
@@ -95,9 +97,31 @@ neumann_loads=[], solver_parameters=dict(), solution_name=["solution",
 # ational problem of multiple fields
 
 def newton_raphsonMultipleFields(t, t_final, delta_t, 
-maximum_loadingSteps, solver, solution_field, post_processes, n_fields,
+maximum_loadingSteps, solver, solution_field, post_processes, 
+mixed_element, domain_meshCollection, post_processesSubmesh=[], 
 dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
-solution_name=[["solution", "DNS"]]):
+solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
+    
+    # If there are volumetric physical groups to build a submesh
+
+    if len(volume_physGroupsSubmesh)>0:
+
+        (RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
+        parent_meshMapping, solution_submesh, RVE_toParentCellMap) = mesh_tools.create_submesh(
+        mesh, domain_meshCollection, volume_physGroupsSubmesh, 
+        solution_field, mixed_element=mixed_element)
+    
+    # Gets the number of fields in the mixed element
+
+    n_fields = mixed_element.num_sub_elements()
+
+    # Verifies if the post processes is a list
+
+    if not isinstance(post_processes, list):
+
+        raise ValueError("post_processes must be a list of dictionarie"+
+        "s in newton_raphsonMultipleFields, because there must be post"+
+        "-processing steps for each field.")
     
     # Initializes a dictionary of post processes objects, files for e-
     # xample, for each field
@@ -108,9 +132,32 @@ solution_name=[["solution", "DNS"]]):
 
         post_processingObjects.append(dict())
 
-        for post_processName, post_process in post_processes.items():
+        for post_processName, post_process in post_processes[i].items():
 
             post_processingObjects[-1][post_processName] = post_process[
+            0](post_process[2], post_process[3])
+
+    # Makes the same thing for the submesh post-processes
+
+    if not isinstance(post_processesSubmesh, list):
+
+        raise ValueError("post_processesSubmesh must be a list of dict"+
+        "ionaries in newton_raphsonMultipleFields, because there must "+
+        "be post-processing steps for each field.")
+    
+    # Initializes a dictionary of post processes objects, files for e-
+    # xample, for each field
+
+    post_processingObjectsSubmesh = []
+
+    for i in range(n_fields):
+
+        post_processingObjectsSubmesh.append(dict())
+
+        for post_processName, post_process in post_processesSubmesh[i
+        ].items():
+
+            post_processingObjectsSubmesh[-1][post_processName] = post_process[
             0](post_process[2], post_process[3])
     
     # Updates the solver parameters
@@ -144,21 +191,59 @@ solution_name=[["solution", "DNS"]]):
 
         split_solution = list(solution_field.split(deepcopy=True))
 
-        for i in range(n_fields):
+        # Post-process the solution
 
-            # Updates the name
+        if len(post_processes)>0:
 
-            if len(solution_name)==n_fields:
+            for i in range(n_fields):
 
-                split_solution[i].rename(*solution_name[i])
+                # Updates the name
 
-            # Updates the post processes objects
+                if len(solution_name)==n_fields:
 
-            for post_processName, post_process in post_processes.items():
+                    split_solution[i].rename(*solution_name[i])
 
-                post_processingObjects[i][post_processName] = post_process[
-                1](post_processingObjects[i][post_processName], 
-                split_solution[i], t)
+                # Updates the post processes objects
+
+                for post_processName, post_process in post_processes[i
+                ].items():
+
+                    post_processingObjects[i][post_processName] = post_process[
+                    1](post_processingObjects[i][post_processName], 
+                    split_solution[i], t)
+
+        # If a submesh is to be populated with part of the solution
+
+        if len(volume_physGroupsSubmesh)>0 and (len(post_processesSubmesh
+        )>0):
+
+            solution_submesh = mesh_tools.field_parentToSubmesh(
+            RVE_submesh, solution_submesh, solution_field, 
+            RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
+
+            # Splits the solution
+
+            split_solutionSubmesh = list(solution_submesh.split(deepcopy
+            =True))
+
+            # Post-process the submesh solution
+
+            for i in range(n_fields):
+
+                # Updates the name
+
+                if len(solution_name)==n_fields:
+
+                    split_solutionSubmesh[i].rename(*solution_name[i])
+
+                # Updates the post processes objects
+
+                for post_processName, post_process in post_processesSubmesh[
+                i].items():
+
+                    post_processingObjectsSubmesh[i][post_processName] = post_process[
+                    1](post_processingObjectsSubmesh[i][post_processName], 
+                    split_solutionSubmesh[i], t)
 
         # Updates the pseudo time variables and the counter
 

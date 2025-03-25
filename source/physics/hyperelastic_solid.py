@@ -120,5 +120,5 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
     # Iterates through the pseudotime stepping algortihm 
 
     newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
-    maximum_loadingSteps, solver, u_new, post_processes, neumann_loads=
-    neumann_loads, solver_parameters=solver_parameters)
+    maximum_loadingSteps, solver, u_new, post_processesDict, 
+    neumann_loads=neumann_loads, solver_parameters=solver_parameters)
