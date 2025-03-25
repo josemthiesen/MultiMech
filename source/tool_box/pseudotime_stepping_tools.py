@@ -15,9 +15,10 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 
 def newton_raphsonSingleField(t, t_final, delta_t, maximum_loadingSteps,
 solver, solution_field, post_processes, domain_meshCollection, mesh,
-polynomial_degree, function_spaceType, post_processesSubmesh=dict(), 
-dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
-solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
+polynomial_degree, function_spaceType, solution_functionSpace, 
+post_processesSubmesh=dict(), dirichlet_loads=[], neumann_loads=[], 
+solver_parameters=dict(), solution_name=["solution", "DNS"], 
+volume_physGroupsSubmesh=[]):
     
     # Verifies if the physical groups for the submesh is an integer
 
@@ -34,7 +35,7 @@ solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
         (RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
         parent_meshMapping, solution_submesh, RVE_toParentCellMap) = mesh_tools.create_submesh(
         mesh, domain_meshCollection, volume_physGroupsSubmesh, 
-        solution_field, polynomial_degree=polynomial_degree,
+        solution_functionSpace, polynomial_degree=polynomial_degree,
         function_spaceType=function_spaceType)
     
     # Initializes a dictionary of post processes objects, files for e-

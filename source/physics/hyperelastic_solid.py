@@ -121,6 +121,6 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
 
     newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
     maximum_loadingSteps, solver, u_new, post_processesDict, 
-    domain_meshCollection, mesh, polynomial_degree, "tensor",
+    domain_meshCollection, mesh, polynomial_degree, "tensor", U,
     neumann_loads=neumann_loads, solver_parameters=solver_parameters, 
     volume_physGroupsSubmesh=volume_physGroupsSubmesh)
