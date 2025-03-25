@@ -13,7 +13,8 @@ import numpy as np
 
 def newton_raphsonSingleField(t, t_final, delta_t, maximum_loadingSteps,
 solver, solution_field, post_processes, dirichlet_loads=[],
-neumann_loads=[], solver_parameters=dict()):
+neumann_loads=[], solver_parameters=dict(), solution_name=["solution", 
+"DNS"]):
     
     # Initializes a dictionary of post processes objects, files for e-
     # xample
@@ -52,7 +53,7 @@ neumann_loads=[], solver_parameters=dict()):
 
         solver.solve()
 
-        solution_field.rename("DNS Displacement", "DNS")
+        solution_field.rename(*solution_name)
 
         # Updates the post processes objects
 
@@ -60,6 +61,104 @@ neumann_loads=[], solver_parameters=dict()):
 
             post_processingObjects[post_processName] = post_process[1](
             post_processingObjects[post_processName], solution_field, t)
+
+        # Updates the pseudo time variables and the counter
+
+        t += delta_t
+        
+        time_counter += 1
+
+        # Updates the Dirichlet boundary conditions 
+
+        for dirichlet_load in dirichlet_loads:
+
+            dirichlet_load.t = t
+
+        # Updates the Neumann boundary conditions 
+
+        for neumann_load in neumann_loads:
+
+            neumann_load.t = t
+
+        # Verifies if the maximum number of laoding steps has been 
+        # reached
+
+        if time_counter>=maximum_loadingSteps:
+
+            print("\nThe maximum number of loading steps,",
+            maximum_loadingSteps, "has just been reached. Stops the si"+
+            "mulation immediatly\n")
+
+            break
+
+# Defines a function to iterate through a Newton-Raphson loop of a vari-
+# ational problem of multiple fields
+
+def newton_raphsonMultipleFields(t, t_final, delta_t, 
+maximum_loadingSteps, solver, solution_field, post_processes, n_fields,
+dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
+solution_name=[["solution", "DNS"]]):
+    
+    # Initializes a dictionary of post processes objects, files for e-
+    # xample, for each field
+
+    post_processingObjects = []
+
+    for i in range(n_fields):
+
+        post_processingObjects.append(dict())
+
+        for post_processName, post_process in post_processes.items():
+
+            post_processingObjects[-1][post_processName] = post_process[
+            0](post_process[2], post_process[3])
+    
+    # Updates the solver parameters
+
+    solver = set_solverParameters(solver, solver_parameters)
+    
+    # Verifies if there are no loads
+
+    if len(dirichlet_loads)==0 and len(neumann_loads)==0:
+
+        print("\nWARNING: there are no Dirichlet boundary conditions n"+
+        "or Neumann boundary conditions\n")
+
+    # Initializes the pseudotime counter
+
+    time_counter = 0
+
+    # Iterates through the pseudotime stepping
+
+    while t<t_final:
+
+        # Prints step information
+
+        print_stepInfo(time_counter+1, t)
+
+        # Solves the nonlinear variational problem 
+
+        solver.solve()
+
+        # Splits the solution
+
+        split_solution = list(solution_field.split(deepcopy=True))
+
+        for i in range(n_fields):
+
+            # Updates the name
+
+            if len(solution_name)==n_fields:
+
+                split_solution[i].rename(*solution_name[i])
+
+            # Updates the post processes objects
+
+            for post_processName, post_process in post_processes.items():
+
+                post_processingObjects[i][post_processName] = post_process[
+                1](post_processingObjects[i][post_processName], 
+                split_solution[i], t)
 
         # Updates the pseudo time variables and the counter
 
