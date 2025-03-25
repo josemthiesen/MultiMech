@@ -1,7 +1,92 @@
-# Homogenization tools module
+# Routine to store methods for homogenization
 
 from dolfin import *
+
 import numpy as np
+
+import source.tool_box.file_handling_tools as file_tools
+
+# Defines a function to homogenize a generic field
+
+def homogenize_genericField(field, homogenized_fieldList, time, 
+inverse_volume, dx, subdomain, file_name):
+    
+    # Gets the dimensionality of the field
+
+    dimensionality = 0
+
+    try:
+
+        dimensionality = field.value_shape()
+
+    # If the value shape could not be retrieved, it might be a ufl
+    # object, such as a gradient
+
+    except:
+
+        dimensionality = field.ufl_shape
+
+    # Initializes the homogenized value
+
+    homogenized_value = 0.0
+
+    # If the field is a scalar
+
+    if len(dimensionality)==0:
+
+        if isinstance(subdomain, int) or isinstance(subdomain, tuple):
+
+            homogenized_value += inverse_volume*assemble(field*dx(
+            subdomain))
+
+        else:
+
+            homogenized_value += inverse_volume*assemble(field*dx)
+
+    # If the field is not scalar, iterates through the dimensions
+
+    else:
+
+        # Makes the homogenized value a list
+
+        homogenized_value = []
+
+        # Get the possible combinations of indexes
+
+        indexes_combinations = file_tools.get_indexesCombinations(
+        dimensionality)
+
+        if isinstance(subdomain, int) or isinstance(subdomain, tuple):
+
+            # Iterates through the combinations
+
+            for index_combination in indexes_combinations:
+
+                homogenized_value.append(inverse_volume*assemble(field[
+                *index_combination]*dx(subdomain)))
+
+        else:
+
+            # Iterates through the combinations
+
+            for index_combination in indexes_combinations:
+
+                homogenized_value.append(inverse_volume*assemble(field[
+                *index_combination]*dx))
+
+    # Updates the homogenized field
+
+    homogenized_fieldList.append([time, homogenized_value])
+
+    # Saves the homogenized field to a txt file
+
+    file_tools.list_toTxt(homogenized_fieldList, file_name, 
+    add_extension=False)
+
+    return homogenized_fieldList
+
+########################################################################
+########################################################################
 
 def get_micro_cell_volume(dx):
     RVE_volume = assemble(1*dx(3)) + assemble(1*dx(4))

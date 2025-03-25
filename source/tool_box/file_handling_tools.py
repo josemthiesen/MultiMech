@@ -3,6 +3,8 @@
 
 import os
 
+import copy
+
 ########################################################################
 #                              Path tools                              #
 ########################################################################
@@ -28,7 +30,7 @@ def verify_path(parent_path, file_name):
 
 # Defines a function to write a list into a txt file
 
-def list_toTxt(saved_list, file_name):
+def list_toTxt(saved_list, file_name, add_extension=True):
 
     # Converts the list syntax into a string using a recursion loop 
     # through the list elements
@@ -43,7 +45,11 @@ def list_toTxt(saved_list, file_name):
 
     # Saves the string into a txt file
 
-    txt_file = open(file_name+".txt", "w")
+    if add_extension:
+
+        file_name = file_name+".txt"
+
+    txt_file = open(file_name, "w")
 
     txt_file.write(saved_string)
 
@@ -296,6 +302,54 @@ indexes_counter=None):
 
     return accessed_list
 
+# Defines a function to get the combinations of possible indexes given
+# a list of the number of possible indexes per index
+
+def get_indexesCombinations(n_indexesList):
+
+    return get_indexesCombinationationsRecursion(n_indexesList, 
+    index_combinations=[])
+
+# Defines a function to do the recursion activity for the construction 
+# of the list of possible index combinations
+
+def get_indexesCombinationationsRecursion(n_indexesList, 
+index_combination=[], index_combinations=[], component=0):
+
+    if len(index_combination)==0:
+
+        index_combination = [0 for i in range(len(n_indexesList))]
+
+    # Verifies if the component if the component is larger than the 
+    # length of the list
+
+    if component>=len(n_indexesList):
+
+        # Adds another combination
+
+        index_combinations.append(copy.deepcopy(index_combination))
+
+        return index_combinations
+    
+    # Otherwise, iterates through the indexes
+
+    else:
+
+        for i in range(n_indexesList[component]):
+
+            # Adds this index
+
+            index_combination[component] = i+0
+
+            # Sends the index combination down the line
+
+            index_combinations = get_indexesCombinationationsRecursion(
+            n_indexesList, index_combination=index_combination, 
+            index_combinations=index_combinations, component=(component+
+            1))
+
+    return index_combinations
+
 ########################################################################
 #                               Testing                                #
 ########################################################################
@@ -318,4 +372,26 @@ def general_test():
 
     print("Read t:    ", t)
 
+def test_indexBuilder():
+
+    n_indexesList = [3]
+
+    indexes = get_indexesCombinations(n_indexesList)
+
+    print(len(indexes), "combinations:", indexes, "\n\n")
+
+    n_indexesList = [3,3]
+
+    indexes = get_indexesCombinations(n_indexesList)
+
+    print(len(indexes), "combinations:", indexes, "\n\n")
+
+    n_indexesList = [3,3,3]
+
+    indexes = get_indexesCombinations(n_indexesList)
+
+    print(len(indexes), "combinations:", indexes, "\n\n")
+
 #general_test()
+
+#test_indexBuilder()

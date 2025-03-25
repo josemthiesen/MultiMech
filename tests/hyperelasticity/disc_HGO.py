@@ -34,6 +34,11 @@ displacement_fileName = "displacement.xdmf"
 
 stress_fileName = "cauchy_stress.xdmf"
 
+homogenized_displacementFileName = "homogenized_displacement.txt"
+
+homogenized_gradDisplacementFileName = ("homogenized_displacement_grad"+
+"ient.txt")
+
 post_processes = dict()
 
 post_processes["save field"] = {"directory path":results_path, 
@@ -41,6 +46,17 @@ post_processes["save field"] = {"directory path":results_path,
 
 post_processes["save stress field"] = {"directory path":results_path,
 "file name":stress_fileName, "polynomial degree":1}
+
+# Put "" in the subdomain to integrate over the entire domain
+
+post_processes["homogenize field"] = {"directory path":results_path,
+"file name":homogenized_displacementFileName, "subdomain":""}
+
+# Put "" in the subdomain to integrate over the entire domain
+
+post_processes["homogenize field's gradient"] = {"directory path":
+results_path, "file name":homogenized_gradDisplacementFileName, 
+"subdomain":""}
 
 ########################################################################
 #                         Material properties                          #
