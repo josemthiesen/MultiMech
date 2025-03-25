@@ -10,7 +10,7 @@ from mshr import *
 
 #import periodic_structure as mesher
 
-import source.constitutive_models.hiperelasticity.isotropic_hyperelasticity as constitutive_models
+import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as constitutive_models
 
 import source.physics.hyperelastic_solid as variational_framework
 
