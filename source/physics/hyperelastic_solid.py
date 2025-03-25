@@ -22,7 +22,7 @@ def hyperelasticity_displacementBased(constitutive_model,
 traction_dictionary, neumann_loads, maximum_loadingSteps, t_final, 
 post_processes, mesh_fileName, solver_parameters, polynomial_degree=2, 
 t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
-)):
+), volume_physGroupsSubmesh=[]):
 
     ####################################################################
     #                               Mesh                               #
@@ -121,4 +121,6 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
 
     newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
     maximum_loadingSteps, solver, u_new, post_processesDict, 
-    neumann_loads=neumann_loads, solver_parameters=solver_parameters)
+    domain_meshCollection, neumann_loads=neumann_loads, 
+    solver_parameters=solver_parameters, volume_physGroupsSubmesh=
+    volume_physGroupsSubmesh)

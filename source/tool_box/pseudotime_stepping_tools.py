@@ -14,9 +14,27 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 # ational problem of a single field
 
 def newton_raphsonSingleField(t, t_final, delta_t, maximum_loadingSteps,
-solver, solution_field, post_processes, dirichlet_loads=[],
-neumann_loads=[], solver_parameters=dict(), solution_name=["solution", 
-"DNS"]):
+solver, solution_field, post_processes, domain_meshCollection, 
+post_processesSubmesh=dict(), dirichlet_loads=[], neumann_loads=[], 
+solver_parameters=dict(), solution_name=["solution", "DNS"], 
+volume_physGroupsSubmesh=[]):
+    
+    # Verifies if the physical groups for the submesh is an integer
+
+    if isinstance(volume_physGroupsSubmesh, int):
+
+        # Transforms into a list
+
+        volume_physGroupsSubmesh = [volume_physGroupsSubmesh]
+    
+    # If there are volumetric physical groups to build a submesh
+
+    if len(volume_physGroupsSubmesh)>0:
+
+        (RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
+        parent_meshMapping, solution_submesh, RVE_toParentCellMap) = mesh_tools.create_submesh(
+        mesh, domain_meshCollection, volume_physGroupsSubmesh, 
+        solution_field)
     
     # Initializes a dictionary of post processes objects, files for e-
     # xample
@@ -27,6 +45,16 @@ neumann_loads=[], solver_parameters=dict(), solution_name=["solution",
 
         post_processingObjects[post_processName] = post_process[0](
         post_process[2], post_process[3])
+
+    # Initializes a dictionary of post processes objects for the submesh, 
+    # files for example, for each field
+
+    post_processingObjectsSubmesh = dict()
+
+    for post_processName, post_process in post_processesSubmesh.items():
+
+        post_processingObjectsSubmesh[post_processName] = post_process[
+        0](post_process[2], post_process[3])
     
     # Updates the solver parameters
 
@@ -63,6 +91,25 @@ neumann_loads=[], solver_parameters=dict(), solution_name=["solution",
 
             post_processingObjects[post_processName] = post_process[1](
             post_processingObjects[post_processName], solution_field, t)
+
+        # If a submesh is to be populated with part of the solution
+
+        if len(volume_physGroupsSubmesh)>0 and (len(list(
+        post_processesSubmesh.keys()))>0):
+
+            solution_submesh = mesh_tools.field_parentToSubmesh(
+            RVE_submesh, solution_submesh, solution_field, 
+            RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
+
+            solution_submesh.rename(*solution_name)
+
+            # Updates the post processes objects
+
+            for post_processName, post_process in post_processesSubmesh.items():
+
+                post_processingObjectsSubmesh[post_processName] = post_process[
+                1](post_processingObjectsSubmesh[post_processName], 
+                solution_submesh, t)
 
         # Updates the pseudo time variables and the counter
 
@@ -101,6 +148,14 @@ maximum_loadingSteps, solver, solution_field, post_processes,
 mixed_element, domain_meshCollection, post_processesSubmesh=[], 
 dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
 solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
+    
+    # Verifies if the physical groups for the submesh is an integer
+
+    if isinstance(volume_physGroupsSubmesh, int):
+
+        # Transforms into a list
+
+        volume_physGroupsSubmesh = [volume_physGroupsSubmesh]
     
     # If there are volumetric physical groups to build a submesh
 

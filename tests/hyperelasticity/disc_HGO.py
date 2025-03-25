@@ -149,6 +149,10 @@ elif option==3:
 
 mesh_fileName = "tests//test_meshes//intervertebral_disc"
 
+# Defines a set of physical groups to create a submesh
+
+volume_physGroupsSubmesh = [2]
+
 ########################################################################
 #                            Function space                            #
 ########################################################################
@@ -245,4 +249,5 @@ variational_framework.hyperelasticity_displacementBased(
 constitutive_model, traction_dictionary, neumann_loads, 
 maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
 solver_parameters, polynomial_degree=polynomial_degree, t=t, 
-fixed_supportPhysicalGroups=fixed_supportPhysicalGroups)
+fixed_supportPhysicalGroups=fixed_supportPhysicalGroups,
+volume_physGroupsSubmesh=volume_physGroupsSubmesh)
