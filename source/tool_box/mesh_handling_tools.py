@@ -205,8 +205,8 @@ function_spaceType=None):
 
         # Handles the exception of the polynomial degree being not given
 
-        if (polynomial_degree==None or (not isinstance(polynomial_degree
-        ), int)):
+        if (polynomial_degree==None or (not isinstance(polynomial_degree, 
+        int))):
             
             raise ValueError("In creat_submesh, mesh_handling_tools.py"+
             ", if mixed_element was not prescribed, the function space"+
@@ -240,9 +240,9 @@ function_spaceType=None):
         else:
 
             raise NameError("create_submesh in mesh_handling_tools.py "+
-            "does not support "+function_spaceType+" function space, f"+
-            "or it's not been implemented yet or it's not possible to "+
-            "implement.")
+            "does not support "+str(function_spaceType)+" function spa"+
+            "ce, for it's not been implemented yet or it's not possibl"+
+            "e to implement.")
         
     # Initializes the function to the solution at the submesh
 
