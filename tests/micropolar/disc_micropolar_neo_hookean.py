@@ -10,11 +10,9 @@ from mshr import *
 
 #import periodic_structure as mesher
 
-import source.constitutive_models.hyperelasticity.anisotropic_hyperelasticity as anisotropic_constitutiveModels
+import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 
-import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as isotropic_constitutiveModels
-
-import source.physics.hyperelastic_cauchy_continuum as variational_framework
+import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
 ########################################################################
 ########################################################################
@@ -32,43 +30,35 @@ results_path = os.getcwd()+"//tests//hyperelasticity//results"
 
 displacement_fileName = "displacement.xdmf"
 
-stress_fileName = "cauchy_stress.xdmf"
-
 homogenized_displacementFileName = "homogenized_displacement.txt"
 
 homogenized_gradDisplacementFileName = ("homogenized_displacement_grad"+
 "ient.txt")
 
-homogenized_dispRVEFileName = "homogenized_displacement_RVE.txt"
+post_processes = []
 
-post_processes = dict()
+# Iterates through the fields (displacement and microrotation)
 
-post_processes["save field"] = {"directory path":results_path, 
-"file name":displacement_fileName}
+for i in range(2):
 
-post_processes["save stress field"] = {"directory path":results_path,
-"file name":stress_fileName, "polynomial degree":1}
+    post_processes.append(dict())
 
-# Put "" in the subdomain to integrate over the entire domain
+    post_processes[-1]["save field"] = {"directory path":results_path, 
+    "file name":displacement_fileName}
 
-post_processes["homogenize field"] = {"directory path":results_path,
-"file name":homogenized_displacementFileName, "subdomain":[2]}
+    # Put "" in the subdomain to integrate over the entire domain
 
-# Put "" in the subdomain to integrate over the entire domain
+    post_processes[-1]["homogenize field"] = {"directory path":
+    results_path, "file name":homogenized_displacementFileName, 
+    "subdomain":""}
 
-post_processes["homogenize field's gradient"] = {"directory path":
-results_path, "file name":homogenized_gradDisplacementFileName, 
-"subdomain":""}
+    # Put "" in the subdomain to integrate over the entire domain
 
-# Sets the post processes of the submesh
+    post_processes[-1]["homogenize field's gradient"] = {"directory path":
+    results_path, "file name":homogenized_gradDisplacementFileName, 
+    "subdomain":""}
 
-post_processesSubmesh = dict()
-
-# THe subdomain variable must be "" for a submesh, for there isn't sub-
-# domains in a submesh
-
-post_processesSubmesh["homogenize field"] = {"directory path":
-results_path, "file name":homogenized_dispRVEFileName, "subdomain":""}
+post_processesSubmesh = []
 
 ########################################################################
 #                         Material properties                          #
@@ -76,80 +66,28 @@ results_path, "file name":homogenized_dispRVEFileName, "subdomain":""}
 
 # Sets a dictionary of properties
 
-material_properties1 = dict()
+material_properties = dict()
 
-# Shearing modulus
+mu = 26.12
 
-material_properties1["c"] = 10E6
+material_properties["mu"] = mu
 
-# k1 is the fiber modulus and k2 is the exponential coefficient
+material_properties["lambda"] = 63.84-(2*mu/3)
 
-material_properties1["k1"] = 10E4
+material_properties["kappa"] = 0.0
 
-material_properties1["k2"] = 5.0
+material_properties["alpha"] = 0.0
 
-# Kappa is the fiber dispersion and it is bounded between 0 and 1/3. A 
-# third is an isotropic material
+material_properties["beta"] = 0.0
 
-material_properties1["kappa"] = 0.2
-
-# Gamma is the fiber angle in degrees
-
-material_properties1["gamma"] = 45.0
-
-# k is the matrix bulk modulus
-
-material_properties1["k"] = 15E6
-
-# The vectors ahead form a plane where the fiber is locally present
-
-material_properties1["local system of coordinates: a direction"] = (
-as_vector([1.0, 0.0, 0.0]))
-
-material_properties1["local system of coordinates: d direction"] = (
-as_vector([0.0, 0.0, 1.0]))
-
-material_properties2 = dict()
-
-material_properties2["E"] = 1E7
-
-material_properties2["v"] = 0.4
-
-material_properties3 = dict()
-
-material_properties3["E"] = 1E8
-
-material_properties3["v"] = 0.35
+material_properties["gamma"] = 1e-12
 
 # Sets the material as a HGO material
 
 constitutive_model = dict()
 
-option = 2
-
-if option==1:
-
-    constitutive_model[1] = anisotropic_constitutiveModels.Holzapfel_Gasser_Ogden_Unconstrained(
-    material_properties1)
-
-    constitutive_model[2] = isotropic_constitutiveModels.Neo_Hookean(
-    material_properties2)
-
-    constitutive_model[3] = isotropic_constitutiveModels.Neo_Hookean(
-    material_properties3)
-
-elif option==2:
-
-    constitutive_model[1] = anisotropic_constitutiveModels.Holzapfel_Gasser_Ogden_Unconstrained(
-    material_properties1)
-
-    constitutive_model[tuple([2,3])] = isotropic_constitutiveModels.Neo_Hookean(
-    material_properties2)
-
-elif option==3:
-
-    constitutive_model = anisotropic_constitutiveModels.Holzapfel_Gasser_Ogden_Unconstrained(
-    material_properties1)
+constitutive_model[tuple([1,2,3])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -163,7 +101,7 @@ mesh_fileName = "tests//test_meshes//intervertebral_disc"
 
 # Defines a set of physical groups to create a submesh
 
-volume_physGroupsSubmesh = [2]
+volume_physGroupsSubmesh = []
 
 ########################################################################
 #                            Function space                            #
@@ -171,7 +109,7 @@ volume_physGroupsSubmesh = [2]
 
 # Defines the shape functions degree
 
-polynomial_degree = 2
+polynomial_degree = 1
 
 ########################################################################
 #                           Solver parameters                          #
@@ -224,7 +162,7 @@ maximum_loadingSteps = 15
 
 # Defines a load expression
 
-maximum_load = 4E6
+maximum_load = 4E0
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -243,11 +181,21 @@ traction_dictionary = dict()
 
 traction_dictionary[5] = traction_boundary
 
+# Defines a dictionary of moments on the boundary
+
+moment_boundary = as_vector([0.0, 0.0, 0.0])
+
+moment_dictionary = dict()
+
+moment_dictionary[5] = moment_boundary
+
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags
-# or simply a tag
+# or simply a tag. Applies for both displacement and microrotation
 
-fixed_supportPhysicalGroups = 4
+fixed_supportDisplacementPhysicalGroups = 4
+
+fixed_supportMicrorotationPhysicalGroups = 4
 
 ########################################################################
 ########################################################################
@@ -257,10 +205,13 @@ fixed_supportPhysicalGroups = 4
 
 # Solves the variational problem
 
-variational_framework.hyperelasticity_displacementBased(
-constitutive_model, traction_dictionary, maximum_loadingSteps, t_final, 
-post_processes, mesh_fileName, solver_parameters, neumann_loads=
-neumann_loads, polynomial_degree=polynomial_degree, t=t, 
-fixed_supportPhysicalGroups=fixed_supportPhysicalGroups,
-volume_physGroupsSubmesh=volume_physGroupsSubmesh, post_processesSubmesh
-=post_processesSubmesh)
+variational_framework.hyperelasticity_displacementMicrorotationBased(
+constitutive_model, traction_dictionary, moment_dictionary, 
+maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
+solver_parameters, neumann_loads=neumann_loads, polynomial_degree=
+polynomial_degree, t=t, fixed_supportDisplacementPhysicalGroups=
+fixed_supportDisplacementPhysicalGroups, solution_name=[["displacement",
+"DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
+volume_physGroupsSubmesh, fixed_supportMicrorotationPhysicalGroups=
+fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
+post_processesSubmesh)

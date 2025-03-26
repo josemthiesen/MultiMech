@@ -21,7 +21,7 @@ t=0.0, fixed_supportDisplacementPhysicalGroups=0, neumann_loads=[],
 dirichlet_loads=[], fixed_supportMicrorotationPhysicalGroups=0, 
 solution_name=[], simple_supportDisplacementPhysicalGroups=dict(), 
 simple_supportMicrorotationPhysicalGroups=dict(),
-volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
+volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
 
     ####################################################################
     #                               Mesh                               #
