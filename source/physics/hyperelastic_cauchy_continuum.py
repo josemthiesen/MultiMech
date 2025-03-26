@@ -1,5 +1,5 @@
 # Routine to store the variational form and other accessories for a hy-
-# perelastic solid mechanics problem
+# perelastic Cauchy continuum in solid mechanics
 
 from dolfin import *
 

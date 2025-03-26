@@ -12,7 +12,7 @@ from mshr import *
 
 import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as constitutive_models
 
-import source.physics.hyperelastic_solid as variational_framework
+import source.physics.hyperelastic_cauchy_continuum as variational_framework
 
 ########################################################################
 ########################################################################

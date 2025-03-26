@@ -14,7 +14,7 @@ import source.constitutive_models.hyperelasticity.anisotropic_hyperelasticity as
 
 import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as isotropic_constitutiveModels
 
-import source.physics.hyperelastic_solid as variational_framework
+import source.physics.hyperelastic_cauchy_continuum as variational_framework
 
 ########################################################################
 ########################################################################
