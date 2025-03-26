@@ -6,6 +6,8 @@ import numpy as np
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
+import source.tool_box.post_processing_tools as post_processing_tools
+
 ########################################################################
 #                        Newton-Raphson schemes                        #
 ########################################################################
@@ -14,11 +16,22 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 # ational problem of a single field
 
 def newton_raphsonSingleField(t, t_final, delta_t, maximum_loadingSteps,
-solver, solution_field, post_processes, domain_meshCollection, mesh,
-polynomial_degree, function_spaceType, solution_functionSpace, 
-post_processesSubmesh=dict(), dirichlet_loads=[], neumann_loads=[], 
-solver_parameters=dict(), solution_name=["solution", "DNS"], 
-volume_physGroupsSubmesh=[]):
+solver, solution_field, domain_meshCollection, constitutive_model, dx,
+post_processesDict=dict(), post_processesSubmeshDict=dict(), 
+dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
+solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
+
+    # Transforms the dictionary of post-processing methods instructions
+    # into a live-wire dictionary with the proper methods and needed in-
+    # formation
+    
+    post_processes = post_processing_tools.post_processingSelectionSingleField(
+    post_processesDict, solution_field.function_space().mesh(), 
+    constitutive_model, dx) 
+    
+    # Initializes the dictionary of submesh post processes
+
+    post_processesSubmesh = dict()
     
     # Verifies if the physical groups for the submesh is an integer
 
@@ -32,11 +45,20 @@ volume_physGroupsSubmesh=[]):
 
     if len(volume_physGroupsSubmesh)>0:
 
-        (RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
-        parent_meshMapping, solution_submesh, RVE_toParentCellMap) = mesh_tools.create_submesh(
-        mesh, domain_meshCollection, volume_physGroupsSubmesh, 
-        solution_functionSpace, polynomial_degree=polynomial_degree,
-        function_spaceType=function_spaceType)
+        # Gets the function space of the solution field
+
+        function_space = solution_field.function_space()
+
+        (RVE_submesh, domain_meshFunction, function_spaceSubmesh,
+        RVE_meshMapping, parent_meshMapping, solution_submesh, 
+        RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
+        domain_meshCollection, volume_physGroupsSubmesh, function_space)
+
+        # Initializes the post process for the submesh if there's any
+
+        post_processesSubmesh = post_processing_tools.post_processingSelectionSingleField(
+        post_processesSubmeshDict, RVE_submesh, constitutive_model, 
+        dx_submesh) 
     
     # Initializes a dictionary of post processes objects, files for e-
     # xample
@@ -46,7 +68,7 @@ volume_physGroupsSubmesh=[]):
     for post_processName, post_process in post_processes.items():
 
         post_processingObjects[post_processName] = post_process[0](
-        post_process[2], post_process[3])
+        post_process[2], post_process[3], False)
 
     # Initializes a dictionary of post processes objects for the submesh, 
     # files for example, for each field
@@ -56,7 +78,7 @@ volume_physGroupsSubmesh=[]):
     for post_processName, post_process in post_processesSubmesh.items():
 
         post_processingObjectsSubmesh[post_processName] = post_process[
-        0](post_process[2], post_process[3])
+        0](post_process[2], post_process[3], True)
     
     # Updates the solver parameters
 
@@ -147,7 +169,7 @@ volume_physGroupsSubmesh=[]):
 
 def newton_raphsonMultipleFields(t, t_final, delta_t, 
 maximum_loadingSteps, solver, solution_field, post_processes, 
-mixed_element, domain_meshCollection, mesh, post_processesSubmesh=[], 
+mixed_element, domain_meshCollection, post_processesSubmesh=[], 
 dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
 solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
     
@@ -163,10 +185,10 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
 
     if len(volume_physGroupsSubmesh)>0:
 
-        (RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
-        parent_meshMapping, solution_submesh, RVE_toParentCellMap) = mesh_tools.create_submesh(
-        mesh, domain_meshCollection, volume_physGroupsSubmesh, 
-        solution_field, mixed_element=mixed_element)
+        (RVE_submesh, domain_meshFunction, function_spaceSubmesh, 
+        RVE_meshMapping, parent_meshMapping, solution_submesh, 
+        RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
+        domain_meshCollection, volume_physGroupsSubmesh, solution_field)
     
     # Gets the number of fields in the mixed element
 
@@ -192,7 +214,7 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
         for post_processName, post_process in post_processes[i].items():
 
             post_processingObjects[-1][post_processName] = post_process[
-            0](post_process[2], post_process[3])
+            0](post_process[2], post_process[3], False)
 
     # Makes the same thing for the submesh post-processes
 
@@ -215,7 +237,7 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
         ].items():
 
             post_processingObjectsSubmesh[-1][post_processName] = post_process[
-            0](post_process[2], post_process[3])
+            0](post_process[2], post_process[3], True)
     
     # Updates the solver parameters
 

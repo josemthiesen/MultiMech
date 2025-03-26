@@ -139,7 +139,7 @@ constitutive_model, dx):
 
 # Defines a function to initialize and save a field
 
-def initialize_fieldSaving(data, direct_codeData):
+def initialize_fieldSaving(data, direct_codeData, submesh_flag):
 
     # Gets the directory and the name of the file
 
@@ -173,7 +173,7 @@ def update_fieldSaving(file, field, time):
 
 # Defines a function to initialize the Cauchy stress field file
 
-def initialize_cauchyStressSaving(data, direct_codeData):
+def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
     # Gets the directory and the name of the file
 
@@ -282,7 +282,7 @@ def update_cauchyStressSaving(output_object, field, time):
 
 # Defines a function to initialize the homogenization of the field
 
-def initialize_fieldHomogenization(data, direct_codeData):
+def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
     # Gets the directory and the name of the file
 
@@ -302,8 +302,24 @@ def initialize_fieldHomogenization(data, direct_codeData):
 
     volume = 0.0
 
+    # If the solution comes from a submesh, there can be no domain
+
+    if submesh_flag:
+
+        if (isinstance(subdomain, int) or isinstance(subdomain, tuple)
+        or isinstance(subdomain, list)):
+            
+            raise ValueError("This solution comes from a submesh and t"+
+            "he subdomain "+str(subdomain)+" is solicited. Subdomains "+
+            "cannot be used in fields from submeshes, for theses meshe"+
+            "s do not have physical groups.")
+
     # If a physical group of the mesh is given or a tuple of physical 
     # groups
+
+    if isinstance(subdomain, list):
+
+        subdomain = tuple(subdomain)
 
     if isinstance(subdomain, int) or isinstance(subdomain, tuple):
 
@@ -363,9 +379,11 @@ def update_fieldHomogenization(output_object, field, time):
 # Defines a function to initialize the homogenization of the gradient of 
 # a field
 
-def initialize_gradientFieldHomogenization(data, direct_codeData):
+def initialize_gradientFieldHomogenization(data, direct_codeData, 
+submesh_flag):
 
-    output = initialize_fieldHomogenization(data, direct_codeData)
+    output = initialize_fieldHomogenization(data, direct_codeData, 
+    submesh_flag)
 
     return output
 

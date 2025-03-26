@@ -140,9 +140,21 @@ def read_xdmfMesh(file_name):
 
 # Defines a function to generate a submesh using MeshView and creates
 
-def create_submesh(mesh, domain_meshCollection, volume_physGroupsTags, 
-parent_functionSpace, mixed_element=None, polynomial_degree=None, 
-function_spaceType=None):
+def create_submesh(domain_meshCollection, volume_physGroupsTags, 
+parent_functionSpace):
+
+    # Gets the mesh, the polynomial degree, and the shape function
+
+    mesh = parent_functionSpace.mesh()
+
+    polynomial_degree = parent_functionSpace.ufl_element().degree()
+
+    shape_function = parent_functionSpace.ufl_element().family()
+
+    # Gets the dimensionality of the parent function space
+
+    n_dimsParentFunctionSpace = len(parent_functionSpace.ufl_element(
+    ).value_shape())
 
     # Creates a new cell markers object to not affect the mesh function
     # at other parts of the code
@@ -195,54 +207,44 @@ function_spaceType=None):
 
     submesh_functionSpace = 0
 
-    # If the mixed element is not None, it is used
+    # If the element is mixed, the .family() will return 'Mixed'
 
-    if mixed_element!=None:
+    if shape_function=='Mixed':
 
-        submesh_functionSpace = FunctionSpace(sub_mesh,mixed_element)
+        submesh_functionSpace = FunctionSpace(sub_mesh,
+        parent_functionSpace.ufl_element())
 
     else:
 
-        # Handles the exception of the polynomial degree being not given
+        # If the field is scalar, the dimensionality is 0
 
-        if (polynomial_degree==None or (not isinstance(polynomial_degree, 
-        int))):
-            
-            raise ValueError("In creat_submesh, mesh_handling_tools.py"+
-            ", if mixed_element was not prescribed, the function space"+
-            " is supposed as 'CG' per default. Thus, a polynomial degr"+
-            "ee must be provided, which wasn't: polynomial_degree="+str(
-            polynomial_degree))
+        if n_dimsParentFunctionSpace==0:
 
-        # If the field is scalar
+            submesh_functionSpace = FunctionSpace(sub_mesh, 
+            shape_function, polynomial_degree)
 
-        if function_spaceType=="scalar":
+        # If the field is vector function, the dimensionality is 1
 
-            submesh_functionSpace = FunctionSpace(sub_mesh, "CG",
-            polynomial_degree)
+        elif n_dimsParentFunctionSpace==1:
 
-        # If the field is vector function
+            submesh_functionSpace = VectorFunctionSpace(sub_mesh,
+            shape_function, polynomial_degree)
 
-        elif function_spaceType=="vector":
+        # If the field is a second order tensor function
 
-            submesh_functionSpace = VectorFunctionSpace(sub_mesh, "CG", 
-            polynomial_degree)
+        elif n_dimsParentFunctionSpace==2:
 
-        # If the field is a tensor function
-
-        elif function_spaceType=="tensor":
-
-            submesh_functionSpace = TensorFunctionSpace(sub_mesh, "CG", 
-            polynomial_degree)
+            submesh_functionSpace = TensorFunctionSpace(sub_mesh, 
+            shape_function, polynomial_degree)
 
         # Handle not implemented function spaces
 
         else:
 
             raise NameError("create_submesh in mesh_handling_tools.py "+
-            "does not support "+str(function_spaceType)+" function spa"+
-            "ce, for it's not been implemented yet or it's not possibl"+
-            "e to implement.")
+            "does not support a function space with dimensionality lar"+
+            "ger than "+str(n_dimsParentFunctionSpace)+", for it's not"+
+            " been implemented yet or it's not possible to implement.")
         
     # Initializes the function to the solution at the submesh
 
@@ -256,7 +258,7 @@ function_spaceType=None):
 
     # Verifies whether there is only on field
 
-    if mixed_element==None:
+    if shape_function!='Mixed':
 
         sub_meshMapping.append(submesh_functionSpace.dofmap())
 
@@ -268,7 +270,7 @@ function_spaceType=None):
 
         # Iterates through the number of fields
 
-        for i in range(mixed_element.num_sub_elements()):
+        for i in range(shape_function.ufl_element().num_sub_elements()):
 
             # Adds the submesh mapping and the parent mesh mapping
 
@@ -276,12 +278,16 @@ function_spaceType=None):
 
             parent_meshMapping.append(parent_functionSpace.sub(i).dofmap(
             ))
+            
+    # Sets the integration differential in the submesh
+
+    dx_submesh = Measure("dx", domain=sub_mesh)
 
     # Returns the submesh, the updated cell markers, and the DOF mappings
 
     return (sub_mesh, submesh_cellMarkers, submesh_functionSpace, 
     sub_meshMapping, parent_meshMapping, submesh_function, 
-    sub_toParentCellMap)
+    sub_toParentCellMap, dx_submesh)
 
 # Defines a function to update the field parameters vector of a submesh 
 # given the corresponding vector at the parent mesh

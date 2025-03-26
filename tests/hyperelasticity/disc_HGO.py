@@ -39,6 +39,8 @@ homogenized_displacementFileName = "homogenized_displacement.txt"
 homogenized_gradDisplacementFileName = ("homogenized_displacement_grad"+
 "ient.txt")
 
+homogenized_dispRVEFileName = "homogenized_displacement_RVE.txt"
+
 post_processes = dict()
 
 post_processes["save field"] = {"directory path":results_path, 
@@ -50,13 +52,23 @@ post_processes["save stress field"] = {"directory path":results_path,
 # Put "" in the subdomain to integrate over the entire domain
 
 post_processes["homogenize field"] = {"directory path":results_path,
-"file name":homogenized_displacementFileName, "subdomain":""}
+"file name":homogenized_displacementFileName, "subdomain":[2]}
 
 # Put "" in the subdomain to integrate over the entire domain
 
 post_processes["homogenize field's gradient"] = {"directory path":
 results_path, "file name":homogenized_gradDisplacementFileName, 
 "subdomain":""}
+
+# Sets the post processes of the submesh
+
+post_processesSubmesh = dict()
+
+# THe subdomain variable must be "" for a submesh, for there isn't sub-
+# domains in a submesh
+
+post_processesSubmesh["homogenize field"] = {"directory path":
+results_path, "file name":homogenized_dispRVEFileName, "subdomain":""}
 
 ########################################################################
 #                         Material properties                          #
@@ -204,7 +216,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 30
+maximum_loadingSteps = 15
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -212,7 +224,7 @@ maximum_loadingSteps = 30
 
 # Defines a load expression
 
-maximum_load = 8E6
+maximum_load = 4E6
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -250,4 +262,5 @@ constitutive_model, traction_dictionary, neumann_loads,
 maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
 solver_parameters, polynomial_degree=polynomial_degree, t=t, 
 fixed_supportPhysicalGroups=fixed_supportPhysicalGroups,
-volume_physGroupsSubmesh=volume_physGroupsSubmesh)
+volume_physGroupsSubmesh=volume_physGroupsSubmesh, post_processesSubmesh
+=post_processesSubmesh)

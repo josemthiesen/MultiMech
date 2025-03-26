@@ -5,15 +5,11 @@ from dolfin import *
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
-import source.tool_box.file_handling_tools as file_handling_tools
-
 import source.tool_box.boundary_conditions_tools as BCs_tools
 
 import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
-
-import source.tool_box.post_processing_tools as post_processing_tools
 
 # Defines a function to model a hyperelastic problem with a displacement
 # field only
@@ -22,7 +18,7 @@ def hyperelasticity_displacementBased(constitutive_model,
 traction_dictionary, neumann_loads, maximum_loadingSteps, t_final, 
 post_processes, mesh_fileName, solver_parameters, polynomial_degree=2, 
 t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
-), volume_physGroupsSubmesh=[]):
+), volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
 
     ####################################################################
     #                               Mesh                               #
@@ -99,17 +95,6 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
     solver = NonlinearVariationalSolver(Res)
 
     ####################################################################
-    #    Post-processing methods identification and initialization     #
-    ####################################################################
-
-    # Transforms the dictionary of post-processing methods instructions
-    # into a live-wire dictionary with the proper methods and needed in-
-    # formation
-    
-    post_processesDict = post_processing_tools.post_processingSelectionSingleField(
-    post_processes, mesh, constitutive_model, dx) 
-
-    ####################################################################
     #                 Solution and pseudotime stepping                 #
     ####################################################################
 
@@ -120,7 +105,8 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
     # Iterates through the pseudotime stepping algortihm 
 
     newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
-    maximum_loadingSteps, solver, u_new, post_processesDict, 
-    domain_meshCollection, mesh, polynomial_degree, "tensor", U,
-    neumann_loads=neumann_loads, solver_parameters=solver_parameters, 
+    maximum_loadingSteps, solver, u_new, domain_meshCollection, 
+    constitutive_model, dx, post_processesDict=post_processes, 
+    post_processesSubmeshDict=post_processesSubmesh, neumann_loads=
+    neumann_loads, solver_parameters=solver_parameters, 
     volume_physGroupsSubmesh=volume_physGroupsSubmesh)
