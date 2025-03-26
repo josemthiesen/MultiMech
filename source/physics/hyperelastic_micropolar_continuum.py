@@ -17,8 +17,11 @@ import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 def hyperelasticity_displacementMicrorotationBased(constitutive_model, 
 traction_dictionary, neumann_loads, maximum_loadingSteps, t_final, 
 post_processes, mesh_fileName, solver_parameters, polynomial_degree=2, 
-t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
-), volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
+t=0.0, fixed_supportDisplacementPhysicalGroups=0, 
+fixed_supportMicrorotationPhysicalGroups=0, 
+simple_supportDisplacementPhysicalGroups=dict(), 
+simple_supportMicrorotationPhysicalGroups=dict(),
+volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
 
     ####################################################################
     #                               Mesh                               #
@@ -55,17 +58,36 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
     #                        Boundary conditions                       #
     ####################################################################
 
-    # Defines the boundary conditions for fixed facets
+    # Defines the boundary conditions for fixed facets in terms of dis-
+    # placement
 
     bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace, 
     boundary_meshFunction, boundary_physicalGroups=
-    fixed_supportPhysicalGroups)
+    fixed_supportDisplacementPhysicalGroups, sub_fieldsToApplyBC=[0])
 
-    # Adds boundary conditions for simply supported facets
+    # Defines the boundary conditions for fixed facets in terms of mi-
+    # crorotation
+
+    bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace, 
+    boundary_meshFunction, boundary_physicalGroups=
+    fixed_supportMicrorotationPhysicalGroups, sub_fieldsToApplyBC=[1],
+    boundary_conditions=bc)
+
+    # Adds boundary conditions for simply supported facets in terms of
+    # displacement
 
     bc = BCs_tools.simple_supportDirichletBC(monolithic_functionSpace, 
     boundary_meshFunction, boundary_physicalGroups=
-    simple_supportPhysicalGroups, boundary_conditions=bc)
+    simple_supportDisplacementPhysicalGroups, boundary_conditions=bc,
+    sub_fieldsToApplyBC=[0])
+
+    # Adds boundary conditions for simply supported facets in terms of
+    # microrotation
+
+    bc = BCs_tools.simple_supportDirichletBC(monolithic_functionSpace, 
+    boundary_meshFunction, boundary_physicalGroups=
+    simple_supportMicrorotationPhysicalGroups, boundary_conditions=bc,
+    sub_fieldsToApplyBC=[1])
 
     ####################################################################
     #                         Variational forms                        #

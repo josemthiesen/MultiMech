@@ -46,7 +46,7 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
     # Defines the boundary conditions for fixed facets
 
     bc = BCs_tools.fixed_supportDirichletBC(U, boundary_meshFunction, 
-    fixed_supportPhysicalGroups)
+    boundary_physicalGroups=fixed_supportPhysicalGroups)
 
     # Adds boundary conditions for simply supported facets
 

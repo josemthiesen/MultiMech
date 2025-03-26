@@ -2,6 +2,10 @@
 
 from dolfin import *
 
+########################################################################
+#                            Internal work                             #
+########################################################################
+
 # Defines a function to construct the variational form of a non-dissipa-
 # tive solid mechanics problem. The constitutive model can be either a
 # class (when the whole domain has only one constitutive model); or it 
@@ -31,43 +35,10 @@ constitutive_modelDictionary, dx):
         for physical_group, constitutive_model in (
         constitutive_modelDictionary.items()):
             
-            # Tuples can be used as physical groups to integrate over 
-            # multiple physical groups simultaneously
+            # Verifies physical group consistency, i.e. if it exists and
+            # if it is an integer or a tuple of integers
 
-            if (not isinstance(physical_group, int)) and (not isinstance(
-            physical_group, tuple)):
-                
-                raise ValueError("The physical group as key of the con"+
-                "stitutive models dictionary must be either an integer"+
-                " or a tuple (for multiple physical groups with the sa"+
-                "me constitutive model).")
-            
-            # Verifies if this or these physical groups are valid physi-
-            # cal groups
-            
-            elif isinstance(physical_group, tuple):
-
-                # Iterates through the physical groups in the tuple
-
-                for group in physical_group:
-
-                    if not (group in physical_groupsList):
-
-                        raise NameError("The physical group tag "+str(
-                        group)+" was used to build the hyperelastic in"+
-                        "ternal work, but it is not a valid physical g"+
-                        "roup. Here is the list of the valid physical "+
-                        "groups:\n"+str(physical_groupsList))
-                    
-            else:
-
-                if not (physical_group in physical_groupsList):
-
-                    raise NameError("The physical group tag "+str(
-                    physical_group)+" was used to build the hyperelast"+
-                    "ic internal work, but it is not a valid physical "+
-                    "group. Here is the list of the valid physical gro"+
-                    "ups:\n"+str(physical_groupsList))
+            verify_physicalGroups(physical_group, physical_groupsList)
 
             # Initializes objects for the stresses at the reference 
             # configuration
@@ -98,6 +69,10 @@ constitutive_modelDictionary, dx):
     # Returns the inner work variational form
 
     return inner_work
+
+########################################################################
+#               Work done by Neumann boundary conditions               #
+########################################################################
 
 # Defines a function to construct the variational form of the work done
 # by the traction vector in the reference configuration given a dictio-
@@ -138,6 +113,46 @@ def traction_work(traction_dictionary, field_variation, ds):
 ########################################################################
 #                              Utilities                               #
 ########################################################################
+
+# Defines a function to verify if a physical group is consistent and if
+# it is the whole list of existing physical groups
+
+def verify_physicalGroups(physical_group, physical_groupsList):
+
+    # Tuples can be used as physical groups to integrate over multiple 
+    # physical groups simultaneously
+
+    if (not isinstance(physical_group, int)) and (not isinstance(
+    physical_group, tuple)):
+        
+        raise ValueError("The physical group as key of the constitutiv"+
+        "e models dictionary must be either an integer or a tuple (for"+
+        " multiple physical groups with the same constitutive model).")
+    
+    # Verifies if this or these physical groups are valid physical groups
+    
+    elif isinstance(physical_group, tuple):
+
+        # Iterates through the physical groups in the tuple
+
+        for group in physical_group:
+
+            if not (group in physical_groupsList):
+
+                raise NameError("The physical group tag "+str(group)+
+                " was used to build the hyperelastic internal work, bu"+
+                "t it is not a valid physical group. Here is the list "+
+                "of the valid physical groups:\n"+str(
+                physical_groupsList))
+            
+    else:
+
+        if not (physical_group in physical_groupsList):
+
+            raise NameError("The physical group tag "+str(physical_group
+            )+" was used to build the hyperelastic internal work, but "+
+            "it is not a valid physical group. Here is the list of the"+
+            " valid physical groups:\n"+str(physical_groupsList))
 
 # Defines a function to project a field over a region of the domain
 
