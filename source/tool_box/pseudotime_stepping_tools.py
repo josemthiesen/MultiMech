@@ -107,14 +107,20 @@ solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
 
         solver.solve()
 
-        solution_field.rename(*solution_name)
+        if len(solution_name)>0:
+
+            solution_field.rename(*solution_name)
 
         # Updates the post processes objects
 
         for post_processName, post_process in post_processes.items():
 
+            # Sets the field number as -1, for this problem has a single
+            # field only. It must be -1 in this case
+
             post_processingObjects[post_processName] = post_process[1](
-            post_processingObjects[post_processName], solution_field, t)
+            post_processingObjects[post_processName], solution_field, -1, 
+            t)
 
         # If a submesh is to be populated with part of the solution
 
@@ -125,15 +131,20 @@ solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
             RVE_submesh, solution_submesh, solution_field, 
             RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
 
-            solution_submesh.rename(*solution_name)
+            if len(solution_name)>0:
+
+                solution_submesh.rename(*solution_name)
 
             # Updates the post processes objects
 
             for post_processName, post_process in post_processesSubmesh.items():
 
+                # Sets the field number as -1, for this problem has a 
+                # single field only. It must be -1 in this case
+
                 post_processingObjectsSubmesh[post_processName] = post_process[
                 1](post_processingObjectsSubmesh[post_processName], 
-                solution_submesh, t)
+                solution_submesh, -1, t)
 
         # Updates the pseudo time variables and the counter
 
@@ -168,10 +179,28 @@ solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
 # ational problem of multiple fields
 
 def newton_raphsonMultipleFields(t, t_final, delta_t, 
-maximum_loadingSteps, solver, solution_field, post_processes, 
-mixed_element, domain_meshCollection, post_processesSubmesh=[], 
-dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
-solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
+maximum_loadingSteps, solver, solution_field, mixed_element, 
+domain_meshCollection, constitutive_model, dx, post_processesList=[], 
+post_processesSubmeshList=[], dirichlet_loads=[], neumann_loads=[], 
+solver_parameters=dict(), solution_name=[["solution", "DNS"]], 
+volume_physGroupsSubmesh=[]):
+    
+    # Gets the number of fields in the mixed element
+
+    n_fields = mixed_element.num_sub_elements()
+
+    # Transforms the list of dictionaries of post-processing methods 
+    # instructions into a list of live-wire dictionaries with the proper 
+    # methods and needed information
+    
+    post_processes = post_processing_tools.post_processingSelectionMultipleFields(
+    post_processesList, n_fields, solution_field.function_space().mesh(), 
+    constitutive_model, dx) 
+    
+    # Initializes the list of submesh post processes. It is a list, be-
+    # cause each field will ocupy a component
+
+    post_processesSubmesh = []
     
     # Verifies if the physical groups for the submesh is an integer
 
@@ -189,10 +218,12 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
         RVE_meshMapping, parent_meshMapping, solution_submesh, 
         RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
         domain_meshCollection, volume_physGroupsSubmesh, solution_field)
-    
-    # Gets the number of fields in the mixed element
 
-    n_fields = mixed_element.num_sub_elements()
+        # Initializes the post process for the submesh if there's any
+
+        post_processesSubmesh = post_processing_tools.post_processingSelectionMultipleFields(
+        post_processesSubmeshList, n_fields, RVE_submesh, 
+        constitutive_model, dx_submesh) 
 
     # Verifies if the post processes is a list
 
@@ -270,17 +301,19 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
 
         split_solution = list(solution_field.split(deepcopy=True))
 
+        # Renames the solution fields
+
+        if len(solution_name)==n_fields:
+        
+            for i in range(n_fields):
+
+                split_solution[i].rename(*solution_name[i])
+
         # Post-process the solution
 
         if len(post_processes)>0:
-
+                
             for i in range(n_fields):
-
-                # Updates the name
-
-                if len(solution_name)==n_fields:
-
-                    split_solution[i].rename(*solution_name[i])
 
                 # Updates the post processes objects
 
@@ -289,7 +322,7 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
 
                     post_processingObjects[i][post_processName] = post_process[
                     1](post_processingObjects[i][post_processName], 
-                    split_solution[i], t)
+                    split_solution, i, t)
 
         # If a submesh is to be populated with part of the solution
 
@@ -322,7 +355,7 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
 
                     post_processingObjectsSubmesh[i][post_processName] = post_process[
                     1](post_processingObjectsSubmesh[i][post_processName], 
-                    split_solutionSubmesh[i], t)
+                    split_solutionSubmesh, i, t)
 
         # Updates the pseudo time variables and the counter
 

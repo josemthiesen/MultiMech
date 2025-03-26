@@ -6,11 +6,7 @@
 
 from abc import ABC, abstractmethod
 
-import numpy as np
-
 from dolfin import *
-
-import ufl_legacy as ufl
 
 import source.tool_box.tensor_tools as tensor_tools
 
@@ -103,9 +99,14 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         return psi_NH+psi_vol+psi_hat+psi_tilde
     
     # Defines a function to evaluate the second Piola-Kirchhoff stress 
-    # tensors using a pull-back operation over the Cauchy stress tensors
+    # tensors using a pull-back operation over the Cauchy stress tensors.
+    # The argument is a list of the two fields
 
-    def second_piolaStress(self, u, phi):
+    def second_piolaStress(self, fields_list):
+
+        # Retrieves the fields
+
+        u, phi = fields_list
 
         # Evaluates the Cauchy stress and the couple stress
 
@@ -123,7 +124,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
     # Defines a function to evaluate the first Piola-Kirchhoff stress 
     # and its couple from the Cauchy stress
 
-    def first_piolaStress(self, u, phi):
+    def first_piolaStress(self, fields_list):
+
+        # Retrieves the fields
+
+        u, phi = fields_list
 
         # Evaluates the Cauchy stress and the couple stress
 
@@ -144,7 +149,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
     # tion tensor of the microrotation field, and the curvature tensor 
     # in the referential configuration
     
-    def cauchy_stress(self, u, phi):
+    def cauchy_stress(self, fields_list):
+
+        # Retrieves the fields
+
+        u, phi = fields_list
 
         # Evaluates the deformation gradient
 

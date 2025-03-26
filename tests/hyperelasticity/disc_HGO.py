@@ -258,9 +258,9 @@ fixed_supportPhysicalGroups = 4
 # Solves the variational problem
 
 variational_framework.hyperelasticity_displacementBased(
-constitutive_model, traction_dictionary, neumann_loads, 
-maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
-solver_parameters, polynomial_degree=polynomial_degree, t=t, 
+constitutive_model, traction_dictionary, maximum_loadingSteps, t_final, 
+post_processes, mesh_fileName, solver_parameters, neumann_loads=
+neumann_loads, polynomial_degree=polynomial_degree, t=t, 
 fixed_supportPhysicalGroups=fixed_supportPhysicalGroups,
 volume_physGroupsSubmesh=volume_physGroupsSubmesh, post_processesSubmesh
 =post_processesSubmesh)

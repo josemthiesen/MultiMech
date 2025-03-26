@@ -2,6 +2,8 @@
 
 from dolfin import *
 
+import source.tool_box.tensor_tools as tensor_tools
+
 ########################################################################
 #                            Internal work                             #
 ########################################################################
@@ -65,6 +67,89 @@ constitutive_modelDictionary, dx):
         # Constructs the variational forms for the inner work
 
         inner_work = inner(first_piola, grad(test_function))*dx
+
+    # Returns the inner work variational form
+
+    return inner_work
+
+# Defines a function to construct the variational form of a non-dissipa-
+# tive micropolar continuum problem. The constitutive model can be ei-
+# ther a class (when the whole domain has only one constitutive model); 
+# or it can be a dictionary, when the domain is heterogeneous. The keys 
+# of the dictionaries are the volumetric physical groups, whereas the 
+# values are the constitutive model classes. This internal work is cal-
+# culated using the first Piola-Kirchhoff stress tensor and its couple
+# stress
+
+def hyperelastic_micropolarInternalWorkFirstPiola(
+displacement_trialFunction, microrotation_trialFunction, 
+displacement_testFunction, microrotation_testFunction,
+constitutive_modelDictionary, dx):
+    
+    # Gets the physical groups from the domain mesh function
+
+    physical_groupsList = set(dx.subdomain_data().array())
+
+    # Initializes the variational form of the inner work
+
+    inner_work = 0.0
+
+    # If the constitutive model is a dictionary, the domain is heteroge-
+    # neous
+
+    if isinstance(constitutive_modelDictionary, dict):
+
+        # Iterates through the dictionary
+
+        for physical_group, constitutive_model in (
+        constitutive_modelDictionary.items()):
+            
+            # Verifies physical group consistency, i.e. if it exists and
+            # if it is an integer or a tuple of integers
+
+            verify_physicalGroups(physical_group, physical_groupsList)
+
+            # Initializes objects for the stresses at the reference 
+            # configuration
+
+            first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
+            displacement_trialFunction, microrotation_trialFunction)
+
+            # Constructs the variational forms for the inner work of the
+            # first Piola-Kirchhoff stress
+
+            inner_work += (inner(first_piola, grad(
+            displacement_testFunction))*dx(physical_group))
+
+            # Adds the parcel of the couple stress
+
+            inner_work += ((inner(couple_firstPiola, grad(
+            microrotation_testFunction))*dx(physical_group))-(inner(
+            first_piola, tensor_tools.skew_2OrderTensor(
+            microrotation_testFunction))*dx(physical_group)))
+
+    # If the constitutive model is not a dictionary, the domain is homo-
+    # geneous
+
+    else:
+
+        # Initializes objects for the stresses at the reference configu-
+        # ration
+
+        first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
+        displacement_trialFunction, microrotation_trialFunction)
+
+        # Constructs the variational forms for the inner work of the
+        # first Piola-Kirchhoff stress
+
+        inner_work += (inner(first_piola, grad(displacement_testFunction
+        ))*dx)
+
+        # Adds the parcel of the couple stress
+
+        inner_work += ((inner(couple_firstPiola, grad(
+        microrotation_testFunction))*dx)-(inner(first_piola, 
+        tensor_tools.skew_2OrderTensor(microrotation_testFunction))*dx))
 
     # Returns the inner work variational form
 

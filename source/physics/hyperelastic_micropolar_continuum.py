@@ -15,11 +15,11 @@ import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 # and a microrotation fields only
 
 def hyperelasticity_displacementMicrorotationBased(constitutive_model, 
-traction_dictionary, neumann_loads, maximum_loadingSteps, t_final, 
+traction_dictionary, moment_dictionary, maximum_loadingSteps, t_final, 
 post_processes, mesh_fileName, solver_parameters, polynomial_degree=2, 
-t=0.0, fixed_supportDisplacementPhysicalGroups=0, 
-fixed_supportMicrorotationPhysicalGroups=0, 
-simple_supportDisplacementPhysicalGroups=dict(), 
+t=0.0, fixed_supportDisplacementPhysicalGroups=0, neumann_loads=[], 
+dirichlet_loads=[], fixed_supportMicrorotationPhysicalGroups=0, 
+solution_name=[], simple_supportDisplacementPhysicalGroups=dict(), 
 simple_supportMicrorotationPhysicalGroups=dict(),
 volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
 
@@ -104,20 +104,33 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
 
     solution_new = Function(monolithic_functionSpace)
 
+    # Splits the solution and the test function
+
+    u_new, phi_new = split(solution_new)
+
+    variation_u, variation_phi = split(variation_solution)
+
     # Constructs the variational form for the inner work
 
-    internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    solution_new, variation_solution, constitutive_model, dx)
+    internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
+    u_new, phi_new, variation_u, variation_phi, constitutive_model, dx)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, variation_solution, ds)
+    traction_dictionary, variation_u, ds)
+
+    # Constructs the variational forms for the moment work on the boun-
+    # dary. Note that the function traction_work was reused, because the
+    # variational construction is the same for traction and for moment
+
+    moment_VarForm = variational_tools.traction_work(
+    moment_dictionary, variation_phi, ds)
 
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object
 
-    residual_form = internal_VarForm-traction_VarForm
+    residual_form = internal_VarForm-traction_VarForm-moment_VarForm
 
     residual_derivative = derivative(residual_form, solution_new, 
     delta_solution)
@@ -141,9 +154,10 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
 
     # Iterates through the pseudotime stepping algortihm 
 
-    newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
-    maximum_loadingSteps, solver, solution_new, domain_meshCollection, 
-    constitutive_model, dx, post_processesDict=post_processes, 
-    post_processesSubmeshDict=post_processesSubmesh, neumann_loads=
-    neumann_loads, solver_parameters=solver_parameters, 
-    volume_physGroupsSubmesh=volume_physGroupsSubmesh)
+    newton_raphson_tools.newton_raphsonMultipleFields(t, t_final, 
+    delta_t, maximum_loadingSteps, solver, solution_new, mixed_element, 
+    domain_meshCollection, constitutive_model, dx, post_processesList=
+    post_processes, post_processesSubmeshList=post_processesSubmesh, 
+    dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
+    solver_parameters=solver_parameters, volume_physGroupsSubmesh=
+    volume_physGroupsSubmesh, solution_name=solution_name)

@@ -133,6 +133,31 @@ constitutive_model, dx):
 
     return post_processes
 
+# Defines a function to select the tools of post-process for a multi-
+# field problem. The variable post_processes is a list of dictionaries, 
+# where each component correspond to a field; the keys are the names of 
+# the processes, and the values are dictionaries of additional informa-
+# tion. The dictionary of additional information has the name of each 
+# additional information as keys and the informations themselves as va-
+# lues
+
+def post_processingSelectionMultipleFields(post_processes, n_fields, 
+mesh, constitutive_model, dx):
+    
+    # Iterates through the number of fields
+
+    for i in range(n_fields):
+
+        # Transforms the component dictionary into a live dictionary wi-
+        # th proper methods and stuff
+
+        post_processes[i] = post_processingSelectionSingleField(
+        post_processes[i], mesh, constitutive_model, dx)
+
+    # Returns the new live list of dictionaries
+
+    return post_processes
+
 ########################################################################
 #                             Field saving                             #
 ########################################################################
@@ -159,13 +184,27 @@ def initialize_fieldSaving(data, direct_codeData, submesh_flag):
 
 # Defines a function to update the file with the field
 
-def update_fieldSaving(file, field, time):
+def update_fieldSaving(file, field, field_number, time):
 
-    # Writes the field to the file
+    # If the problem has a single field
 
-    file.write(field, time)
+    if field_number==-1:
 
-    return file
+        # Writes the field to the file
+
+        file.write(field, time)
+
+        return file
+    
+    # If the problem has multiple fields
+
+    else:
+
+        # Writes the field to the file
+
+        file.write(field[field_number], time)
+
+        return file
 
 ########################################################################
 #                             Stress field                             #
@@ -222,7 +261,7 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
 # Defines a function to update the Cauchy stress field
 
-def update_cauchyStressSaving(output_object, field, time):
+def update_cauchyStressSaving(output_object, field, field_number, time):
 
     # Recovers the object items
 
@@ -348,7 +387,7 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
 # Defines a function to update the homogenized field
 
-def update_fieldHomogenization(output_object, field, time):
+def update_fieldHomogenization(output_object, field, field_number, time):
 
     # Gets the data
 
@@ -362,19 +401,41 @@ def update_fieldHomogenization(output_object, field, time):
 
     file_name = output_object[4]
 
-    # Homogenizes the field and updates the list of homogenized field
-    # along time
+    # If the problem has a single field
 
-    homogenized_fieldList = homogenization_tools.homogenize_genericField(
-    field, homogenized_fieldList, time, inverse_volume, dx, subdomain, 
-    file_name)
-    
-    # Assembles the output
+    if field_number==-1:
 
-    output = [homogenized_fieldList, inverse_volume, dx, subdomain, 
-    file_name]
+        # Homogenizes the field and updates the list of homogenized field
+        # along time
 
-    return output
+        homogenized_fieldList = homogenization_tools.homogenize_genericField(
+        field, homogenized_fieldList, time, inverse_volume, dx, 
+        subdomain, file_name)
+        
+        # Assembles the output
+
+        output = [homogenized_fieldList, inverse_volume, dx, subdomain, 
+        file_name]
+
+        return output
+
+    # If the problem has multiple fields
+
+    else:
+
+        # Homogenizes the field and updates the list of homogenized field
+        # along time
+
+        homogenized_fieldList = homogenization_tools.homogenize_genericField(
+        field[field_number], homogenized_fieldList, time, inverse_volume, 
+        dx, subdomain, file_name)
+        
+        # Assembles the output
+
+        output = [homogenized_fieldList, inverse_volume, dx, subdomain, 
+        file_name]
+
+        return output
 
 # Defines a function to initialize the homogenization of the gradient of 
 # a field
@@ -390,15 +451,28 @@ submesh_flag):
 # Defines a function to update the homogenization of the gradient of a 
 # field
 
-def update_gradientFieldHomogenization(output_object, field, time):
+def update_gradientFieldHomogenization(output_object, field, field_number, time):
 
     # Gets the gradient of the field
 
-    grad_field = grad(field)
+    grad_field = 0.0
 
-    # Gets the homogenization of the gradient
+    # If the problem has only one field
+
+    if field_number==-1:
+
+        grad_field = grad(field)
+
+    # If the problem has multiple fields
+
+    else:
+
+        grad_field = grad(field[field_number])
+
+    # Gets the homogenization of the gradient. Sets the field number to
+    # -1, for a single field is sent downstream
 
     output_object = update_fieldHomogenization(output_object, 
-    grad_field, time)
+    grad_field, -1, time)
 
     return output_object

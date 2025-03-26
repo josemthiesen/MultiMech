@@ -15,10 +15,11 @@ import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 # field only
 
 def hyperelasticity_displacementBased(constitutive_model, 
-traction_dictionary, neumann_loads, maximum_loadingSteps, t_final, 
-post_processes, mesh_fileName, solver_parameters, polynomial_degree=2, 
-t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
-), volume_physGroupsSubmesh=[], post_processesSubmesh=dict()):
+traction_dictionary, maximum_loadingSteps, t_final, post_processes, 
+mesh_fileName, solver_parameters, neumann_loads=[], dirichlet_loads=[],  
+polynomial_degree=2, t=0.0, fixed_supportPhysicalGroups=0, 
+simple_supportPhysicalGroups=dict(), volume_physGroupsSubmesh=[], 
+post_processesSubmesh=dict()):
 
     ####################################################################
     #                               Mesh                               #
@@ -108,5 +109,5 @@ t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
     maximum_loadingSteps, solver, u_new, domain_meshCollection, 
     constitutive_model, dx, post_processesDict=post_processes, 
     post_processesSubmeshDict=post_processesSubmesh, neumann_loads=
-    neumann_loads, solver_parameters=solver_parameters, 
-    volume_physGroupsSubmesh=volume_physGroupsSubmesh)
+    neumann_loads, dirichlet_loads=dirichlet_loads, solver_parameters=
+    solver_parameters, volume_physGroupsSubmesh=volume_physGroupsSubmesh)
