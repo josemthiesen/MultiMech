@@ -260,15 +260,17 @@ volume_physGroupsSubmesh=[]):
 
     post_processingObjectsSubmesh = []
 
-    for i in range(n_fields):
+    if len(post_processesSubmesh)>0:
 
-        post_processingObjectsSubmesh.append(dict())
+        for i in range(n_fields):
 
-        for post_processName, post_process in post_processesSubmesh[i
-        ].items():
+            post_processingObjectsSubmesh.append(dict())
 
-            post_processingObjectsSubmesh[-1][post_processName] = post_process[
-            0](post_process[2], post_process[3], True)
+            for post_processName, post_process in post_processesSubmesh[i
+            ].items():
+
+                post_processingObjectsSubmesh[-1][post_processName] = post_process[
+                0](post_process[2], post_process[3], True)
     
     # Updates the solver parameters
 

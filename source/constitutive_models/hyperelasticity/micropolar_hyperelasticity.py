@@ -110,7 +110,7 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma, sigma_couple = self.cauchy_stress(self, u, phi)
+        sigma, sigma_couple = self.cauchy_stress(fields_list)
 
         # Evaluates the second Piola-Kirchhoff stress tensors using the
         # pull back operation
@@ -132,7 +132,7 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma, sigma_couple = self.cauchy_stress(self, u, phi)
+        sigma, sigma_couple = self.cauchy_stress(fields_list)
 
         # Evaluates the first Piola-Kirchhoff stress tensors using the
         # Piola transformation
@@ -176,20 +176,25 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the push-forward of the curvature tensor
 
-        k_curvatureSpatial = variable(R_bar*K_curvatureReferential*
-        R_bar.T)
+        k_curvatureSpatial = R_bar*K_curvatureReferential*R_bar.T
 
-        V_bar = variable(V_bar)
+        # Transforms the tensors into variables to differentiate the e-
+        # nergy potential
+
+        k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
+
+        V_barTransposed = variable(V_bar.T)
 
         # Evaluates the total energy density
 
-        psi_total = self.strain_energy(V_bar, k_curvatureSpatial)
+        psi_total = self.strain_energy(V_barTransposed.T, 
+        k_curvatureSpatialTransposed.T)
 
         # Evaluates the Cauchy and the couple Cauchy stress tensors
 
-        sigma = V_bar*diff(psi_total, V_bar.T)
+        sigma = V_bar*diff(psi_total, V_barTransposed)
 
-        sigma_couple = V_bar*diff(psi_total, k_curvatureSpatial.T)
+        sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
 
         # Returns them
 

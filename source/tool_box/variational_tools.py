@@ -113,7 +113,7 @@ constitutive_modelDictionary, dx):
             # configuration
 
             first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
-            displacement_trialFunction, microrotation_trialFunction)
+            [displacement_trialFunction, microrotation_trialFunction])
 
             # Constructs the variational forms for the inner work of the
             # first Piola-Kirchhoff stress
@@ -137,7 +137,7 @@ constitutive_modelDictionary, dx):
         # ration
 
         first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
-        displacement_trialFunction, microrotation_trialFunction)
+        [displacement_trialFunction, microrotation_trialFunction])
 
         # Constructs the variational forms for the inner work of the
         # first Piola-Kirchhoff stress

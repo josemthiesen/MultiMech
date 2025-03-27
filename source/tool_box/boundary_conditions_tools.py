@@ -16,8 +16,8 @@ from dolfin import *
 # se. If sub_fields is an empty list, all DOFs are constrained
 
 def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups=0, n_fields=1, sub_fieldsToApplyBC=[], 
-boundary_conditions=[]):
+boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
+]):
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
@@ -25,6 +25,18 @@ boundary_conditions=[]):
     if boundary_physicalGroups==0:
 
         return boundary_conditions
+    
+    # Tests if the element is mixed and gets the number of fields
+
+    n_fields = 1
+
+    element_type = field_functionSpace.ufl_element().family()
+
+    if element_type=='Mixed':
+
+        # Gets the number of fields
+
+        n_fields = field_functionSpace.ufl_element().num_sub_elements()
 
     # Verifies whether the boundary physical groups is a list or not
 
@@ -103,8 +115,7 @@ boundary_conditions=[]):
 # list, all DOFs are constrained
 
 def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups, n_fields=1, sub_fieldsToApplyBC=[], 
-boundary_conditions=[]):
+boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=[]):
     
     # Verifies if the boundary physical groups is a dictionary
 
@@ -121,6 +132,18 @@ boundary_conditions=[]):
     if len(list(boundary_physicalGroups.keys()))==0:
 
         return boundary_conditions
+    
+    # Tests if the element is mixed and gets the number of fields
+
+    n_fields = 1
+
+    element_type = field_functionSpace.ufl_element().family()
+
+    if element_type=='Mixed':
+
+        # Gets the number of fields
+
+        n_fields = field_functionSpace.ufl_element().num_sub_elements()
 
     # Iterates through the regions
 

@@ -128,9 +128,9 @@ solver_parameters = dict()
 
 solver_parameters["linear_solver"] = "minres"
 
-solver_parameters["newton_relative_tolerance"] = 1e-4
+solver_parameters["newton_relative_tolerance"] = 1e-3
 
-solver_parameters["newton_absolute_tolerance"] = 1e-4
+solver_parameters["newton_absolute_tolerance"] = 1e-3
 
 solver_parameters["newton_maximum_iterations"] = 50
 
@@ -162,7 +162,7 @@ maximum_loadingSteps = 15
 
 # Defines a load expression
 
-maximum_load = 4E0
+maximum_load = 4E1
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
