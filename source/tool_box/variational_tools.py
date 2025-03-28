@@ -139,10 +139,10 @@ constitutive_modelDictionary, dx):
         # Initializes objects for the stresses at the reference configu-
         # ration
 
-        first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
+        first_piola, couple_firstPiola = constitutive_modelDictionary.first_piolaStress(
         [displacement_trialFunction, microrotation_trialFunction])
 
-        kirchhoff, couple_kirchhoff = constitutive_model.kirchhoff_stress(
+        kirchhoff, couple_kirchhoff = constitutive_modelDictionary.kirchhoff_stress(
         [displacement_trialFunction, microrotation_trialFunction])
 
         # Constructs the variational forms for the inner work of the

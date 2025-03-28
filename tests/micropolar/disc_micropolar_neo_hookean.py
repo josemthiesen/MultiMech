@@ -26,7 +26,9 @@ import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
 # Defines the path to the results directory 
 
-results_path = os.getcwd()+"//tests//micropolar//results"
+results_pathGraphics = os.getcwd()+"//tests//micropolar//results//graphics"
+
+results_pathText = os.getcwd()+"//tests//micropolar//results//text"
 
 displacement_fileName = ["displacement.xdmf", "microrotation.xdmf"]
 
@@ -44,19 +46,19 @@ for i in range(2):
 
     post_processes.append(dict())
 
-    post_processes[-1]["save field"] = {"directory path":results_path, 
+    post_processes[-1]["save field"] = {"directory path":results_pathGraphics, 
     "file name":displacement_fileName[i]}
 
     # Put "" in the subdomain to integrate over the entire domain
 
     post_processes[-1]["homogenize field"] = {"directory path":
-    results_path, "file name":homogenized_displacementFileName[i], 
+    results_pathText, "file name":homogenized_displacementFileName[i], 
     "subdomain":""}
 
     # Put "" in the subdomain to integrate over the entire domain
 
     post_processes[-1]["homogenize field's gradient"] = {"directory path":
-    results_path, "file name":homogenized_gradDisplacementFileName[i], 
+    results_pathText, "file name":homogenized_gradDisplacementFileName[i], 
     "subdomain":""}
 
 post_processesSubmesh = []
@@ -88,6 +90,9 @@ material_properties["gamma"] = 1e-12
 constitutive_model = dict()
 
 constitutive_model[tuple([1,2,3])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+material_properties)
+
+constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
 material_properties)
 
 ########################################################################

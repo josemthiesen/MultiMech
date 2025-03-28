@@ -69,13 +69,13 @@ gamma = 1e-12#5.22e-8 #5.22e-8 #((1e-5)**2)*2*mu # 43.265e-6
 # A set of macro deformations are stored in txt files. One must define
 # their file names
 
-macro_displacementName = "u_RVE_homogenized"
+macro_displacementName = "tests//micropolar//results//text//u_RVE_homogenized_intermediate_code"
 
-macro_gradDisplacementName = "grad_u_RVE_homogenized"
+macro_gradDisplacementName = "tests//micropolar//results//text//grad_u_RVE_homogenized_intermediate_code"
 
-macro_microrotationName = "phi_RVE_homogenized"
+macro_microrotationName = "tests//micropolar//results//text//phi_RVE_homogenized_intermediate_code"
 
-macro_gradMicrorotationName = "grad_phi_RVE_homogenized"
+macro_gradMicrorotationName = "tests//micropolar//results//text//grad_phi_RVE_homogenized_intermediate_code"
 
 ########################################################################
 #                                 Mesh                                 #
@@ -130,7 +130,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 10
+maximum_loadingSteps = 11
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -264,8 +264,6 @@ bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace,
 boundary_meshFunction, boundary_physicalGroups=
 fixed_supportPhysicalGroups)
 
-print(bc)
-
 ########################################################################
 #                        Constitutive modelling                        #
 ########################################################################
@@ -339,10 +337,10 @@ def Kirchhoff_Stress(u, phi):
 
     # Evaluates the micropolar Kirchhoff stress
 
-    #tau = J*V_bar*diff(psi_total,V_barTransposed)
+    tau = J*V_bar*diff(psi_total,V_barTransposed)
 
-    tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/
-    2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
+    #tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/
+    #2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
 
     # Pulls back to the reference configuration
 
@@ -383,9 +381,9 @@ def Couple_Kirchhoff_Stress(u, phi):
 
     # Evaluates the couple micropolar Kirchhof stress
 
-    #tau = J*V_bar*diff(psi_total,k_curvatureSpatialTransposed)
-    tau = V_bar*((alpha*tr(k_curvatureSpatial)*I)+(beta*
-    k_curvatureSpatial) + (gamma*k_curvatureSpatial.T))
+    tau = J*V_bar*diff(psi_total,k_curvatureSpatialTransposed)
+    #tau = V_bar*((alpha*tr(k_curvatureSpatial)*I)+(beta*
+    #k_curvatureSpatial) + (gamma*k_curvatureSpatial.T))
 
     # Pulls back to the reference configuration
 
@@ -488,13 +486,13 @@ solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
 #                         Files initialization                         #
 ########################################################################
 
-conc_u = File("./ResultsDir/u.pvd")
+conc_u = File("tests//micropolar//results//graphics//u_intermediate_code.pvd")
 
-conc_phi = File("./ResultsDir/phi.pvd")
+conc_phi = File("tests//micropolar//results//graphics//phi_intermediate_code.pvd")
 
-conc_u_RVE = File("./ResultsDir/u_RVE.pvd")
+conc_u_RVE = File("tests//micropolar//results//graphics//u_RVE_intermediate_code.pvd")
 
-conc_phi_RVE = File("./ResultsDir/phi_RVE.pvd")
+conc_phi_RVE = File("tests//micropolar//results//graphics//phi_RVE_intermediate_code.pvd")
 
 ########################################################################
 #                   Solution and pseudotime stepping                   #
@@ -506,7 +504,7 @@ time_counter = 0
 
 # Evaluates the pseudotime step
 
-delta_t = (t_final-t)/(maximum_loadingSteps)
+delta_t = (t_final-t)/(maximum_loadingSteps-1)
 
 # Initializes the lists to save information for the microscale
 
@@ -520,7 +518,7 @@ grad_phi_RVE_homogenized =[]
 
 # Iterates through the pseudotime stepping
 
-while t<t_final:
+while t<(t_final*1.0001):
 
     print("###########################################################"+
     "#############\n#                 Incremental step: "+str(

@@ -246,7 +246,7 @@ def Kirchhoff_Stress(u, phi):
     
     V_bar = F*(R_bar.T)
     J = det(V_bar)
-    """
+    #"""
 
     K_curvature = curvature_tensor(phi)
     k_curvature_spatial = R_bar*K_curvature*R_bar.T
@@ -256,9 +256,9 @@ def Kirchhoff_Stress(u, phi):
 
     psi_total = psi_NH(V_bar_trans.T) + psi_vol(V_bar_trans.T) +  psi_hat(V_bar_trans.T) + psi_k(k_curvature_spatial)
 
-    tau = J*V_bar*diff(psi_total, V_bar_trans)"""
+    tau = J*V_bar*diff(psi_total, V_bar_trans)#"""
 
-    tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
+    #tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
 
     return tau
 
@@ -274,15 +274,15 @@ def Couple_Kirchhoff_Stress(u, phi):
 
     K_curvature = curvature_tensor(phi)
     k_curvature_spatial = R_bar*K_curvature*R_bar.T
+    #"""
+    V_bar = variable(V_bar.T)
+    k_curvature_spatial_trans = variable(k_curvature_spatial.T)
 
-    #V_bar = variable(V_bar.T)
-    #k_curvature_spatial_trans = variable(k_curvature_spatial.T)
+    psi_total = psi_NH(V_bar) + psi_vol(V_bar) +  psi_hat(V_bar) + psi_k(k_curvature_spatial_trans.T)
 
-    #psi_total = psi_NH(V_bar) + psi_vol(V_bar) +  psi_hat(V_bar) + psi_k(k_curvature_spatial_trans.T)
+    tau = J*V_bar*diff(psi_total, k_curvature_spatial_trans)#"""
 
-    #tau = J*V_bar*diff(psi_total, k_curvature_spatial_trans)
-
-    tau = V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*k_curvature_spatial) + (gamma*k_curvature_spatial.T))
+    #tau = V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*k_curvature_spatial) + (gamma*k_curvature_spatial.T))
 
     return tau
 
@@ -304,9 +304,9 @@ invgrad = inv(def_grad(u_new)).T
 stress = Kirchhoff_Stress(u_new,phi_new)
 couple_stress = Couple_Kirchhoff_Stress(u_new,phi_new)
 
-Int_du = inner(stress, grad(vu))*dx 
+Int_du = inner(stress*invgrad, grad(vu))*dx 
 
-Int_dphi = inner(couple_stress, grad(vphi))*dx - inner(stress, W_matrix(vphi))*dx 
+Int_dphi = inner(couple_stress*invgrad, grad(vphi))*dx - inner(stress, W_matrix(vphi))*dx 
 
 l_du = dot(traction_boundary,vu)*ds(5)
 
@@ -323,11 +323,11 @@ solver.parameters['newton_solver']['maximum_iterations'] = 10
 solver.parameters['newton_solver']['linear_solver'] = 'mumps'
 solver.parameters['newton_solver']['absolute_tolerance'] = 1e-10
 
-conc_u = File("tests//micropolar//results//u.pvd")
-conc_phi = File("tests//micropolar//results//phi.pvd")
+conc_u = File("tests//micropolar//results//graphics//u_original.pvd")
+conc_phi = File("tests//micropolar//results//graphics//phi_original.pvd")
 
-conc_u_RVE = File("tests//micropolar//results//u_RVE.pvd")
-conc_phi_RVE = File("tests//micropolar//results//.pvd")
+conc_u_RVE = File("tests//micropolar//results//graphics//u_RVE_original.pvd")
+conc_phi_RVE = File("tests//micropolar//results//graphics//phi_RVE_original.pvd")
 
 u_RVE_homogenized = []
 grad_u_RVE_homogenized = []
@@ -337,7 +337,7 @@ grad_phi_RVE_homogenized =[]
 
 time_counter = 0
 
-while t < Tf:
+while t < (Tf*1.0001):
 
     print("\n-------------------------------------------------------------------------")
     print("-              Incremental step:", time_counter+1, "; current time:", t, "                 -")
@@ -386,10 +386,10 @@ while t < Tf:
     load.t = t
     time_counter += 1
 
-    tools_io.list_toTxt(u_RVE_homogenized, "tests//micropolar//results//u_RVE_homogenized")
-    tools_io.list_toTxt(grad_u_RVE_homogenized, "tests//micropolar//results//grad_u_RVE_homogenized")
-    tools_io.list_toTxt(phi_RVE_homogenized, "tests//micropolar//results//phi_RVE_homogenized")
-    tools_io.list_toTxt(grad_phi_RVE_homogenized, "tests//micropolar//results//grad_phi_RVE_homogenized")
+    tools_io.list_toTxt(u_RVE_homogenized, "tests//micropolar//results//text//u_RVE_homogenized_original")
+    tools_io.list_toTxt(grad_u_RVE_homogenized, "tests//micropolar//results//text//grad_u_RVE_homogenized_original")
+    tools_io.list_toTxt(phi_RVE_homogenized, "tests//micropolar//results//text//phi_RVE_homogenized_original")
+    tools_io.list_toTxt(grad_phi_RVE_homogenized, "tests//micropolar//results//text//grad_phi_RVE_homogenized_original")
 
 print ('Simulation Completed')
 
