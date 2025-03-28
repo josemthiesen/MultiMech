@@ -330,14 +330,25 @@ def Kirchhoff_Stress(u, phi):
 
     V_barTransposed = variable(V_bar.T)
 
+    V_barVariable = variable(V_bar)
+
     # Evaluates the total energy density
 
-    psi_total = (psi_NH(V_barTransposed.T)+psi_vol(V_barTransposed.T)+
-    psi_hat(V_barTransposed.T)+psi_k(k_curvatureSpatial))
+    #psi_total = (psi_NH(V_barTransposed.T)+psi_vol(V_barTransposed.T)+
+    #psi_hat(V_barTransposed.T)+psi_k(k_curvatureSpatial))
 
     # Evaluates the micropolar Kirchhoff stress
 
-    tau = J*V_bar*diff(psi_total,V_barTransposed)
+    #tau = J*V_bar*diff(psi_total,V_barTransposed)
+
+    psi_total = (psi_NH(V_barVariable)+psi_vol(V_barVariable)+
+    psi_hat(V_barVariable)+psi_k(k_curvatureSpatial))
+
+    # Evaluates the micropolar Kirchhoff stress
+
+    derivative_psi = diff(psi_total,V_barVariable)
+
+    tau = J*V_bar*(derivative_psi.T)
 
     #tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/
     #2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
@@ -374,14 +385,23 @@ def Couple_Kirchhoff_Stress(u, phi):
     
     k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
 
+    k_curvatureSpatialVariable = variable(k_curvatureSpatial)
+
     # Evaluates the total energy density
 
+    #psi_total = (psi_NH(V_bar)+psi_vol(V_bar)+psi_hat(V_bar)+psi_k(
+    #k_curvatureSpatialTransposed.T))
+
+    #tau = J*V_bar*diff(psi_total,k_curvatureSpatialTransposed)
+
     psi_total = (psi_NH(V_bar)+psi_vol(V_bar)+psi_hat(V_bar)+psi_k(
-    k_curvatureSpatialTransposed.T))
+    k_curvatureSpatialVariable))
 
     # Evaluates the couple micropolar Kirchhof stress
 
-    tau = J*V_bar*diff(psi_total,k_curvatureSpatialTransposed)
+    derivative_psi = diff(psi_total, k_curvatureSpatialVariable)
+
+    tau = J*V_bar*(derivative_psi.T)
     #tau = V_bar*((alpha*tr(k_curvatureSpatial)*I)+(beta*
     #k_curvatureSpatial) + (gamma*k_curvatureSpatial.T))
 
