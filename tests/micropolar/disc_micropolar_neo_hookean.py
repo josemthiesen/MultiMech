@@ -92,8 +92,8 @@ constitutive_model = dict()
 constitutive_model[tuple([1,2,3])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
 material_properties)
 
-constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
-material_properties)
+#constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+#material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
