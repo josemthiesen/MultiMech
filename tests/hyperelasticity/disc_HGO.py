@@ -216,7 +216,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 15
+maximum_loadingSteps = 10
 
 ########################################################################
 #                          Boundary conditions                         #

@@ -148,14 +148,10 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
     #                 Solution and pseudotime stepping                 #
     ####################################################################
 
-    # Evaluates the pseudotime step
-
-    delta_t = (t_final-t)/maximum_loadingSteps
-
     # Iterates through the pseudotime stepping algortihm 
 
     newton_raphson_tools.newton_raphsonMultipleFields(t, t_final, 
-    delta_t, maximum_loadingSteps, solver, solution_new, mixed_element, 
+    maximum_loadingSteps, solver, solution_new, mixed_element, 
     domain_meshCollection, constitutive_model, dx, post_processesList=
     post_processes, post_processesSubmeshList=post_processesSubmesh, 
     dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 

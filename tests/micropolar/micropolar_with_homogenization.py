@@ -130,7 +130,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 11
+maximum_loadingSteps = 10
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -339,7 +339,7 @@ def Kirchhoff_Stress(u, phi):
 
     # Evaluates the micropolar Kirchhoff stress
 
-    #tau = V_bar*diff(psi_total,V_barTransposed)
+    #tau = J*V_bar*diff(psi_total,V_barTransposed)
 
     tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/
     2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
@@ -383,7 +383,7 @@ def Couple_Kirchhoff_Stress(u, phi):
 
     # Evaluates the couple micropolar Kirchhof stress
 
-    #tau = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
+    #tau = J*V_bar*diff(psi_total,k_curvatureSpatialTransposed)
     tau = V_bar*((alpha*tr(k_curvatureSpatial)*I)+(beta*
     k_curvatureSpatial) + (gamma*k_curvatureSpatial.T))
 
@@ -506,7 +506,7 @@ time_counter = 0
 
 # Evaluates the pseudotime step
 
-delta_t = (t_final-t)/(maximum_loadingSteps-1)
+delta_t = (t_final-t)/(maximum_loadingSteps)
 
 # Initializes the lists to save information for the microscale
 

@@ -15,11 +15,15 @@ import source.tool_box.post_processing_tools as post_processing_tools
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of a single field
 
-def newton_raphsonSingleField(t, t_final, delta_t, maximum_loadingSteps,
-solver, solution_field, domain_meshCollection, constitutive_model, dx,
+def newton_raphsonSingleField(t, t_final, maximum_loadingSteps, solver, 
+solution_field, domain_meshCollection, constitutive_model, dx,
 post_processesDict=dict(), post_processesSubmeshDict=dict(), 
 dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
 solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
+
+    # Evaluates the pseudotime step
+
+    delta_t = (t_final-t)/(maximum_loadingSteps-1)
 
     # Transforms the dictionary of post-processing methods instructions
     # into a live-wire dictionary with the proper methods and needed in-
@@ -97,7 +101,7 @@ solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
 
     # Iterates through the pseudotime stepping
 
-    while t<t_final:
+    while t<(t_final*1.0001):
 
         # Prints step information
 
@@ -178,12 +182,15 @@ solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of multiple fields
 
-def newton_raphsonMultipleFields(t, t_final, delta_t, 
-maximum_loadingSteps, solver, solution_field, mixed_element, 
-domain_meshCollection, constitutive_model, dx, post_processesList=[], 
-post_processesSubmeshList=[], dirichlet_loads=[], neumann_loads=[], 
-solver_parameters=dict(), solution_name=[["solution", "DNS"]], 
-volume_physGroupsSubmesh=[]):
+def newton_raphsonMultipleFields(t, t_final, maximum_loadingSteps, 
+solver, solution_field, mixed_element, domain_meshCollection, 
+constitutive_model, dx, post_processesList=[], post_processesSubmeshList
+=[], dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
+solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
+
+    # Evaluates the pseudotime step
+
+    delta_t = (t_final-t)/(maximum_loadingSteps-1)
     
     # Gets the number of fields in the mixed element
 
@@ -289,7 +296,7 @@ volume_physGroupsSubmesh=[]):
 
     # Iterates through the pseudotime stepping
 
-    while t<t_final:
+    while t<(t_final*1.0001):
 
         # Prints step information
 

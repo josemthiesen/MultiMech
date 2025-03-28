@@ -26,14 +26,15 @@ import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
 # Defines the path to the results directory 
 
-results_path = os.getcwd()+"//tests//hyperelasticity//results"
+results_path = os.getcwd()+"//tests//micropolar//results"
 
-displacement_fileName = "displacement.xdmf"
+displacement_fileName = ["displacement.xdmf", "microrotation.xdmf"]
 
-homogenized_displacementFileName = "homogenized_displacement.txt"
+homogenized_displacementFileName = ["homogenized_displacement.txt", "h"+
+"omogenized_microrotation.txt"]
 
-homogenized_gradDisplacementFileName = ("homogenized_displacement_grad"+
-"ient.txt")
+homogenized_gradDisplacementFileName = ["homogenized_displacement_grad"+
+"ient.txt", "homogenized_microrotation_grad.txt"]
 
 post_processes = []
 
@@ -44,18 +45,18 @@ for i in range(2):
     post_processes.append(dict())
 
     post_processes[-1]["save field"] = {"directory path":results_path, 
-    "file name":displacement_fileName}
+    "file name":displacement_fileName[i]}
 
     # Put "" in the subdomain to integrate over the entire domain
 
     post_processes[-1]["homogenize field"] = {"directory path":
-    results_path, "file name":homogenized_displacementFileName, 
+    results_path, "file name":homogenized_displacementFileName[i], 
     "subdomain":""}
 
     # Put "" in the subdomain to integrate over the entire domain
 
     post_processes[-1]["homogenize field's gradient"] = {"directory path":
-    results_path, "file name":homogenized_gradDisplacementFileName, 
+    results_path, "file name":homogenized_gradDisplacementFileName[i], 
     "subdomain":""}
 
 post_processesSubmesh = []
@@ -156,7 +157,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 10
+maximum_loadingSteps = 11
 
 ########################################################################
 #                          Boundary conditions                         #

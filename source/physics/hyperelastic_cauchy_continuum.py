@@ -99,13 +99,9 @@ post_processesSubmesh=dict()):
     #                 Solution and pseudotime stepping                 #
     ####################################################################
 
-    # Evaluates the pseudotime step
-
-    delta_t = (t_final-t)/(maximum_loadingSteps-1)
-
     # Iterates through the pseudotime stepping algortihm 
 
-    newton_raphson_tools.newton_raphsonSingleField(t, t_final, delta_t, 
+    newton_raphson_tools.newton_raphsonSingleField(t, t_final, 
     maximum_loadingSteps, solver, u_new, domain_meshCollection, 
     constitutive_model, dx, post_processesDict=post_processes, 
     post_processesSubmeshDict=post_processesSubmesh, neumann_loads=
