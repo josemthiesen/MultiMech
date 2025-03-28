@@ -4,7 +4,7 @@ from dolfin import *
 
 import os
 
-from mpi4py import MPI
+#from mpi4py import MPI
 
 from mshr import *
 
@@ -126,13 +126,15 @@ parameters["form_compiler"]["quadrature_degree"] = 2
 
 solver_parameters = dict()
 
-solver_parameters["linear_solver"] = "minres"
+solver_parameters["linear_solver"] = "mumps"#"minres"
 
-solver_parameters["newton_relative_tolerance"] = 1e-3
+solver_parameters["newton_relative_tolerance"] = 1e-10#1e-3
 
-solver_parameters["newton_absolute_tolerance"] = 1e-3
+solver_parameters["newton_absolute_tolerance"] = 1e-10#1e-3
 
-solver_parameters["newton_maximum_iterations"] = 50
+solver_parameters["newton_maximum_iterations"] = 10#50
+
+"""
 
 solver_parameters["preconditioner"] = "petsc_amg"
 
@@ -142,7 +144,7 @@ solver_parameters["krylov_relative_tolerance"] = 1e-6
 
 solver_parameters["krylov_maximum_iterations"] = 15000
 
-solver_parameters["krylov_monitor_convergence"] = False
+solver_parameters["krylov_monitor_convergence"] = False"""
 
 # Sets the initial time
 
@@ -154,7 +156,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 15
+maximum_loadingSteps = 10
 
 ########################################################################
 #                          Boundary conditions                         #

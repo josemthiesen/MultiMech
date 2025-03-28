@@ -142,6 +142,27 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         P_couple = constitutive_tools.P_fromCauchy(sigma_couple, u)
 
         return P, P_couple
+
+    # Defines a function to evaluate the Kirchhoff stress and its couple 
+    # from the Cauchy stress
+
+    def kirchhoff_stress(self, fields_list):
+
+        # Retrieves the fields
+
+        u, phi = fields_list
+
+        # Evaluates the Cauchy stress and the couple stress
+
+        sigma, sigma_couple = self.cauchy_stress(fields_list)
+
+        # Multiplies by the jacobian to get the Kirchhoff stresses
+
+        tau = constitutive_tools.tau_fromCauchy(sigma, u)
+
+        tau_couple = constitutive_tools.tau_fromCauchy(sigma_couple, u)
+
+        return tau, tau_couple
     
     # Defines a function to evaluate the Cauchy stress tensor using the 
     # derivative of the Helmholtz potential with respect to the V_bar 

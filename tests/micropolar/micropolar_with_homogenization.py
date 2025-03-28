@@ -48,9 +48,11 @@ i, j, k, l = ufl.indices(4)
 
 mu_materials = dict()
 
-mu_materials[3] = 26.12
+mu_materials[1] = 26.12
 
-mu_materials[4] = 26.12
+mu_materials[2] = 26.12
+
+mu_materials[3] = 26.12
 
 # Defines some micropolar constitutive parameters
 
@@ -83,15 +85,11 @@ macro_gradMicrorotationName = "grad_phi_RVE_homogenized"
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-file_name = "test_meshes//macro_mesh"
-
-# Defines a flag to generate a new mesh or not
-
-flag_newMesh = False
+file_name = "tests//test_meshes//intervertebral_disc"
 
 # Defines the physical groups that belongs to the RVE
 
-volume_physGroupsRVE = [3, 4]
+volume_physGroupsRVE = [1]
 
 ########################################################################
 #                            Function space                            #
@@ -100,10 +98,6 @@ volume_physGroupsRVE = [3, 4]
 # Defines the shape functions degree
 
 polynomial_degree = 1
-
-# Sets the number of fields per element
-
-n_fields = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -118,23 +112,13 @@ parameters["form_compiler"]["quadrature_degree"] = 2
 
 # Sets the solver parameters
 
-linear_solver = "minres"
+linear_solver = "mumps"
 
-relative_tolerance = 1e-2
+relative_tolerance = 1e-10
 
-absolute_tolerance = 1e-2
+absolute_tolerance = 1e-10
 
-maximum_iterations = 50
-
-preconditioner = "petsc_amg"
-
-krylov_absoluteTolerance = 1e-6
-
-krylov_relativeTolerance = 1e-6
-
-krylov_maximumIterations = 15000
-
-krylov_monitorConvergence = False
+maximum_iterations = 10
 
 # Sets the initial time
 
@@ -154,24 +138,24 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 2.0
+maximum_load = 4E1
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
 
-traction_boundary = as_vector([load, 0.0, 0.0])
+traction_boundary = as_vector([0.0, 0.0, load])
 
 # Defines a dictionary of tractions
 
 traction_dictionary = dict()
 
-traction_dictionary[9] = traction_boundary
+traction_dictionary[5] = traction_boundary
 
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags
 # or simply a tag
 
-fixed_supportPhysicalGroups = 5
+fixed_supportPhysicalGroups = 4
 
 ########################################################################
 ########################################################################
@@ -186,7 +170,7 @@ fixed_supportPhysicalGroups = 5
 # Reads the mesh and constructs some fenics objects using the xdmf file
 
 (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_xdmfMesh(
+boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_mshMesh(
 file_name)
 
 ########################################################################
@@ -213,10 +197,10 @@ monolithic_functionSpace = FunctionSpace(mesh, micropolar_mixedElement)
 # Creates the RVE submesh and automatically constructs the function spa-
 # ces and the DOFs mapping between meshes
 
-(RVE_submesh, domain_meshFunction, UV_submesh, RVE_meshMapping, 
-parent_meshMapping, sol_RVE, RVE_toParentCellMap) = mesh_tools.create_submesh(
-mesh, domain_meshCollection, volume_physGroupsRVE, 
-monolithic_functionSpace, mixed_element=micropolar_mixedElement)
+(RVE_submesh, altered_domainMeshFunction, UV_submesh, RVE_meshMapping, 
+parent_meshMapping, sol_RVE, RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
+domain_meshCollection, volume_physGroupsRVE, 
+monolithic_functionSpace)
 
 ########################################################################
 #                          Micropolar tensors                          #
@@ -277,7 +261,10 @@ lmbda = 63.84-(2*mu/3)
 # Defines the boundary conditions
 
 bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace,
-boundary_meshFunction, fixed_supportPhysicalGroups, n_fields=n_fields)
+boundary_meshFunction, boundary_physicalGroups=
+fixed_supportPhysicalGroups)
+
+print(bc)
 
 ########################################################################
 #                        Constitutive modelling                        #
@@ -352,14 +339,14 @@ def Kirchhoff_Stress(u, phi):
 
     # Evaluates the micropolar Kirchhoff stress
 
-    tau = V_bar*diff(psi_total,V_barTransposed)
+    #tau = V_bar*diff(psi_total,V_barTransposed)
 
-    #tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/
-    #2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
+    tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/
+    2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
 
     # Pulls back to the reference configuration
 
-    return J*tau*inv(def_grad(u)).T
+    return tau
 
 # Definition of the Kirchhoff couple stress 
 
@@ -396,13 +383,13 @@ def Couple_Kirchhoff_Stress(u, phi):
 
     # Evaluates the couple micropolar Kirchhof stress
 
-    tau = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
-    #tau = V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*
-    #k_curvature_spatial) + (gamma*k_curvature_spatial.T))
+    #tau = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
+    tau = V_bar*((alpha*tr(k_curvatureSpatial)*I)+(beta*
+    k_curvatureSpatial) + (gamma*k_curvatureSpatial.T))
 
     # Pulls back to the reference configuration
 
-    return J*tau*inv(def_grad(u)).T
+    return tau
 
 # Definition of the deformation gradient
 
@@ -441,9 +428,11 @@ couple_stress = Couple_Kirchhoff_Stress(u_new,phi_new)
 
 # Constructs the variational forms for the inner work
 
-Int_du = inner(stress, grad(vu))*dx 
+piola_transformation = inv(def_grad(u_new)).T
 
-Int_dphi = (inner(couple_stress, grad(vphi))*dx)-(inner(stress, 
+Int_du = inner(stress*piola_transformation, grad(vu))*dx 
+
+Int_dphi = (inner(couple_stress*piola_transformation, grad(vphi))*dx)-(inner(stress, 
 tensor_tools.skew_2OrderTensor(vphi))*dx) 
 
 # Constructs the variational forms for the traction work
@@ -478,6 +467,8 @@ absolute_tolerance)
 solver.parameters["newton_solver"]["maximum_iterations"] = (
 maximum_iterations)
 
+"""
+
 solver.parameters["newton_solver"]["preconditioner"] = (
 preconditioner)
 
@@ -491,7 +482,7 @@ solver.parameters['newton_solver']['krylov_solver']['maximum_itera'+
 'tions'] = krylov_maximumIterations
 
 solver.parameters['newton_solver']['krylov_solver']['monitor_conve'+
-'rgence'] = krylov_monitorConvergence
+'rgence'] = krylov_monitorConvergence"""
 
 ########################################################################
 #                         Files initialization                         #
@@ -515,7 +506,7 @@ time_counter = 0
 
 # Evaluates the pseudotime step
 
-delta_t = (t_final-t)/maximum_loadingSteps
+delta_t = (t_final-t)/(maximum_loadingSteps-1)
 
 # Initializes the lists to save information for the microscale
 

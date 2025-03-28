@@ -270,7 +270,7 @@ parent_functionSpace):
 
         # Iterates through the number of fields
 
-        for i in range(shape_function.ufl_element().num_sub_elements()):
+        for i in range(parent_functionSpace.ufl_element().num_sub_elements()):
 
             # Adds the submesh mapping and the parent mesh mapping
 

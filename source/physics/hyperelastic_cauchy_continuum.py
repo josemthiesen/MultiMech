@@ -101,7 +101,7 @@ post_processesSubmesh=dict()):
 
     # Evaluates the pseudotime step
 
-    delta_t = (t_final-t)/maximum_loadingSteps
+    delta_t = (t_final-t)/(maximum_loadingSteps-1)
 
     # Iterates through the pseudotime stepping algortihm 
 

@@ -115,6 +115,9 @@ constitutive_modelDictionary, dx):
             first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
             [displacement_trialFunction, microrotation_trialFunction])
 
+            kirchhoff, couple_kirchhoff = constitutive_model.kirchhoff_stress(
+            [displacement_trialFunction, microrotation_trialFunction])
+
             # Constructs the variational forms for the inner work of the
             # first Piola-Kirchhoff stress
 
@@ -125,7 +128,7 @@ constitutive_modelDictionary, dx):
 
             inner_work += ((inner(couple_firstPiola, grad(
             microrotation_testFunction))*dx(physical_group))-(inner(
-            first_piola, tensor_tools.skew_2OrderTensor(
+            kirchhoff, tensor_tools.skew_2OrderTensor(
             microrotation_testFunction))*dx(physical_group)))
 
     # If the constitutive model is not a dictionary, the domain is homo-
@@ -139,6 +142,9 @@ constitutive_modelDictionary, dx):
         first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
         [displacement_trialFunction, microrotation_trialFunction])
 
+        kirchhoff, couple_kirchhoff = constitutive_model.kirchhoff_stress(
+        [displacement_trialFunction, microrotation_trialFunction])
+
         # Constructs the variational forms for the inner work of the
         # first Piola-Kirchhoff stress
 
@@ -148,7 +154,7 @@ constitutive_modelDictionary, dx):
         # Adds the parcel of the couple stress
 
         inner_work += ((inner(couple_firstPiola, grad(
-        microrotation_testFunction))*dx)-(inner(first_piola, 
+        microrotation_testFunction))*dx)-(inner(kirchhoff, 
         tensor_tools.skew_2OrderTensor(microrotation_testFunction))*dx))
 
     # Returns the inner work variational form

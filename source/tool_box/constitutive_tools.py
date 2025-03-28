@@ -110,6 +110,27 @@ def P_fromCauchy(sigma, u):
 
     return P
 
+# Defines a function to transform the Cauchy stress to the Kirchhoff 
+# stress tensor
+
+def tau_fromCauchy(sigma, u):
+
+    # Evaluates the deformation gradient
+
+    I = Identity(3)
+
+    F = grad(u)+I
+
+    # Evaluates the determinant of the deformation gradient
+
+    J = ufl.det(F)
+
+    # Uses the Piola transformation
+
+    tau = J*sigma
+
+    return tau
+
 # Defines a function to transform the first Piola-Kirchhoff stress from
 # the second one
 

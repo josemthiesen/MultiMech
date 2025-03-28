@@ -33,14 +33,18 @@ def physical_groupToDGSpace(physical_dictionary, mesh, mesh_function):
         # Iterates through the keys (physical groups numerical tags) and
         # the values of the physical dictionary
 
-        for key, value in physical_dictionary.items():
+        #flag_test = True
 
-            # If the key matches the physical group tag, the value is a-
-            # located into the function space
+        try:
 
-            if key==physical_groupTag:
+            DG_function.vector()[cell.index()] = physical_dictionary[
+            physical_groupTag]
+            
+        except:
 
-                DG_function.vector()[cell.index()] = value
+            raise ValueError("The dictionary of properties "+str(
+            physical_dictionary)+" does not contain the physical group"+
+            " tag "+str(physical_groupTag))
             
     # Returns the function
 
