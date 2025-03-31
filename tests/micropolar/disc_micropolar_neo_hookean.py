@@ -1,14 +1,18 @@
 # Routine to test a hyperelastic disc
 
-from dolfin import *
-
 import os
+
+import sys
+
+#sys.path.append(os.path.abspath("source/physics"))
+
+#sys.path.append(os.path.abspath("source/constitutive_models"))
+
+from dolfin import *
 
 #from mpi4py import MPI
 
 from mshr import *
-
-#import periodic_structure as mesher
 
 import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 

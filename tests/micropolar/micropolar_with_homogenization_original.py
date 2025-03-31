@@ -258,7 +258,11 @@ def Kirchhoff_Stress(u, phi):
 
     tau = J*V_bar*diff(psi_total, V_bar_trans)#"""
 
-    #tau = ((lmbda/2)*((J*J)-1)*I) + (mu*((V_bar*V_bar.T)-I)) + ((kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar)))
+    # The Eq. 58 and 59 are wrong in Bauer et al: the right-hand side are
+    # the Cauchy stress tensors, not the Kirchhoff stresses. For this reason,
+    # the expression below was multiplied by J
+
+    #tau = ((lmbda/2)*J*((J*J)-1)*I) + (mu*J*((V_bar*V_bar.T)-I)) + ((kappa/2)*J*((V_bar*V_bar.T)-(V_bar*V_bar)))
 
     return tau
 
@@ -282,7 +286,11 @@ def Couple_Kirchhoff_Stress(u, phi):
 
     tau = J*V_bar*diff(psi_total, k_curvature_spatial_trans)#"""
 
-    #tau = V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*k_curvature_spatial) + (gamma*k_curvature_spatial.T))
+    # The Eq. 58 and 59 are wrong in Bauer et al: the right-hand side are
+    # the Cauchy stress tensors, not the Kirchhoff stresses. For this reason,
+    # the expression below was multiplied by J
+
+    #tau = J*V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*k_curvature_spatial) + (gamma*k_curvature_spatial.T))
 
     return tau
 

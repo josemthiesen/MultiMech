@@ -88,8 +88,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         psi_NH = 0.5*self.mu*(I1-3.0)
 
-        psi_vol = ((0.25*self.lmbda*((J**2)-1))-(0.5*self.lmbda*ln(J))-
-        self.mu*ln(J))
+        #psi_vol = ((0.25*self.lmbda*((J**2)-1))+(0.5*self.lmbda*(ln(J)**2
+        #))-self.mu*ln(J))
+
+        psi_vol = ((0.25*self.lmbda*((J**2)-1))-(0.5*self.lmbda*(ln(J)))
+        -self.mu*ln(J))
 
         psi_hat = 0.25*self.kappa*(I1-I2)
 
