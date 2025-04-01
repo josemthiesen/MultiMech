@@ -83,7 +83,7 @@ beam_sectionWidth = 5E-3
 
 characteristic_length = beam_sectionWidth*(1.5E-1)
 
-kappa = -0.0*mu
+kappa = -(0.15)*0.0*mu
 
 # Evaluates gamma
 
@@ -130,7 +130,9 @@ volume_physGroupsSubmesh = []
 
 # Defines the shape functions degree
 
-polynomial_degree = 2
+polynomial_degreeDisplacement = 2
+
+polynomial_degreeMicrorotation = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -149,9 +151,9 @@ solver_parameters = dict()
 
 solver_parameters["linear_solver"] = "mumps"#"minres"
 
-solver_parameters["newton_relative_tolerance"] = 1e-10#1e-3
+solver_parameters["newton_relative_tolerance"] = 1e-8#1e-3
 
-solver_parameters["newton_absolute_tolerance"] = 1e-10#1e-3
+solver_parameters["newton_absolute_tolerance"] = 1e-8#1e-3
 
 solver_parameters["newton_maximum_iterations"] = 10#50
 
@@ -185,7 +187,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 4E-1
+maximum_load = 4E-2
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -231,8 +233,10 @@ fixed_supportMicrorotationPhysicalGroups = 2
 variational_framework.hyperelasticity_displacementMicrorotationBased(
 constitutive_model, traction_dictionary, moment_dictionary, 
 maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
-solver_parameters, neumann_loads=neumann_loads, polynomial_degree=
-polynomial_degree, t=t, fixed_supportDisplacementPhysicalGroups=
+solver_parameters, neumann_loads=neumann_loads, 
+polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
+polynomial_degreeMicrorotation=polynomial_degreeMicrorotation,
+t=t, fixed_supportDisplacementPhysicalGroups=
 fixed_supportDisplacementPhysicalGroups, solution_name=[["displacement",
 "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
 volume_physGroupsSubmesh, fixed_supportMicrorotationPhysicalGroups=

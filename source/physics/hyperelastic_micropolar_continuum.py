@@ -16,7 +16,8 @@ import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
 def hyperelasticity_displacementMicrorotationBased(constitutive_model, 
 traction_dictionary, moment_dictionary, maximum_loadingSteps, t_final, 
-post_processes, mesh_fileName, solver_parameters, polynomial_degree=2, 
+post_processes, mesh_fileName, solver_parameters, 
+polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, 
 t=0.0, fixed_supportDisplacementPhysicalGroups=0, neumann_loads=[], 
 dirichlet_loads=[], fixed_supportMicrorotationPhysicalGroups=0, 
 solution_name=[], simple_supportDisplacementPhysicalGroups=dict(), 
@@ -42,10 +43,10 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
     # fields
 
     displacement_element = VectorElement("CG", mesh.ufl_cell(), 
-    polynomial_degree)
+    polynomial_degreeDisplacement)
 
     microrotation_element = VectorElement("CG", mesh.ufl_cell(), 
-    polynomial_degree)
+    polynomial_degreeMicrorotation)
 
     mixed_element = MixedElement([displacement_element, 
     microrotation_element])
