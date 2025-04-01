@@ -17,7 +17,7 @@ import source.tool_box.tensor_tools as tensor_tools
 # using the first Piola-Kirchhoff stress tensor
 
 def hyperelastic_internalWorkFirstPiola(trial_function, test_function, 
-constitutive_modelDictionary, dx):
+constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
     
     # Gets the physical groups from the domain mesh function
 
@@ -40,7 +40,9 @@ constitutive_modelDictionary, dx):
             # Verifies physical group consistency, i.e. if it exists and
             # if it is an integer or a tuple of integers
 
-            verify_physicalGroups(physical_group, physical_groupsList)
+            physical_group = verify_physicalGroups(physical_group, 
+            physical_groupsList, physical_groupsNamesToTags=
+            domain_physGroupsNamesToTags)
 
             # Initializes objects for the stresses at the reference 
             # configuration
@@ -84,7 +86,7 @@ constitutive_modelDictionary, dx):
 def hyperelastic_micropolarInternalWorkFirstPiola(
 displacement_trialFunction, microrotation_trialFunction, 
 displacement_testFunction, microrotation_testFunction,
-constitutive_modelDictionary, dx):
+constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
     
     # Gets the physical groups from the domain mesh function
 
@@ -107,7 +109,13 @@ constitutive_modelDictionary, dx):
             # Verifies physical group consistency, i.e. if it exists and
             # if it is an integer or a tuple of integers
 
-            verify_physicalGroups(physical_group, physical_groupsList)
+            print(physical_group)
+
+            physical_group = verify_physicalGroups(physical_group, 
+            physical_groupsList, physical_groupsNamesToTags=
+            domain_physGroupsNamesToTags)
+
+            print(physical_group)
 
             # Initializes objects for the stresses at the reference 
             # configuration
@@ -170,7 +178,8 @@ constitutive_modelDictionary, dx):
 # nary of traction loads, where the keys are the corresponding boundary
 # physical groups and the values are the traction loads
 
-def traction_work(traction_dictionary, field_variation, ds):
+def traction_work(traction_dictionary, field_variation, ds, 
+boundary_physGroupsNamesToTags=dict()):
 
     # Gets the physical groups tags
 
@@ -185,14 +194,10 @@ def traction_work(traction_dictionary, field_variation, ds):
     for physical_group, traction in traction_dictionary.items():
 
         # Verifies if this physical group is indeed in ds
-
-        if not (physical_group in physical_groupsTags):
-
-            raise NameError("The boundary physical group with tag "+str(
-            physical_group)+" was attempted to construct the variation"+
-            "al form of the traction work, but it does not exist insid"+
-            "e the ds object. Probably the mesh does not have this bou"+
-            "ndary physical group")
+        
+        physical_group = verify_physicalGroups(physical_group, 
+        physical_groupsTags, physical_groupsNamesToTags=
+        boundary_physGroupsNamesToTags)
 
         traction_form += dot(traction, field_variation)*ds(
         physical_group)
@@ -208,12 +213,30 @@ def traction_work(traction_dictionary, field_variation, ds):
 # Defines a function to verify if a physical group is consistent and if
 # it is the whole list of existing physical groups
 
-def verify_physicalGroups(physical_group, physical_groupsList):
+def verify_physicalGroups(physical_group, physical_groupsList, 
+physical_groupsNamesToTags=dict()):
+            
+    # If the key of the dictionary is a string, it is the physical
+    # group's name. Hence, converts it to its corresponding number tag
+    
+    if isinstance(physical_group, str):
+
+        try:
+
+            physical_group = physical_groupsNamesToTags[physical_group]
+
+        except:
+
+            raise KeyError("The physical group name '"+physical_group+
+            "' was used in a variational form, but it does not exist i"+
+            "n the dictionary of physical groups' names to tags. This "+
+            "dictionary has the following keys and values: "+str(
+            physical_groupsNamesToTags))
 
     # Tuples can be used as physical groups to integrate over multiple 
     # physical groups simultaneously
 
-    if (not isinstance(physical_group, int)) and (not isinstance(
+    elif (not isinstance(physical_group, int)) and (not isinstance(
     physical_group, tuple)):
         
         raise ValueError("The physical group as key of the constitutiv"+
@@ -224,9 +247,31 @@ def verify_physicalGroups(physical_group, physical_groupsList):
     
     elif isinstance(physical_group, tuple):
 
+        # Initializes a new physical group tuple
+
+        physical_tuple = []
+
         # Iterates through the physical groups in the tuple
 
         for group in physical_group:
+
+            # If the key of the dictionary is a string, it is the physi-
+            # cal group's name. Hence, converts it to its corresponding 
+            # number tag
+            
+            if isinstance(group, str):
+
+                try:
+
+                    group = physical_groupsNamesToTags[group]
+
+                except:
+
+                    raise KeyError("The physical group name '"+group+
+                    "' was used in a variational form, but it does not"+
+                    " exist in the dictionary of physical groups' name"+
+                    "s to tags. This dictionary has the following keys"+
+                    " and values: "+str(physical_groupsNamesToTags))
 
             if not (group in physical_groupsList):
 
@@ -236,6 +281,12 @@ def verify_physicalGroups(physical_group, physical_groupsList):
                 "of the valid physical groups:\n"+str(
                 physical_groupsList))
             
+            physical_tuple.append(group)
+
+        # Converts the physical group to the tuple
+
+        physical_group = tuple(physical_tuple)
+            
     else:
 
         if not (physical_group in physical_groupsList):
@@ -244,6 +295,8 @@ def verify_physicalGroups(physical_group, physical_groupsList):
             )+" was used to build the hyperelastic internal work, but "+
             "it is not a valid physical group. Here is the list of the"+
             " valid physical groups:\n"+str(physical_groupsList))
+        
+    return physical_group
 
 # Defines a function to project a field over a region of the domain
 

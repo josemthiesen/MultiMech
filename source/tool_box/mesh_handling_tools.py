@@ -25,9 +25,9 @@ data_sets=["domain", "boundary"]):
 
     # Recovers the physical groups
 
-    domain_physicalGroups = dict()
+    domain_physicalGroupsNameToTag = dict()
 
-    boundary_physicalGroups = dict()
+    boundary_physicalGroupsNameToTag = dict()
 
     # Gets the physical group through the field data
 
@@ -41,14 +41,15 @@ data_sets=["domain", "boundary"]):
 
         if tag_dimensionality[1]==2:
 
-            boundary_physicalGroups[physical_group] = tag_dimensionality[
+            boundary_physicalGroupsNameToTag[physical_group] = tag_dimensionality[
             0]
 
         # If the dimensionality is 3, gets the domain
 
         elif tag_dimensionality[1]==3:
 
-            domain_physicalGroups[physical_group] = tag_dimensionality[0]
+            domain_physicalGroupsNameToTag[physical_group] = tag_dimensionality[
+            0]
 
     print("###########################################################"+
     "#############\n#                        Mesh - physical groups   "+
@@ -58,14 +59,14 @@ data_sets=["domain", "boundary"]):
     print("Finds the following domain physical groups with their respe"+
     "ctive tags:")
 
-    for physical_group, tag in domain_physicalGroups.items():
+    for physical_group, tag in domain_physicalGroupsNameToTag.items():
 
         print(physical_group, ": ", tag)
 
     print("\nFinds the following boundary physical groups with their r"+
     "espective tags:")
 
-    for physical_group, tag in boundary_physicalGroups.items():
+    for physical_group, tag in boundary_physicalGroupsNameToTag.items():
 
         print(physical_group, ": ", tag)
 
@@ -112,11 +113,22 @@ data_sets=["domain", "boundary"]):
 
     # Then, calls the xdmf reader and returns its output
 
-    return read_xdmfMesh(file_name)
+    return read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=
+    domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag=
+    boundary_physicalGroupsNameToTag)
 
 # Defines a function to read a mesh from a xdmf file
 
-def read_xdmfMesh(file_name):
+def read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=dict(), 
+boundary_physicalGroupsNameToTag=dict()):
+    
+    if len(domain_physicalGroupsNameToTag.keys())==0 or (len(
+    boundary_physicalGroupsNameToTag.keys())==0):
+        
+        print("WARNING: the dictionaries of physical groups' names to "+
+        "tags are empty, thus, it won't be possible to use the names i"+
+        "n the variational forms. Use a .msh mesh file directly instea"+
+        "d.")
 
     # Verifies whether there is an extension in the file name
 
@@ -180,7 +192,8 @@ def read_xdmfMesh(file_name):
     # Returns these objects
 
     return (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction)
+    boundary_meshCollection, boundary_meshFunction, 
+    domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag)
 
 ########################################################################
 #                              Submeshing                              #

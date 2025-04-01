@@ -107,8 +107,11 @@ material_properties["gamma"] = gamma
 
 constitutive_model = dict()
 
-constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+constitutive_model["Generic volume"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
 material_properties)
+
+#constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+#material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -132,7 +135,7 @@ volume_physGroupsSubmesh = []
 
 polynomial_degreeDisplacement = 2
 
-polynomial_degreeMicrorotation = 2
+polynomial_degreeMicrorotation = 1
 
 ########################################################################
 #                           Solver parameters                          #
@@ -204,7 +207,7 @@ traction_boundary = as_vector([load, 0.0, 0.0])
 
 traction_dictionary = dict()
 
-traction_dictionary[4] = traction_boundary
+traction_dictionary["lower"] = traction_boundary
 
 # Defines a dictionary of moments on the boundary
 
@@ -212,15 +215,15 @@ moment_boundary = as_vector([0.0, 0.0, 0.0])
 
 moment_dictionary = dict()
 
-moment_dictionary[4] = moment_boundary
+moment_dictionary["lower"] = moment_boundary
 
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags
 # or simply a tag. Applies for both displacement and microrotation
 
-fixed_supportDisplacementPhysicalGroups = 2
+fixed_supportDisplacementPhysicalGroups = "back"
 
-fixed_supportMicrorotationPhysicalGroups = 2
+fixed_supportMicrorotationPhysicalGroups = "back"
 
 ########################################################################
 ########################################################################

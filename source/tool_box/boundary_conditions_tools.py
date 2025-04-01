@@ -17,7 +17,7 @@ from dolfin import *
 
 def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
 boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
-]):
+], boundary_physGroupsNamesToTags=dict()):
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
@@ -45,6 +45,11 @@ boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
         # Iterates through the regions
 
         for physical_group in boundary_physicalGroups:
+
+            # Verifies if the physical group is a string
+
+            physical_group = verify_stringPhysicalGroup(physical_group, 
+            boundary_physGroupsNamesToTags)
 
             # Verifies if there is only one field
 
@@ -78,6 +83,11 @@ boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
     # conditions
 
     else:
+
+        # Verifies if the physical group is a string
+
+        boundary_physicalGroups = verify_stringPhysicalGroup(
+        boundary_physicalGroups, boundary_physGroupsNamesToTags)
 
         # Verifies if there is only one field
 
@@ -115,7 +125,8 @@ boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
 # list, all DOFs are constrained
 
 def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=[]):
+boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=[],
+boundary_physGroupsNamesToTags=dict()):
     
     # Verifies if the boundary physical groups is a dictionary
 
@@ -148,6 +159,11 @@ boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=[]):
     # Iterates through the regions
 
     for physical_group, list_constrainedDOFs in boundary_physicalGroups.items():
+
+        # Verifies if the physical group is a string
+
+        physical_group = verify_stringPhysicalGroup(physical_group, 
+        boundary_physGroupsNamesToTags)
 
         # Verifies if there is only one field
 
@@ -195,3 +211,32 @@ boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=[]):
     # Returns the boundary conditions list
 
     return boundary_conditions
+
+########################################################################
+#                              Utilities                               #
+########################################################################
+
+# Defines a function to verify if the physical group is a string and, 
+# then, to convert it into a number tag using the dictionary of physical
+# groups' names to tags
+
+def verify_stringPhysicalGroup(physical_group, 
+boundary_physGroupsNamesToTags):
+    
+    if isinstance(physical_group, str):
+
+        # Converts this physical group to the corresponding number tag
+
+        try:
+
+            physical_group = boundary_physGroupsNamesToTags[
+            physical_group]
+
+        except:
+
+            raise KeyError("The physical group '"+physical_group+"' is"+
+            " not in the dictionary of physical groups names' to tags."+
+            " This dictionary has the following keys and values: "+str(
+            boundary_physGroupsNamesToTags))
+        
+    return physical_group

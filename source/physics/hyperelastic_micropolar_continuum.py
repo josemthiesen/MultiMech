@@ -32,8 +32,9 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
     # file
 
     (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_mshMesh(
-    mesh_fileName)
+    boundary_meshCollection, boundary_meshFunction, 
+    domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
+    ) = mesh_tools.read_mshMesh(mesh_fileName)
 
     ####################################################################
     #                          Function space                          #
@@ -64,7 +65,8 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
 
     bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace, 
     boundary_meshFunction, boundary_physicalGroups=
-    fixed_supportDisplacementPhysicalGroups, sub_fieldsToApplyBC=[0])
+    fixed_supportDisplacementPhysicalGroups, sub_fieldsToApplyBC=[0],
+    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags)
 
     # Defines the boundary conditions for fixed facets in terms of mi-
     # crorotation
@@ -72,7 +74,8 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
     bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace, 
     boundary_meshFunction, boundary_physicalGroups=
     fixed_supportMicrorotationPhysicalGroups, sub_fieldsToApplyBC=[1],
-    boundary_conditions=bc)
+    boundary_conditions=bc, boundary_physGroupsNamesToTags=
+    boundary_physGroupsNamesToTags)
 
     # Adds boundary conditions for simply supported facets in terms of
     # displacement
@@ -80,7 +83,8 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
     bc = BCs_tools.simple_supportDirichletBC(monolithic_functionSpace, 
     boundary_meshFunction, boundary_physicalGroups=
     simple_supportDisplacementPhysicalGroups, boundary_conditions=bc,
-    sub_fieldsToApplyBC=[0])
+    sub_fieldsToApplyBC=[0], boundary_physGroupsNamesToTags=
+    boundary_physGroupsNamesToTags)
 
     # Adds boundary conditions for simply supported facets in terms of
     # microrotation
@@ -88,7 +92,8 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
     bc = BCs_tools.simple_supportDirichletBC(monolithic_functionSpace, 
     boundary_meshFunction, boundary_physicalGroups=
     simple_supportMicrorotationPhysicalGroups, boundary_conditions=bc,
-    sub_fieldsToApplyBC=[1])
+    sub_fieldsToApplyBC=[1], boundary_physGroupsNamesToTags=
+    boundary_physGroupsNamesToTags)
 
     ####################################################################
     #                         Variational forms                        #
@@ -114,19 +119,22 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[]):
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
-    u_new, phi_new, variation_u, variation_phi, constitutive_model, dx)
+    u_new, phi_new, variation_u, variation_phi, constitutive_model, dx,
+    domain_physGroupsNamesToTags=domain_physGroupsNamesToTags)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, variation_u, ds)
+    traction_dictionary, variation_u, ds, boundary_physGroupsNamesToTags=
+    boundary_physGroupsNamesToTags)
 
     # Constructs the variational forms for the moment work on the boun-
     # dary. Note that the function traction_work was reused, because the
     # variational construction is the same for traction and for moment
 
     moment_VarForm = variational_tools.traction_work(
-    moment_dictionary, variation_phi, ds)
+    moment_dictionary, variation_phi, ds, boundary_physGroupsNamesToTags=
+    boundary_physGroupsNamesToTags)
 
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object

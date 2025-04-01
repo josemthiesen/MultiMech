@@ -93,7 +93,11 @@ material_properties["gamma"] = 1e-12
 
 constitutive_model = dict()
 
-constitutive_model[tuple([1,2,3])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+#constitutive_model[tuple([1,2,3])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+#material_properties)
+
+constitutive_model[tuple(["annulus fibrosus", "nucleus pulposus", ("en"+
+"d plate")])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
 material_properties)
 
 #constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
@@ -119,7 +123,9 @@ volume_physGroupsSubmesh = []
 
 # Defines the shape functions degree
 
-polynomial_degree = 2
+polynomial_degreeDisplacement = 2
+
+polynomial_degreeMicrorotation = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -220,8 +226,9 @@ fixed_supportMicrorotationPhysicalGroups = 4
 variational_framework.hyperelasticity_displacementMicrorotationBased(
 constitutive_model, traction_dictionary, moment_dictionary, 
 maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
-solver_parameters, neumann_loads=neumann_loads, polynomial_degree=
-polynomial_degree, t=t, fixed_supportDisplacementPhysicalGroups=
+solver_parameters, neumann_loads=neumann_loads, 
+polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
+polynomial_degreeMicrorotation=polynomial_degreeMicrorotation, t=t, fixed_supportDisplacementPhysicalGroups=
 fixed_supportDisplacementPhysicalGroups, solution_name=[["displacement",
 "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
 volume_physGroupsSubmesh, fixed_supportMicrorotationPhysicalGroups=
