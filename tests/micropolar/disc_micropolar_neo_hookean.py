@@ -119,7 +119,7 @@ volume_physGroupsSubmesh = []
 
 # Defines the shape functions degree
 
-polynomial_degree = 1
+polynomial_degree = 2
 
 ########################################################################
 #                           Solver parameters                          #

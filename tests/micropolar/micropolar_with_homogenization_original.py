@@ -85,9 +85,9 @@ n  = FacetNormal(mesh)
 
 # Define the finite element spaces for the displacement field "u" and for the microrotation field "phi"
 
-U = VectorElement("CG",mesh.ufl_cell(), 1) # Displacement, Q2
+U = VectorElement("CG",mesh.ufl_cell(), 2) # Displacement, Q2
 
-V = VectorElement("CG",mesh.ufl_cell(), 1) # Microrotation, Q1
+V = VectorElement("CG",mesh.ufl_cell(), 2) # Microrotation, Q1
 
 # Define the mixed element for the monolithic solution
 
@@ -163,7 +163,7 @@ bc2 = DirichletBC(UV.sub(1), Constant((0.0, 0.0, 0.0)), ft, 2)#4)
 
 bc = [bc1, bc2]
 
-traction_boundary = as_vector([0.0,0.0,load])
+traction_boundary = as_vector([load,0.0,0.0])
 
 def safe_sqrt(a):
     return sqrt(a + 1.0e-12)
@@ -246,7 +246,7 @@ def Kirchhoff_Stress(u, phi):
     
     V_bar = F*(R_bar.T)
     J = det(V_bar)
-    #"""
+    """
 
     K_curvature = curvature_tensor(phi)
     k_curvature_spatial = R_bar*K_curvature*R_bar.T
@@ -262,7 +262,7 @@ def Kirchhoff_Stress(u, phi):
     # the Cauchy stress tensors, not the Kirchhoff stresses. For this reason,
     # the expression below was multiplied by J
 
-    #tau = ((lmbda/2)*J*((J*J)-1)*I) + (mu*J*((V_bar*V_bar.T)-I)) + ((kappa/2)*J*((V_bar*V_bar.T)-(V_bar*V_bar)))
+    tau = ((lmbda/2)*J*((J*J)-1)*I) + (mu*J*((V_bar*V_bar.T)-I)) + ((kappa/2)*J*((V_bar*V_bar.T)-(V_bar*V_bar)))
 
     return tau
 
@@ -278,7 +278,7 @@ def Couple_Kirchhoff_Stress(u, phi):
 
     K_curvature = curvature_tensor(phi)
     k_curvature_spatial = R_bar*K_curvature*R_bar.T
-    #"""
+    """
     V_bar = variable(V_bar.T)
     k_curvature_spatial_trans = variable(k_curvature_spatial.T)
 
@@ -290,7 +290,7 @@ def Couple_Kirchhoff_Stress(u, phi):
     # the Cauchy stress tensors, not the Kirchhoff stresses. For this reason,
     # the expression below was multiplied by J
 
-    #tau = J*V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*k_curvature_spatial) + (gamma*k_curvature_spatial.T))
+    tau = J*V_bar*((alpha*tr(k_curvature_spatial)*I)+(beta*k_curvature_spatial) + (gamma*k_curvature_spatial.T))
 
     return tau
 

@@ -130,7 +130,7 @@ volume_physGroupsSubmesh = []
 
 # Defines the shape functions degree
 
-polynomial_degree = 1
+polynomial_degree = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -196,7 +196,7 @@ neumann_loads = [load]
 
 # Assemble the traction vector using this load expression
 
-traction_boundary = as_vector([0.0, 0.0, load])
+traction_boundary = as_vector([load, 0.0, 0.0])
 
 # Defines a dictionary of tractions
 
