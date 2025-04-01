@@ -18,7 +18,56 @@ def verify_path(parent_path, file_name):
 
     if not os.path.exists(parent_path):
 
-        os.mkdir(parent_path)
+        # Initializes a list of directories to create
+
+        directories = [""]
+
+        # Iterates through the path
+
+        for i in range(len(parent_path)):
+
+            # If the character is a bar, this means the last directory
+            # name has been finished
+
+            if parent_path[-(i+1)]=="/":
+
+                # Verifies if the last directory is not empty
+
+                if directories[-1]!="":
+
+                    directories.append("")
+
+            # Otherwise, saves the characters
+
+            else:
+
+                directories[-1] = parent_path[-(i+1)]+directories[-1]
+
+        # Checks if the last saved directory is empty
+
+        if directories[-1]=="":
+
+            directories = directories[0:-1]
+
+        # Initializes the path
+
+        path = ""
+
+        # Iterates through the directories
+
+        for i in range(len(directories)):
+
+            # Appends this bit of directory to the path
+
+            path += "//"+directories[-(i+1)]
+
+            # Checks if this path exists
+
+            if not os.path.exists(path):
+
+                # Creates the directory
+
+                os.mkdir(path)
 
     # Joins everything together
 

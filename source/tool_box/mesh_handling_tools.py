@@ -23,6 +23,54 @@ data_sets=["domain", "boundary"]):
 
     cell_dataList = []
 
+    # Recovers the physical groups
+
+    domain_physicalGroups = dict()
+
+    boundary_physicalGroups = dict()
+
+    # Gets the physical group through the field data
+
+    field_data = mesh_reading.field_data
+
+    # Iterates through its keys
+
+    for physical_group, tag_dimensionality in field_data.items():
+
+        # If the dimensionality is 2, gets the boundary
+
+        if tag_dimensionality[1]==2:
+
+            boundary_physicalGroups[physical_group] = tag_dimensionality[
+            0]
+
+        # If the dimensionality is 3, gets the domain
+
+        elif tag_dimensionality[1]==3:
+
+            domain_physicalGroups[physical_group] = tag_dimensionality[0]
+
+    print("###########################################################"+
+    "#############\n#                        Mesh - physical groups   "+
+    "                     #\n#########################################"+
+    "###############################\n")
+
+    print("Finds the following domain physical groups with their respe"+
+    "ctive tags:")
+
+    for physical_group, tag in domain_physicalGroups.items():
+
+        print(physical_group, ": ", tag)
+
+    print("\nFinds the following boundary physical groups with their r"+
+    "espective tags:")
+
+    for physical_group, tag in boundary_physicalGroups.items():
+
+        print(physical_group, ": ", tag)
+
+    print("")
+
     # Gets the cells which consist of the desired element
 
     for i in range(len(desired_elements)):

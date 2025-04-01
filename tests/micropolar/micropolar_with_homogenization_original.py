@@ -26,7 +26,7 @@ parameters["form_compiler"]["quadrature_degree"] = 2
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-file_name = "tests//test_meshes//intervertebral_disc"#"periodic_beam"
+file_name = "tests//test_meshes//micropolar_prism"#intervertebral_disc"#"periodic_beam"
 
 # Initializes the mesh object and reads the xdmf file
 
@@ -101,7 +101,7 @@ UV = FunctionSpace(mesh, MicroPolarMixedElement)
 
 # Creates a submesh for the RVE
 
-RVE_submesh = MeshView.create(ct,2)
+RVE_submesh = MeshView.create(ct,1)
 
 # Creates a function space for the displacement inside the submesh of 
 # the RVE
@@ -154,12 +154,12 @@ gamma = 1e-12#5.22e-8 #5.22e-8 #((1e-5)**2)*2*mu # 43.265e-6
 lmbda = 63.84-(2*mu/3)
 I = Identity(3)
 
-maximum_load = 4E1
+maximum_load = 4E-1
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=Tf,
 maximum_load=maximum_load, degree=0)
 
-bc1 = DirichletBC(UV.sub(0), Constant((0.0, 0.0, 0.0)), ft, 4)
-bc2 = DirichletBC(UV.sub(1), Constant((0.0, 0.0, 0.0)), ft, 4)
+bc1 = DirichletBC(UV.sub(0), Constant((0.0, 0.0, 0.0)), ft, 2)#4)
+bc2 = DirichletBC(UV.sub(1), Constant((0.0, 0.0, 0.0)), ft, 2)#4)
 
 bc = [bc1, bc2]
 
@@ -316,7 +316,7 @@ Int_du = inner(stress*invgrad, grad(vu))*dx
 
 Int_dphi = inner(couple_stress*invgrad, grad(vphi))*dx - inner(stress, W_matrix(vphi))*dx 
 
-l_du = dot(traction_boundary,vu)*ds(5)
+l_du = dot(traction_boundary,vu)*ds(4)#5)
 
 #l_dphi = dot(moment,vphi)*ds(10)
 
@@ -358,6 +358,7 @@ while t < (Tf*1.0001):
     u.rename("DNS Displacement", "DNS")
     phi.rename("DNS Micro-rotation", "DNS")
 
+    """
     u_RVE_homogenized.append([t,ht.get_homogenized(u, dx).tolist()])
     grad_u_RVE_homogenized.append([t,ht.get_homogenized_gradient(grad(u), dx).tolist()])
     phi_RVE_homogenized.append([t,ht.get_homogenized(phi, dx).tolist()])
@@ -378,17 +379,17 @@ while t < (Tf*1.0001):
         # Translates the values of the solution using the DOFs mapping
 
         sol_RVE.vector()[U_rveDofMap.cell_dofs(submesh_index)] = sol_new.vector()[U_parentDofMap.cell_dofs(parent_index)] 
-        sol_RVE.vector()[V_rveDofMap.cell_dofs(submesh_index)] = sol_new.vector()[V_parentDofMap.cell_dofs(parent_index)] 
+        sol_RVE.vector()[V_rveDofMap.cell_dofs(submesh_index)] = sol_new.vector()[V_parentDofMap.cell_dofs(parent_index)]
 
     u_RVE, phi_RVE = sol_RVE.split(deepcopy=True)
 
     u_RVE.rename("DNS-Subdomain Displacement", "DNS-Subdomain ")
     phi_RVE.rename("DNS-Subdomain Micro-rotation", "DNS-Subdomain ")
+    conc_u_RVE << u_RVE
+    conc_phi_RVE << phi_RVE"""
 
     conc_u << u
     conc_phi << phi
-    conc_u_RVE << u_RVE
-    conc_phi_RVE << phi_RVE
 
     t += deltaT
     load.t = t
