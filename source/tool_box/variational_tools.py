@@ -2,6 +2,8 @@
 
 from dolfin import *
 
+import copy
+
 import source.tool_box.tensor_tools as tensor_tools
 
 ########################################################################
@@ -50,10 +52,28 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
             first_piola = constitutive_model.first_piolaStress(
             trial_function)
 
-            # Constructs the variational forms for the inner work
+            # If the physical group is indeed a list of tags, i.e. mul-
+            # tiple regions are integrated using the same constitutive
+            # model
 
-            inner_work += (inner(first_piola, grad(test_function))*
-            dx(physical_group))
+            if isinstance(physical_group, list):
+
+                # Iterates through the subdomains
+
+                for sub_physicalGroup in physical_group:
+
+                    # Constructs the variational forms for the inner 
+                    # work
+
+                    inner_work += (inner(first_piola, grad(test_function
+                    ))*dx(sub_physicalGroup))
+
+            else:
+
+                # Constructs the variational forms for the inner work
+
+                inner_work += (inner(first_piola, grad(test_function))*
+                dx(physical_group))
 
     # If the constitutive model is not a dictionary, the domain is homo-
     # geneous
@@ -109,13 +129,9 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
             # Verifies physical group consistency, i.e. if it exists and
             # if it is an integer or a tuple of integers
 
-            print(physical_group)
-
             physical_group = verify_physicalGroups(physical_group, 
             physical_groupsList, physical_groupsNamesToTags=
             domain_physGroupsNamesToTags)
-
-            print(physical_group)
 
             # Initializes objects for the stresses at the reference 
             # configuration
@@ -126,18 +142,43 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
             kirchhoff, couple_kirchhoff = constitutive_model.kirchhoff_stress(
             [displacement_trialFunction, microrotation_trialFunction])
 
-            # Constructs the variational forms for the inner work of the
-            # first Piola-Kirchhoff stress
+            # If the physical group is indeed a list of tags, i.e. mul-
+            # tiple regions are integrated using the same constitutive
+            # model
 
-            inner_work += (inner(first_piola, grad(
-            displacement_testFunction))*dx(physical_group))
+            if isinstance(physical_group, list):
 
-            # Adds the parcel of the couple stress
+                # Iterates through the individual physical groups
 
-            inner_work += ((inner(couple_firstPiola, grad(
-            microrotation_testFunction))*dx(physical_group))-(inner(
-            kirchhoff, tensor_tools.skew_2OrderTensor(
-            microrotation_testFunction))*dx(physical_group)))
+                for sub_physicalGroup in physical_group:
+
+                    # Constructs the variational forms for the inner 
+                    # work of the first Piola-Kirchhoff stress
+
+                    inner_work += (inner(first_piola, grad(
+                    displacement_testFunction))*dx(sub_physicalGroup))
+
+                    # Adds the parcel of the couple stress
+
+                    inner_work += ((inner(couple_firstPiola, grad(
+                    microrotation_testFunction))*dx(sub_physicalGroup))-
+                    (inner(kirchhoff, tensor_tools.skew_2OrderTensor(
+                    microrotation_testFunction))*dx(sub_physicalGroup)))
+
+            else:
+
+                # Constructs the variational forms for the inner work of
+                # the first Piola-Kirchhoff stress
+
+                inner_work += (inner(first_piola, grad(
+                displacement_testFunction))*dx(physical_group))
+
+                # Adds the parcel of the couple stress
+
+                inner_work += ((inner(couple_firstPiola, grad(
+                microrotation_testFunction))*dx(physical_group))-(inner(
+                kirchhoff, tensor_tools.skew_2OrderTensor(
+                microrotation_testFunction))*dx(physical_group)))
 
     # If the constitutive model is not a dictionary, the domain is homo-
     # geneous
@@ -194,13 +235,22 @@ boundary_physGroupsNamesToTags=dict()):
     for physical_group, traction in traction_dictionary.items():
 
         # Verifies if this physical group is indeed in ds
-        
+            
         physical_group = verify_physicalGroups(physical_group, 
         physical_groupsTags, physical_groupsNamesToTags=
         boundary_physGroupsNamesToTags)
 
-        traction_form += dot(traction, field_variation)*ds(
-        physical_group)
+        if isinstance(physical_group, list):
+
+            for sub_physicalGroup in physical_group:
+
+                traction_form += dot(traction, field_variation)*ds(
+                sub_physicalGroup)
+
+        else:
+
+            traction_form += dot(traction, field_variation)*ds(
+            physical_group)
 
     # Returns the variational form
 
@@ -223,7 +273,12 @@ physical_groupsNamesToTags=dict()):
 
         try:
 
+            print("Transforms the physical group name '"+physical_group+
+            "' to the tag:")
+
             physical_group = physical_groupsNamesToTags[physical_group]
+
+            print(physical_group, "\n")
 
         except:
 
@@ -249,7 +304,7 @@ physical_groupsNamesToTags=dict()):
 
         # Initializes a new physical group tuple
 
-        physical_tuple = []
+        sub_physicalGroupsList = []
 
         # Iterates through the physical groups in the tuple
 
@@ -258,12 +313,17 @@ physical_groupsNamesToTags=dict()):
             # If the key of the dictionary is a string, it is the physi-
             # cal group's name. Hence, converts it to its corresponding 
             # number tag
+
+            group_tag = copy.deepcopy(group)
+
+            print("Transforms the physical group name '"+str(group_tag)+
+            "' to the tag:")
             
             if isinstance(group, str):
 
                 try:
 
-                    group = physical_groupsNamesToTags[group]
+                    group_tag = physical_groupsNamesToTags[group]
 
                 except:
 
@@ -272,20 +332,22 @@ physical_groupsNamesToTags=dict()):
                     " exist in the dictionary of physical groups' name"+
                     "s to tags. This dictionary has the following keys"+
                     " and values: "+str(physical_groupsNamesToTags))
+            
+            print(group_tag, "\n")
 
-            if not (group in physical_groupsList):
+            if not (group_tag in physical_groupsList):
 
-                raise NameError("The physical group tag "+str(group)+
-                " was used to build the hyperelastic internal work, bu"+
-                "t it is not a valid physical group. Here is the list "+
-                "of the valid physical groups:\n"+str(
+                raise NameError("The physical group tag "+str(group_tag)
+                +" was used to build the hyperelastic internal work, b"+
+                "ut it is not a valid physical group. Here is the list"+
+                " of the valid physical groups:\n"+str(
                 physical_groupsList))
             
-            physical_tuple.append(group)
+            sub_physicalGroupsList.append(group_tag)
 
-        # Converts the physical group to the tuple
+        # Converts the physical group to this list
 
-        physical_group = tuple(physical_tuple)
+        physical_group = copy.deepcopy(sub_physicalGroupsList)
             
     else:
 

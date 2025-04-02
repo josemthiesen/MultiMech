@@ -29,8 +29,9 @@ post_processesSubmesh=dict()):
     # file
 
     (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction) = mesh_tools.read_mshMesh(
-    mesh_fileName)
+    boundary_meshCollection, boundary_meshFunction, 
+    domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
+    ) = mesh_tools.read_mshMesh(mesh_fileName)
 
     ####################################################################
     #                          Function space                          #
@@ -47,12 +48,14 @@ post_processesSubmesh=dict()):
     # Defines the boundary conditions for fixed facets
 
     bc = BCs_tools.fixed_supportDirichletBC(U, boundary_meshFunction, 
-    boundary_physicalGroups=fixed_supportPhysicalGroups)
+    boundary_physicalGroups=fixed_supportPhysicalGroups,
+    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags)
 
     # Adds boundary conditions for simply supported facets
 
     bc = BCs_tools.simple_supportDirichletBC(U, boundary_meshFunction,
-    simple_supportPhysicalGroups, boundary_conditions=bc)
+    simple_supportPhysicalGroups, boundary_conditions=bc,
+    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags)
 
     ####################################################################
     #                         Variational forms                        #
@@ -72,12 +75,14 @@ post_processesSubmesh=dict()):
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    u_new, v, constitutive_model, dx)
+    u_new, v, constitutive_model, dx, domain_physGroupsNamesToTags=
+    domain_physGroupsNamesToTags)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, v, ds)
+    traction_dictionary, v, ds, boundary_physGroupsNamesToTags=
+    boundary_physGroupsNamesToTags)
 
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object
