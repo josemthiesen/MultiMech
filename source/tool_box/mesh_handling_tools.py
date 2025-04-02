@@ -81,6 +81,9 @@ data_sets=["domain", "boundary"]):
         cells_dictionary[desired_elements[i]] = (
         mesh_reading.get_cells_type(desired_elements[i]))
 
+        print("There are "+str(len(cells_dictionary[desired_elements[i]]
+        ))+" "+str(desired_elements[i])+" elements in the mesh.\n")
+
         # Gets the physical cell data for this element
 
         cell_dataPhysical = mesh_reading.get_cell_data("gmsh:physical", 
@@ -110,6 +113,11 @@ data_sets=["domain", "boundary"]):
     cells_dictionary, cell_data={"whole_mesh": cell_dataList})
 
     meshio.write(file_name+".xdmf", whole_mesh)
+
+    print("###########################################################"+
+    "#############\n#                    Mesh reading has been finaliz"+
+    "ed                   #\n#########################################"+
+    "###############################\n")
 
     # Then, calls the xdmf reader and returns its output
 

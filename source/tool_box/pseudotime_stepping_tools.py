@@ -20,6 +20,14 @@ solution_field, domain_meshCollection, constitutive_model, dx,
 post_processesDict=dict(), post_processesSubmeshDict=dict(), 
 dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
 solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
+    
+    print("\n#########################################################"+
+    "###############\n#              The Newton-Raphson scheme will be"+
+    " initiated             #\n#######################################"+
+    "#################################\n")
+
+    print("There are "+str(len(solution_field.vector()))+" degrees of "+
+    "freedom in the mesh\n")
 
     # Evaluates the pseudotime step
 
@@ -195,6 +203,16 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
     # Gets the number of fields in the mixed element
 
     n_fields = mixed_element.num_sub_elements()
+    
+    print("\n#########################################################"+
+    "###############\n#              The Newton-Raphson scheme will be"+
+    " initiated             #\n#######################################"+
+    "#################################\n")
+
+    for i in range(n_fields):
+
+        print("There are "+str(len(solution_field.sub(i).vector()))+" "+
+        "degrees of freedom in the "+str(i+1)+"-th field of the mesh\n")
 
     # Transforms the list of dictionaries of post-processing methods 
     # instructions into a list of live-wire dictionaries with the proper 
