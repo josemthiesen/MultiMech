@@ -11,12 +11,12 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
-# Defines a function to model a hyperelastic problem with a displacement
-# field only
+# Defines a function to model a hyperelastic problem with displacement,
+# pressure and jacobian fields
 
-def hyperelasticity_displacementBased(constitutive_model, 
-traction_dictionary, maximum_loadingSteps, t_final, post_processes, 
-mesh_fileName, solver_parameters, neumann_loads=[], dirichlet_loads=[],  
+def hyperelasticity_threeFields(constitutive_model, traction_dictionary, 
+maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
+solver_parameters, neumann_loads=[], dirichlet_loads=[],  
 polynomial_degree=2, t=0.0, fixed_supportPhysicalGroups=0, 
 simple_supportPhysicalGroups=dict(), volume_physGroupsSubmesh=[], 
 post_processesSubmesh=dict(), solution_name=["solution", "DNS"]):

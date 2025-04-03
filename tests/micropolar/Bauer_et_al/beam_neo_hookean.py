@@ -12,6 +12,8 @@ import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as c
 
 import source.physics.hyperelastic_cauchy_continuum as variational_framework
 
+import tests.test_meshes.beam_gmsh as beam_gmsh
+
 ########################################################################
 ########################################################################
 ##                      User defined parameters                       ##
@@ -89,10 +91,19 @@ constitutive_model = dict()
 #constitutive_model["Generic volume"] = constitutive_models.Neo_Hookean(
 #material_properties)
 
-constitutive_model[1] = constitutive_models.Neo_Hookean(
-material_properties)
+n_volumes = 1
 
-#constitutive_model = constitutive_models.Neo_Hookean(material_properties)
+if n_volumes==2:
+
+    constitutive_model[1] = constitutive_models.Neo_Hookean(
+    material_properties)
+
+    constitutive_model[8] = constitutive_models.Neo_Hookean(
+    material_properties)
+
+else:
+
+    constitutive_model = constitutive_models.Neo_Hookean(material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -102,7 +113,18 @@ material_properties)
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-mesh_fileName = "tests//test_meshes//micropolar_prism"
+mesh_fileName = "tests//test_meshes//micropolar_beam"
+
+# Generates the mesh
+
+ratio_Lb = 1.5E-1
+
+gamma = 1.18E0
+
+beta = 0.0
+
+beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
+mesh_fileName, n_volumes, transfinite=False)
 
 # Defines a set of physical groups to create a submesh
 
@@ -169,7 +191,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 4E3
+maximum_load = 4E4
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
