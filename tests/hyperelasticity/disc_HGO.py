@@ -125,7 +125,7 @@ material_properties3["v"] = 0.35
 
 constitutive_model = dict()
 
-option = 5
+option = 4
 
 if option==1:
 
