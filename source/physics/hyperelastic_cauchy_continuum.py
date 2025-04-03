@@ -19,7 +19,7 @@ traction_dictionary, maximum_loadingSteps, t_final, post_processes,
 mesh_fileName, solver_parameters, neumann_loads=[], dirichlet_loads=[],  
 polynomial_degree=2, t=0.0, fixed_supportPhysicalGroups=0, 
 simple_supportPhysicalGroups=dict(), volume_physGroupsSubmesh=[], 
-post_processesSubmesh=dict()):
+post_processesSubmesh=dict(), solution_name=["solution", "DNS"]):
 
     ####################################################################
     #                               Mesh                               #
@@ -111,4 +111,5 @@ post_processesSubmesh=dict()):
     constitutive_model, dx, post_processesDict=post_processes, 
     post_processesSubmeshDict=post_processesSubmesh, neumann_loads=
     neumann_loads, dirichlet_loads=dirichlet_loads, solver_parameters=
-    solver_parameters, volume_physGroupsSubmesh=volume_physGroupsSubmesh)
+    solver_parameters, volume_physGroupsSubmesh=volume_physGroupsSubmesh,
+    solution_name=solution_name)

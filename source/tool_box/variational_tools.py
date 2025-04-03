@@ -62,6 +62,10 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
 
                 for sub_physicalGroup in physical_group:
 
+                    print("The volume of the", sub_physicalGroup, "sub"+
+                    "domain is:", assemble(1*dx(sub_physicalGroup)), 
+                    "\n")
+
                     # Constructs the variational forms for the inner 
                     # work
 
@@ -69,6 +73,9 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
                     ))*dx(sub_physicalGroup))
 
             else:
+
+                print("The volume of the", physical_group, "subdomain "+
+                "is:", assemble(1*dx(physical_group)), "\n")
 
                 # Constructs the variational forms for the inner work
 
@@ -79,6 +86,8 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
     # geneous
 
     else:
+
+        print("The volume of the domain is:", assemble(1*dx), "\n")
 
         # Initializes objects for the stresses at the reference configu-
         # ration

@@ -93,12 +93,12 @@ material_properties["gamma"] = 1e-12
 
 constitutive_model = dict()
 
-#constitutive_model[tuple([1,2,3])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
-#material_properties)
-
-constitutive_model[tuple(["annulus fibrosus", "nucleus pulposus", ("en"+
-"d plate")])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+constitutive_model[tuple([1,2,3])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
 material_properties)
+
+#constitutive_model[tuple(["annulus fibrosus", "nucleus pulposus", ("en"+
+#"d plate")])] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+#material_properties)
 
 #constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
 #material_properties)

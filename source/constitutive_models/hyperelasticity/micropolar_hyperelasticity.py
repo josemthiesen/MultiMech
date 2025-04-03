@@ -202,10 +202,6 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         # Transforms the tensors into variables to differentiate the e-
         # nergy potential
 
-        #k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
-
-        #V_barTransposed = variable(V_bar.T)
-
         #V_barVar = variable(V_bar)
 
         #k_curvatureVar = variable(k_curvatureSpatial)
@@ -226,21 +222,27 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy and the couple Cauchy stress tensors
 
-        #psi_total = self.strain_energy(V_barTransposed.T, 
-        #k_curvatureSpatialTransposed.T)
+        """
 
-        #sigma = V_bar*diff(psi_total, V_barTransposed)
+        k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
 
-        #sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
+        V_barTransposed = variable(V_bar.T)
 
+        psi_total = self.strain_energy(V_barTransposed.T, 
+        k_curvatureSpatialTransposed.T)
+
+        sigma = V_bar*diff(psi_total, V_barTransposed)
+
+        sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)"""
+
+        #"""
         J = det(V_bar)
 
         sigma = (((self.lmbda/2)*((J*J)-1)*I)+(self.mu*((V_bar*V_bar.T)-
-        I)) + ((self.kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar))))
+        I))+((self.kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar))))
 
         sigma_couple = V_bar*((self.alpha*tr(k_curvatureSpatial)*I)+(
-        self.beta*k_curvatureSpatial) + (self.gamma*k_curvatureSpatial.T
-        ))
+        self.beta*k_curvatureSpatial)+(self.gamma*k_curvatureSpatial.T))#"""
 
         # Returns them
 

@@ -51,6 +51,69 @@ data_sets=["domain", "boundary"]):
             domain_physicalGroupsNameToTag[physical_group] = tag_dimensionality[
             0]
 
+    # Initializes a dictionary whose keys are the element types and the
+    # values are the list of physical groups tags to which each element
+    # belongs
+
+    physical_groupsElements = dict()
+
+    # Iterates through the elements
+
+    for element in desired_elements:
+
+        # Gets a list of tags
+
+        list_ofTags = list(mesh_reading.cell_data_dict["gmsh:physical"][
+        element])
+
+        # Iterates through the domain physical groups
+        
+        for physical_groupName, physical_groupTag in domain_physicalGroupsNameToTag.items():
+        
+            # Counts the number of elements that belong to this physical
+            # group
+
+            n_elements = list_ofTags.count(physical_groupTag)
+
+            # If there is at least one element, saves the number into 
+            # the dictionary of physical groups
+
+            if n_elements>0:
+
+                try:
+
+                    physical_groupsElements[physical_groupName] += (";"+
+                    " "+str(n_elements)+" "+str(element)+" elements")
+
+                except:
+
+                    physical_groupsElements[physical_groupName] = str(
+                    n_elements)+" "+str(element)+" elements" 
+
+        # Iterates through the domain physical groups
+        
+        for physical_groupName, physical_groupTag in boundary_physicalGroupsNameToTag.items():
+        
+            # Counts the number of elements that belong to this physical
+            # group
+
+            n_elements = list_ofTags.count(physical_groupTag)
+
+            # If there is at least one element, saves the number into 
+            # the dictionary of physical groups
+
+            if n_elements>0:
+
+                try:
+
+                    physical_groupsElements[physical_groupName] += (";"+
+                    " "+str(n_elements)+" "+str(element)+" elements")
+
+                except:
+
+                    physical_groupsElements[physical_groupName] = str(
+                    n_elements)+" "+str(element)+" elements" 
+
     print("###########################################################"+
     "#############\n#                        Mesh - physical groups   "+
     "                     #\n#########################################"+
@@ -61,16 +124,38 @@ data_sets=["domain", "boundary"]):
 
     for physical_group, tag in domain_physicalGroupsNameToTag.items():
 
-        print(physical_group, ": ", tag)
+        print(physical_group, "-", tag)
 
-    print("\nFinds the following boundary physical groups with their r"+
+        try: 
+
+            print("      - "+physical_groupsElements[physical_group])
+
+        except:
+
+            raise ValueError("The physical group "+str(physical_group)+
+            " does not have any elements in it.")
+        
+        print("")
+
+    print("\n\nFinds the following boundary physical groups with their r"+
     "espective tags:")
 
     for physical_group, tag in boundary_physicalGroupsNameToTag.items():
 
-        print(physical_group, ": ", tag)
+        print(physical_group, "-", tag)
 
-    print("")
+        try: 
+
+            print("      - "+physical_groupsElements[physical_group])
+
+        except:
+
+            raise ValueError("The physical group "+str(physical_group)+
+            " does not have any elements in it.")
+        
+        print("")
+
+    print("\n")
 
     # Gets the cells which consist of the desired element
 

@@ -79,15 +79,9 @@ alpha = 0.0
 
 beta = 0.0
 
-beam_sectionWidth = 5E-3
-
-characteristic_length = beam_sectionWidth*(1.5E-1)
-
 kappa = -(0.15)*0.0*mu
 
-# Evaluates gamma
-
-gamma = (2*mu*(characteristic_length**2))-beta
+gamma = 1.18E-5
 
 # Saves the properties into a dictionary
 
@@ -135,7 +129,7 @@ volume_physGroupsSubmesh = []
 
 polynomial_degreeDisplacement = 2
 
-polynomial_degreeMicrorotation = 1
+polynomial_degreeMicrorotation = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -190,7 +184,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 4E-2
+maximum_load = 4E-1
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -207,7 +201,7 @@ traction_boundary = as_vector([load, 0.0, 0.0])
 
 traction_dictionary = dict()
 
-traction_dictionary["lower"] = traction_boundary
+traction_dictionary[4] = traction_boundary
 
 # Defines a dictionary of moments on the boundary
 
