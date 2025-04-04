@@ -80,9 +80,9 @@ print("E:", E, ", v:", v)
 
 # Saves the properties into a dictionary
 
-material_properties["E"] = 70E6#E
+material_properties["E"] = E
 
-material_properties["v"] = 0.4#v
+material_properties["v"] = v
 
 # Sets the material as a HGO material
 
@@ -91,7 +91,7 @@ constitutive_model = dict()
 #constitutive_model["Generic volume"] = constitutive_models.Neo_Hookean(
 #material_properties)
 
-n_volumes = 1
+n_volumes = 2
 
 if n_volumes==2:
 
@@ -124,7 +124,7 @@ gamma = 1.18E0
 beta = 0.0
 
 beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
-mesh_fileName, n_volumes, transfinite=False)
+mesh_fileName, n_volumes, transfinite=True)
 
 # Defines a set of physical groups to create a submesh
 
@@ -191,7 +191,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 4E4
+maximum_load = 1E-2
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -202,7 +202,7 @@ neumann_loads = [load]
 
 # Assemble the traction vector using this load expression
 
-traction_boundary = as_vector([load, 0.0, 0.0])
+traction_boundary = as_vector([0.0, load, 0.0])#as_vector([load, 0.0, 0.0])
 
 # Defines a dictionary of tractions
 

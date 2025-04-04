@@ -12,6 +12,8 @@ import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as 
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
+import tests.test_meshes.beam_gmsh as beam_gmsh
+
 ########################################################################
 ########################################################################
 ##                      User defined parameters                       ##
@@ -79,9 +81,11 @@ alpha = 0.0
 
 beta = 0.0
 
-kappa = -(0.15)*0.0*mu
+kappa = (1.5E-1)*mu
 
-gamma = 1.18E-5
+gamma = 1.18E0
+
+ratio_Lb = 1.5E-1
 
 # Saves the properties into a dictionary
 
@@ -101,11 +105,17 @@ material_properties["gamma"] = gamma
 
 constitutive_model = dict()
 
-constitutive_model["Generic volume"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
-material_properties)
+n_volumes = 1
 
-#constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
-#material_properties)
+if n_volumes==2:
+
+    constitutive_model["Generic volume"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    material_properties)
+
+else:
+
+    constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -115,7 +125,14 @@ material_properties)
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-mesh_fileName = "tests//test_meshes//micropolar_prism"
+#mesh_fileName = "tests//test_meshes//micropolar_prism"
+
+mesh_fileName = "tests//test_meshes//micropolar_beam"
+
+# Generates the mesh
+
+beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
+mesh_fileName, n_volumes, transfinite=True)
 
 # Defines a set of physical groups to create a submesh
 
@@ -129,7 +146,7 @@ volume_physGroupsSubmesh = []
 
 polynomial_degreeDisplacement = 2
 
-polynomial_degreeMicrorotation = 2
+polynomial_degreeMicrorotation = 1
 
 ########################################################################
 #                           Solver parameters                          #
@@ -152,7 +169,7 @@ solver_parameters["newton_relative_tolerance"] = 1e-8#1e-3
 
 solver_parameters["newton_absolute_tolerance"] = 1e-8#1e-3
 
-solver_parameters["newton_maximum_iterations"] = 10#50
+solver_parameters["newton_maximum_iterations"] = 30
 
 """
 
@@ -176,7 +193,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 11
+maximum_loadingSteps = 105
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -184,7 +201,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = 4E-1
+maximum_load = 0.95*1.2E-3
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -195,7 +212,7 @@ neumann_loads = [load]
 
 # Assemble the traction vector using this load expression
 
-traction_boundary = as_vector([load, 0.0, 0.0])
+traction_boundary = as_vector([0.0, load, 0.0])
 
 # Defines a dictionary of tractions
 
