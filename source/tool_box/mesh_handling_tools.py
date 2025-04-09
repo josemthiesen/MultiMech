@@ -11,7 +11,7 @@ import meshio
 # Defines a function to read a mesh from a msh file
 
 def read_mshMesh(file_name, desired_elements=['tetra', 'triangle'],
-data_sets=["domain", "boundary"]):
+data_sets=["domain", "boundary"], quadrature_degree=2):
 
     # Reads the saved gmsh mesh using meshio
 
@@ -208,12 +208,13 @@ data_sets=["domain", "boundary"]):
 
     return read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=
     domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag=
-    boundary_physicalGroupsNameToTag)
+    boundary_physicalGroupsNameToTag, quadrature_degree=
+    quadrature_degree)
 
 # Defines a function to read a mesh from a xdmf file
 
 def read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=dict(), 
-boundary_physicalGroupsNameToTag=dict()):
+boundary_physicalGroupsNameToTag=dict(), quadrature_degree=2):
     
     if len(domain_physicalGroupsNameToTag.keys())==0 or (len(
     boundary_physicalGroupsNameToTag.keys())==0):
@@ -274,9 +275,11 @@ boundary_physicalGroupsNameToTag=dict()):
 
     # Sets the integration differentials
 
-    dx = Measure("dx", domain=mesh, subdomain_data=domain_meshFunction)
+    dx = Measure("dx", domain=mesh, subdomain_data=domain_meshFunction,
+    metadata={"quadrature degree": quadrature_degree})
 
-    ds = Measure("ds", domain=mesh, subdomain_data=boundary_meshFunction)
+    ds = Measure("ds", domain=mesh, subdomain_data=boundary_meshFunction,
+    metadata={"quadrature degree": quadrature_degree})
 
     # Sets the normal vector to the mesh's boundary
 

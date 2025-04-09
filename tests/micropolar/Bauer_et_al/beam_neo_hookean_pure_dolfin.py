@@ -1,338 +1,165 @@
-# Routine to test a hyperelastic disc
-
-import os
-
 from dolfin import *
-
-import ufl_legacy as ufl
-
-from mshr import *
-
 import numpy as np
 
-import source.tool_box.mesh_handling_tools as mesh_tools
-
-import source.tool_box.pseudotime_stepping_tools as newton_tools
-
-import source.tool_box.file_handling_tools as file_tools
+import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as constitutive_models
 
 import tests.test_meshes.beam_gmsh as beam_gmsh
 
-def test():
+import source.tool_box.mesh_handling_tools as mesh_tools
 
-    ########################################################################
-    ########################################################################
-    ##                      User defined parameters                       ##
-    ########################################################################
-    ########################################################################
+# Beam geometry
 
-    ########################################################################
-    #                          Simulation results                          #
-    ########################################################################
+ratio_Lb = 1.5E-1
 
-    # Defines the path to the results directory 
+gamma = 1.18E0
 
-    results_pathGraphics = (os.getcwd()+"//tests//micropolar//Bauer_et_al/"+
-    "/results//graphics")
+beta = 0.0
 
-    displacement_fileName = "displacement_neo_hookean.xdmf"
+mu = 26.12
 
-    ########################################################################
-    #                         Material properties                          #
-    ########################################################################
+K_constitutive = 63.84
 
-    # Sets a dictionary of properties
+L = 1.0       # Length of beam
+b = 0.1       # Side of square cross section
 
-    material_properties = dict()
+L = np.sqrt((beta+gamma)/(2*mu))
 
-    mu = 26.12
+b = L/ratio_Lb
 
-    K_constitutive = 63.84
+print("b=", b)
 
-    lmbda = K_constitutive-(2*mu/3)
+# Mesh resolution
+"""nx, ny, nz = 6, 6, 20
+mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(b, b, 10*b), nx, ny, nz)
 
-    ########################################################################
-    #                                 Mesh                                 #
-    ########################################################################
+ds = Measure("ds", domain=mesh, subdomain_data=side_marker)
 
-    # Defines the name of the file to save the mesh in. Do not write the fi-
-    # le termination, e.g. .msh or .xdmf; both options will be saved automa-
-    # tically
+dx = Measure("dx", domain=mesh, metadata={"quadrature_degree": 3})
 
-    mesh_fileName = "tests//test_meshes//micropolar_beam"
+class SideYMinus(SubDomain):
+    def inside(self, x, on_boundary):
+        return on_boundary and near(x[1], 0.0)
 
-    # Generates the mesh
+side_marker = MeshFunction("size_t", mesh, 2, 0)
+SideYMinus().mark(side_marker, 1)"""
 
-    ratio_Lb = 1.5E-1
+n_volumes = 1
 
-    gamma = 1.18E0
+mesh_fileName = "tests//test_meshes//micropolar_beam"
 
-    beta = 0.0
+beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
+mesh_fileName, n_volumes, transfinite=True)
 
-    n_volumes = 1
+(mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
+boundary_meshCollection, boundary_meshFunction,
+domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
+) = mesh_tools.read_mshMesh(mesh_fileName)#"""
 
-    beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
-    mesh_fileName, n_volumes, transfinite=False)
+# Function space for displacement
+V = VectorFunctionSpace(mesh, 'Lagrange', degree=2)
 
-    (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction,
-    domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
-    ) = mesh_tools.read_mshMesh(mesh_fileName)
+# Boundary conditions
+def clamp_boundary(x, on_boundary):
+    return on_boundary and near(x[2], 0.0)
 
-    """########################################################################
-    #                                 Mesh                                 #
-    ########################################################################
+bc = DirichletBC(V, Constant((0.0, 0.0, 0.0)), clamp_boundary)
 
-    # Defines the name of the file to save the mesh in. Do not write the fi-
-    # le termination, e.g. .msh or .xdmf; both options will be saved automa-
-    # tically
+# Define traction (on the side y = -b/2)
+t_max = 1E-2
+t_final = 1.0
 
-    file_name = "Meshes//cylinder_sym"#"Meshes//periodic_beam"
+t = 0.0
 
-    #file_name = "Meshes//periodic_beam"
+max_steps = 11
 
-    # Defines a flag to generate a new mesh or not
+delta_t = (t_final-t)/(max_steps-1)
 
-    flag_newMesh = True
+traction_magnitude = Expression("t_max*(t/t_final)", t_max=t_max, t=t, t_final=t_final, degree=0)  # Adjust as needed
 
-    # Generates the mesh and writes it 
+# Kinematics
+du = TrialFunction(V)
+v  = TestFunction(V)
+u  = Function(V)
 
-    if flag_newMesh:
+d = len(u)
+I = Identity(d)
+F = I + grad(u)
+C = F.T * F
+J = det(F)
 
-        mesher.generate_periodicMesh(file_name, flag_transfinite=1, verbose=
-        True)
+# Material parameters (Neo-Hookean)
 
-    # Initializes the mesh object and reads the xdmf file
+lmbda = K_constitutive-(2*mu/3)
 
-    mesh = Mesh()
+dF = grad(v)
 
-    # Initializes a mesh value collection to store mesh data. Uses the topo-
-    # logy dimension given by the mesh proper
+# Stored strain energy density (Neo-Hookean)
 
-    domain_meshCollection = MeshValueCollection("size_t", mesh, 
-    mesh.topology().dim())
+"""
+C_variable = variable(C)
 
-    # Reads the mesh with domain physical groups
+J_variable = sqrt(det(C_variable))
 
-    with XDMFFile(file_name+"_domain.xdmf") as infile:
+psi_variable = (mu/2)*(tr(C_variable) - 3) - mu*ln(J_variable) + (lmbda/2)*(ln(J_variable))**2
 
-        infile.read(mesh)
+S = 2*diff(psi_variable, C_variable)
 
-        infile.read(domain_meshCollection, "domain")
+P = F*S"""
 
-    # Initializes a mesh value collection to store mesh data of the bounda-
-    # ries. Lessens the topology dimension by a factor of 1
+#"""
+material_properties = dict()
 
-    boundary_meshCollection = MeshValueCollection("size_t", mesh, 
-    mesh.topology().dim()-1)
+E = ((mu/(lmbda+mu))*((2*mu)+(3*lmbda)))
 
-    # Reads the mesh with surface physical groups
+nu = lmbda/(2*(lmbda+mu))
 
-    with XDMFFile(file_name+"_boundary.xdmf") as infile:
+material_properties["E"] = E 
 
-        infile.read(boundary_meshCollection, "boundary")
+material_properties["v"] = nu
 
-    # Converts the mesh value collections to a mesh functions, for mesh va-
-    # lue collections are low level and cannot be used for FEM integration
-    # and other higher level operations inside FEniCs
+constitutive_model = constitutive_models.Neo_Hookean(material_properties)
 
-    cell_markers = cpp.mesh.MeshFunctionSizet(mesh, domain_meshCollection)
+P = constitutive_model.first_piolaStress(u)#"""
 
-    facet_markers = cpp.mesh.MeshFunctionSizet(mesh, boundary_meshCollection)
+variational_form = (inner(P, dF)*dx)-(dot(as_vector([0.0, traction_magnitude, 0.0]),v)*ds(4))
 
-    # Createsa copy of the cell markers to use in the submesh
+# Variational problem
+#F_res = variational_form#derivative(Pi, u, v)
+#J_form = derivative(F_res, u, du)
 
-    submesh_cellMarkers = cpp.mesh.MeshFunctionSizet(mesh, 
-    domain_meshCollection)"""
+residual_derivative = derivative(variational_form , u, du)
 
-    ########################################################################
-    #                           Function spaces                            #
-    ########################################################################
+Res = NonlinearVariationalProblem(variational_form, u, bc, J=
+residual_derivative)
 
-    # Defines the interpolation function and its degree
+solver = NonlinearVariationalSolver(Res)
 
-    interpolation_function = "Lagrange"
+solver.parameters["nonlinear_solver"] = "newton"
 
-    element_degree = 2
+solver.parameters["newton_solver"]["linear_solver"] = "mumps"#"minres"
 
-    n_gaussPoints = 3
+solver.parameters["newton_solver"]["relative_tolerance"] = 1e-8#1e-3
 
-    # Defines a vectorial function space
+solver.parameters["newton_solver"]["absolute_tolerance"] = 1e-8#1e-3
 
-    V = VectorFunctionSpace(mesh, interpolation_function, degree=
-    element_degree)
+solver.parameters["newton_solver"]["maximum_iterations"] = 20
 
-    # Defines a trial function
+file = File("tests//micropolar//Bauer_et_al//results//neo_hookean_beam.pvd")
 
-    Delta_u = TrialFunction(V)
+for i in range(max_steps):
 
-    u = Function(V)
+    traction_magnitude.t = t
 
-    # Defines a test function
+    solver.solve()
 
-    du = TestFunction(V)
+    # Solve nonlinear problem
+    #solve(F_res == 0, u, bc, J=J_form,
+    #    solver_parameters={"newton_solver": {
+    #        "relative_tolerance": 1e-6,
+    #        "maximum_iterations": 25
+    #    }})
+    
+    t += delta_t
 
-    ########################################################################
-    #                          Integral measures                           #
-    ########################################################################
-
-    # Defines the integration measures using the mesh information retrieved
-    # from GMSH
-
-    dx = Measure("dx", domain=mesh, subdomain_data=domain_meshFunction, metadata={
-    "quadrature_degree": n_gaussPoints})
-
-    ds = Measure("ds", domain=mesh, subdomain_data=boundary_meshFunction, metadata={
-    "quadrature_degree": n_gaussPoints})
-
-    ########################################################################
-    #                          Pseudotime control                          #
-    ########################################################################
-
-    t = 0.0
-
-    t_final = 1.0
-
-    n_steps = 20
-
-    delta_t = t_final/n_steps
-
-    ########################################################################
-    #                     Dirichlet boundary conditions                    #
-    ########################################################################
-
-    # Defines the expressions for the Dirichlet boundary conditions
-
-    expression_bottom = Constant("0.0")
-
-    expression_aft = Constant("0.0")
-
-    expression_starboard = Constant("0.0")
-
-    expression_cantilever = Constant(("0.0", "0.0", "0.0"))
-
-    # Creates a list of boundary conditions using the expressions above, the
-    # mesh function with the facet information, and the desired surface phy-
-    # sical group where upon the boundary condition is to be applied
-
-    #bc_dirichlet = [DirichletBC(V.sub(2), expression_bottom,facet_markers,5),
-    #DirichletBC(V.sub(0), expression_aft, facet_markers, 8),
-    #DirichletBC(V.sub(1), expression_starboard, facet_markers, 9)]
-
-    bc_dirichlet = [DirichletBC(V, expression_cantilever,boundary_meshFunction,2)]
-
-    ########################################################################
-    #                      Neumann boundary conditions                     #
-    ########################################################################
-
-    # Defines the traction vector
-
-    T = Expression(("0.0", "(t/t_final)*T_max", "0.0"), t_final=t_final,
-    t=0.0, T_max=4E0, degree=0) 
-
-    # Defines the body forces vector
-
-    B = Constant(("0.0","0.0","0.0"))
-
-    ########################################################################
-    #                              Tensorial                               #
-    ########################################################################
-
-    I = Identity(3)
-
-    # Defines the deformation gradient
-
-    F = grad(u)+I 
-
-    # Defines the Euler-Lagrange strain tensor
-
-    C = variable((F.T)*F) 
-
-    # Defines the Saint Venant energy function
-
-    #psi = (mu*inner(E,E))+(0.5*lmbda*(tr(E)**2))
-
-    # Defines the Neo-Hookean energy function
-
-    I1_C = tr(C)
-
-    I2_C = det(C)
-
-    J = sqrt(I2_C)
-            
-    # Evaluates the trace-related part
-
-    psi = (mu/2)*(I1_C-3)-(mu*ln(J))+((lmbda*0.5)*((ln(J))**2))
-
-    # Defines the second Piola-Kirchhof stress tensor
-
-    S = 2*diff(psi, C)
-
-    # Defines the first Piola-Kirchhof stress tensor
-
-    P = F*S
-
-    dF = grad(du)
-
-    ########################################################################
-    #                           Weak formulation                           #
-    ########################################################################
-                            
-    # Defines the bilinear form
-
-    a = inner(P,dF)*dx(1)
-
-    # Defines the linear form
-
-    L = (dot(B,du)*dx)+(dot(T,du)*ds(4))
-
-    residue = a-L
-
-    Jacobian = derivative(residue, u, Delta_u)
-
-    problem = NonlinearVariationalProblem(residue, u, bc_dirichlet, J=Jacobian)
-
-    solution = NonlinearVariationalSolver(problem)
-
-    solution.parameters["nonlinear_solver"] = "newton"
-
-    solution.parameters["newton_solver"]["absolute_tolerance"] = 1E-8
-
-    solution.parameters["newton_solver"]["relative_tolerance"] = 1E-7
-
-    solution.parameters["newton_solver"]["maximum_iterations"] = 40
-
-    solution.parameters["newton_solver"]["linear_solver"] = "mumps"
-
-    # Sweeps through the pseudotime steps
-
-    reaction_z = 0.0
-
-    # Creates the displacement file
-
-    file = XDMFFile(results_pathGraphics+"//"+displacement_fileName)
-
-    for i in range(n_steps):
-
-        # Updates time and the traction vector
-
-        t += delta_t
-
-        print("\nRuns pseudotime", i+1, "of", n_steps, ":", t, "\n")
-
-        T.t = t
-
-        # Solves the system
-
-        solution.solve()
-
-        # = as_vector([0.0,0.0,1.0])
-
-        #reaction_z = assemble((dot(N,P*N))*ds)
-
-        #print("\nThe reaction in the z direction is:",
-        #reaction_z, "\n")
-
-        file.write(u, t)
-
-test()
+    # Save results
+    file << u
