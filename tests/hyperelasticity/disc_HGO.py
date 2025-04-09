@@ -125,7 +125,7 @@ material_properties3["v"] = 0.35
 
 constitutive_model = dict()
 
-option = 4
+option = 1
 
 if option==1:
 
@@ -240,7 +240,7 @@ maximum_loadingSteps = 10
 
 # Defines a load expression
 
-maximum_load = 4E6
+maximum_load = -4E6
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)

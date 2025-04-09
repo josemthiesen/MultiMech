@@ -81,7 +81,7 @@ alpha = 0.0
 
 beta = 0.0
 
-kappa = (1.5E-1)*mu
+kappa = (1.0E-2)*mu
 
 gamma = 1.18E0
 
@@ -201,7 +201,7 @@ maximum_loadingSteps = 105
 
 # Defines a load expression
 
-maximum_load = 0.95*1.2E-3
+maximum_load = 1.2E-5
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
