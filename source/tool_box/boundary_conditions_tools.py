@@ -17,12 +17,16 @@ from dolfin import *
 
 def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
 boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
-], boundary_physGroupsNamesToTags=dict()):
+], boundary_physGroupsNamesToTags=dict(), verbose=False):
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
 
     if boundary_physicalGroups==0:
+
+        if verbose:
+
+            print("Creates no fixed support boundary condition.\n")
 
         return boundary_conditions
     
@@ -119,6 +123,10 @@ boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
 
     # Returns the boundary conditions list
 
+    if verbose:
+
+        print("Finishes creating fixed support boundary conditions.\n")
+
     return boundary_conditions
 
 # Defines a function to apply a simple support. If sub_fields is an empty
@@ -126,7 +134,7 @@ boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
 
 def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
 boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=[],
-boundary_physGroupsNamesToTags=dict()):
+boundary_physGroupsNamesToTags=dict(), verbose=False):
     
     # Verifies if the boundary physical groups is a dictionary
 
@@ -141,6 +149,10 @@ boundary_physGroupsNamesToTags=dict()):
     # boundary conditions
 
     if len(list(boundary_physicalGroups.keys()))==0:
+
+        if verbose:
+
+            print("Creates no simple support boundary condition.\n")
 
         return boundary_conditions
     
@@ -209,6 +221,10 @@ boundary_physGroupsNamesToTags=dict()):
                             physical_group))
 
     # Returns the boundary conditions list
+
+    if verbose:
+
+        print("Finishes creating fixed support boundary conditions.\n")
 
     return boundary_conditions
 

@@ -276,14 +276,17 @@ boundary_physicalGroupsNameToTag=dict(), quadrature_degree=2):
     # Sets the integration differentials
 
     dx = Measure("dx", domain=mesh, subdomain_data=domain_meshFunction,
-    metadata={"quadrature degree": quadrature_degree})
+    metadata={"quadrature_degree": quadrature_degree})
 
     ds = Measure("ds", domain=mesh, subdomain_data=boundary_meshFunction,
-    metadata={"quadrature degree": quadrature_degree})
+    metadata={"quadrature_degree": quadrature_degree})
 
     # Sets the normal vector to the mesh's boundary
 
     n  = FacetNormal(mesh)
+
+    print("Finishes creating the mesh functions, measures, and tags di"+
+    "ctionaries.\n")
 
     # Returns these objects
 

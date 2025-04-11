@@ -69,21 +69,33 @@ post_processesSubmesh = []
 #                         Material properties                          #
 ########################################################################
 
+# Sets the Young modulus and the Poisson ration from psi to MPa
+
+E = 1.2E4*0.00689476
+
+nu = 0.2
+
+L = 0.4*(2.54*10)
+
+# Converts to Lamé parameters
+
+mu = E/(2*(1+nu))
+
+lmbda = (nu*E)/((1+nu)*(1-(2*nu)))
+
 # Sets a dictionary of properties
 
 material_properties = dict()
 
-mu = 26.12
-
-K_constitutive = 63.84
-
 alpha = 0.0
 
-beta = 0.0
+beta = 2*mu*(L*L)
 
 kappa = (1.0E-2)*mu
 
-gamma = 1.18E0
+N_micropolar = 0.0#np.sqrt(kappa/((2*mu)+kappa))
+
+gamma = 0.0#1.18E0
 
 ratio_Lb = 1.5E-1
 
@@ -91,9 +103,9 @@ ratio_Lb = 1.5E-1
 
 material_properties["mu"] = mu
 
-material_properties["lambda"] = K_constitutive-(2*mu/3)
+material_properties["lambda"] = lmbda
 
-material_properties["kappa"] = kappa
+material_properties["N"] = N_micropolar
 
 material_properties["alpha"] = alpha
 
@@ -121,18 +133,27 @@ else:
 #                                 Mesh                                 #
 ########################################################################
 
+# Sets the dimensions of the beam from (Ramezani et al, 2009). Converts
+# from inches to mm
+
+beam_widthX = 1.0*(2.54*10.0)
+
+beam_widthY = 1.0*(2.54*10.0)
+
+beam_length = 10.0*(2.54*10.0)
+
 # Defines the name of the file to save the mesh in. Do not write the fi-
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
-
-#mesh_fileName = "tests//test_meshes//micropolar_prism"
 
 mesh_fileName = "tests//test_meshes//micropolar_beam"
 
 # Generates the mesh
 
 beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
-mesh_fileName, n_volumes, transfinite=True)
+mesh_fileName, n_volumes, transfinite=True, transfinite_x=5, 
+transfinite_y=5, transfinite_z=21, beam_widthX=beam_widthX, beam_widthY=
+beam_widthY, beam_length=beam_length)
 
 # Defines a set of physical groups to create a submesh
 
@@ -193,7 +214,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 105
+maximum_loadingSteps = 31
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -201,7 +222,9 @@ maximum_loadingSteps = 105
 
 # Defines a load expression
 
-maximum_load = 1.2E-5
+K = 9.3
+
+maximum_load = 0.5*((K*E)/(beam_length**3))*((beam_widthX*(beam_widthY**3))/(12*beam_widthX))#2.0E-4
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -219,6 +242,8 @@ traction_boundary = as_vector([0.0, load, 0.0])
 traction_dictionary = dict()
 
 traction_dictionary[4] = traction_boundary
+
+traction_dictionary[6] = traction_boundary
 
 # Defines a dictionary of moments on the boundary
 
@@ -242,6 +267,10 @@ fixed_supportMicrorotationPhysicalGroups = "back"
 ########################################################################
 ########################################################################
 
+# Defines a flag to print every step
+
+verbose = True
+
 # Solves the variational problem
 
 variational_framework.hyperelasticity_displacementMicrorotationBased(
@@ -255,4 +284,4 @@ fixed_supportDisplacementPhysicalGroups, solution_name=[["displacement",
 "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
 volume_physGroupsSubmesh, fixed_supportMicrorotationPhysicalGroups=
 fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
-post_processesSubmesh)
+post_processesSubmesh, verbose=verbose)

@@ -19,7 +19,8 @@ import source.tool_box.tensor_tools as tensor_tools
 # using the first Piola-Kirchhoff stress tensor
 
 def hyperelastic_internalWorkFirstPiola(trial_function, test_function, 
-constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
+constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict(),
+verbose=False):
     
     # Gets the physical groups from the domain mesh function
 
@@ -101,6 +102,12 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
 
     # Returns the inner work variational form
 
+    if verbose:
+
+        print("Finishes creating the variational form of the inner wor"+
+        "k done by the first Piola stress tensor in a Cauchy continuum"+
+        " medium\n")
+
     return inner_work
 
 # Defines a function to construct the variational form of a non-dissipa-
@@ -115,7 +122,8 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
 def hyperelastic_micropolarInternalWorkFirstPiola(
 displacement_trialFunction, microrotation_trialFunction, 
 displacement_testFunction, microrotation_testFunction,
-constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
+constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict(),
+verbose=False):
     
     # Gets the physical groups from the domain mesh function
 
@@ -217,6 +225,12 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
 
     # Returns the inner work variational form
 
+    if verbose:
+
+        print("Finishes creating the variational form of the inner wor"+
+        "k done by the first Piola stress tensor and its couple stress"+
+        " in a micropolar continuum medium\n")
+
     return inner_work
 
 ########################################################################
@@ -229,7 +243,7 @@ constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict()):
 # physical groups and the values are the traction loads
 
 def traction_work(traction_dictionary, field_variation, ds, 
-boundary_physGroupsNamesToTags=dict()):
+boundary_physGroupsNamesToTags=dict(), verbose=False):
 
     # Gets the physical groups tags
 
@@ -262,6 +276,11 @@ boundary_physGroupsNamesToTags=dict()):
             physical_group)
 
     # Returns the variational form
+
+    if verbose:
+
+        print("Finishes creating the variational form of the work done"+
+        " by the traction on the boundary\n")
 
     return traction_form
 

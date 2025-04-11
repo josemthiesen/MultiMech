@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 
 from dolfin import *
 
+import ufl_legacy as ufl
+
 import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.constitutive_tools as constitutive_tools
@@ -52,17 +54,36 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
     def __init__(self, material_properties):
 
+        # Gets the parameters
+
         self.mu = material_properties["mu"]
 
         self.lmbda = material_properties["lambda"]
-
-        self.kappa = material_properties["kappa"]
 
         self.alpha = material_properties["alpha"]
 
         self.beta = material_properties["beta"]
 
         self.gamma = material_properties["gamma"]
+
+        # Gets the micropolar number, which varies between 0 and 1. If
+        # null, it is Cauchy continuum; if 1, it is couple stress theory
+
+        N_micropolar = material_properties["N"]
+
+        if N_micropolar<0 or N_micropolar>1:
+
+            raise ValueError("The micropolar number must be bound by ["+
+            "0,1]. The given N is: "+str(N_micropolar))
+        
+        elif abs(N_micropolar-1.0)<1E-5:
+
+            self.kappa = 2*self.mu
+
+        else:
+
+            self.kappa = 2*self.mu*((N_micropolar**2)/(1-(N_micropolar**2
+            )))
 
     # Defines a function to evaluate the Helmholtz free energy density
 
@@ -88,8 +109,14 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         psi_NH = 0.5*self.mu*(I1-3.0)
 
-        psi_vol = ((0.25*self.lmbda*((J**2)-1))-(0.5*self.lmbda*(ln(J)))
-        -self.mu*ln(J))
+        # Bauer
+
+        #psi_vol = ((0.25*self.lmbda*((J**2)-1))-(0.5*self.lmbda*(ufl.ln(J)))
+        #-self.mu*ufl.ln(J))
+
+        # Ramezani
+
+        psi_vol = -(self.mu*ufl.ln(J))+((self.lmbda*0.5)*((ufl.ln(J))**2))
 
         psi_hat = 0.25*self.kappa*(I1-I2)
 
@@ -202,28 +229,6 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         # Transforms the tensors into variables to differentiate the e-
         # nergy potential
 
-        #V_barVar = variable(V_bar)
-
-        #k_curvatureVar = variable(k_curvatureSpatial)
-
-        # Evaluates the total energy density
-
-        #psi_total1 = self.strain_energy(V_barVar, k_curvatureSpatial)
-
-        #dPsi1 = diff(psi_total1, V_barVar)
-
-        #sigma = V_bar*dPsi1.T
-
-        #psi_total2 = self.strain_energy(V_bar, k_curvatureVar)
-
-        #dPsi2 = diff(psi_total2, k_curvatureVar)
-
-        #sigma_couple = V_bar*dPsi2.T
-
-        # Evaluates the Cauchy and the couple Cauchy stress tensors
-
-        """
-
         k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
 
         V_barTransposed = variable(V_bar.T)
@@ -233,16 +238,16 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         sigma = V_bar*diff(psi_total, V_barTransposed)
 
-        sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)"""
+        sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)#"""
 
-        #"""
+        """
         J = det(V_bar)
 
         sigma = (((self.lmbda/2)*((J*J)-1)*I)+(self.mu*((V_bar*V_bar.T)-
         I))+((self.kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar))))
 
         sigma_couple = V_bar*((self.alpha*tr(k_curvatureSpatial)*I)+(
-        self.beta*k_curvatureSpatial)+(self.gamma*k_curvatureSpatial.T))#"""
+        self.beta*k_curvatureSpatial)+(self.gamma*k_curvatureSpatial.T))"""
 
         # Returns them
 

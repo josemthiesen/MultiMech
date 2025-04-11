@@ -53,7 +53,7 @@ mesh_fileName, n_volumes, transfinite=True)
 (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
 boundary_meshCollection, boundary_meshFunction,
 domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
-) = mesh_tools.read_mshMesh(mesh_fileName)#"""
+) = mesh_tools.read_mshMesh(mesh_fileName, quadrature_degree=2)#"""
 
 # Function space for displacement
 V = VectorFunctionSpace(mesh, 'Lagrange', degree=2)
@@ -121,7 +121,7 @@ constitutive_model = constitutive_models.Neo_Hookean(material_properties)
 
 P = constitutive_model.first_piolaStress(u)#"""
 
-variational_form = (inner(P, dF)*dx)-(dot(as_vector([0.0, traction_magnitude, 0.0]),v)*ds(4))
+variational_form = (inner(P, dF)*dx)-(dot(as_vector([0.0, traction_magnitude, 0.0]),v)*ds(6))
 
 # Variational problem
 #F_res = variational_form#derivative(Pi, u, v)

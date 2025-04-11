@@ -414,25 +414,39 @@ transfinite_y, transfinite_z, file_name, transfinite=True, lc=0.2):
 
 def generate_micropolarBeam(mu, ratio_Lb, beta, gamma, file_name, 
 n_volumes, transfinite_x=7, transfinite_y=7, transfinite_z=21, 
-transfinite=True):
+transfinite=True, beam_widthX=None, beam_widthY=None, beam_length=None):
 
     # Evaluate the characteristic length and the corresponding beam's 
     # square cross section dimension
 
-    L = np.sqrt((beta+gamma)/(2*mu))
+    if beam_widthX==None or beam_widthY==None or beam_length==None:
 
-    b = L/ratio_Lb
+        L = np.sqrt((beta+gamma)/(2*mu))
+
+        b = L/ratio_Lb
+
+        print("ENtra no if")
+
+        beam_widthX = b*1.0
+
+        beam_widthY = b*1.0
+
+        beam_length = b*10.0
+
+    print(beam_length, beam_widthX, beam_widthY)
 
     # Generates the mesh
 
     if n_volumes==1:
 
-        generate_beam1Volume(b, b, 10*b, transfinite_x, transfinite_y, 
-        transfinite_z, file_name, transfinite=transfinite)
+        generate_beam1Volume(beam_widthX, beam_widthY, beam_length, 
+        transfinite_x, transfinite_y, transfinite_z, file_name, 
+        transfinite=transfinite)
 
     elif n_volumes==2:
 
         transfinite_z = int((0.5*(transfinite_z-1))+1)
 
-        generate_beam2Volumes(b, b, 10*b, transfinite_x, transfinite_y, 
-        transfinite_z, file_name, transfinite=transfinite)
+        generate_beam2Volumes(beam_widthX, beam_widthY, beam_length, 
+        transfinite_x, transfinite_y, transfinite_z, file_name, 
+        transfinite=transfinite)
