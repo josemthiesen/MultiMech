@@ -56,15 +56,15 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Gets the parameters
 
-        self.mu = material_properties["mu"]
+        self.mu = Constant(material_properties["mu"])
 
-        self.lmbda = material_properties["lambda"]
+        self.lmbda = Constant(material_properties["lambda"])
 
-        self.alpha = material_properties["alpha"]
+        self.alpha = Constant(material_properties["alpha"])
 
-        self.beta = material_properties["beta"]
+        self.beta = Constant(material_properties["beta"])
 
-        self.gamma = material_properties["gamma"]
+        self.gamma = Constant(material_properties["gamma"])
 
         # Gets the micropolar number, which varies between 0 and 1. If
         # null, it is Cauchy continuum; if 1, it is couple stress theory
@@ -78,12 +78,12 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         
         elif abs(N_micropolar-1.0)<1E-5:
 
-            self.kappa = 2*self.mu
+            self.kappa = Constant(2*self.mu)
 
         else:
 
-            self.kappa = 2*self.mu*((N_micropolar**2)/(1-(N_micropolar**2
-            )))
+            self.kappa = Constant(2*self.mu*((N_micropolar**2)/(1-(
+            N_micropolar**2))))
 
     # Defines a function to evaluate the Helmholtz free energy density
 

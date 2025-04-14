@@ -56,15 +56,15 @@ class Neo_Hookean(HyperelasticMaterialModel):
 
     def __init__(self, material_properties):
 
-        self.E = material_properties["E"]
+        self.E = Constant(material_properties["E"])
 
-        self.v = material_properties["v"]
+        self.v = Constant(material_properties["v"])
 
         # Evaluates the Lamé parameters
 
-        self.mu = self.E/(2*(1+self.v))
+        self.mu = Constant(self.E/(2*(1+self.v)))
 
-        self.lmbda = self.v*self.E/((1+self.v)*(1-2*self.v))
+        self.lmbda = Constant(self.v*self.E/((1+self.v)*(1-2*self.v)))
 
     # Defines a function to evaluate the Helmholtz free energy density
 

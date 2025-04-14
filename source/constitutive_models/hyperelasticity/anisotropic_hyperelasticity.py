@@ -58,41 +58,42 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
     def __init__(self, material_properties):
         
-        self.c = material_properties["c"]
+        self.c = Constant(material_properties["c"])
 
-        self.k1 = material_properties["k1"]
+        self.k1 = Constant(material_properties["k1"])
 
-        self.k2 = material_properties["k2"]
+        self.k2 = Constant(material_properties["k2"])
 
         # Converts the angle from degrees to radians
 
-        self.gamma = material_properties["gamma"]*(ufl.pi/180.0)
+        self.gamma = Constant(material_properties["gamma"]*(ufl.pi/180.0
+        ))
 
-        self.kappa = material_properties["kappa"]
+        self.kappa = Constant(material_properties["kappa"])
 
-        self.k = material_properties["k"]
+        self.k = Constant(material_properties["k"])
 
-        self.e1 = material_properties["local system of coordinates: a "+
-        "direction"]
+        vector_e1 = material_properties["local system of coordinates: "+
+        "a direction"]
 
-        self.e2 = material_properties["local system of coordinates: d "+
-        "direction"]
+        vector_e2 = material_properties["local system of coordinates: "+
+        "d direction"]
 
-        self.e3 = ufl.cross(self.e1, self.e2)
+        vector_e3 = ufl.cross(vector_e1, vector_e2)
 
         # Normalizes these vectors
 
-        norm_e1 = tensor_tools.L2_normVector(self.e1)
+        norm_e1 = Constant(tensor_tools.L2_normVector(vector_e1))
 
-        norm_e2 = tensor_tools.L2_normVector(self.e2)
+        norm_e2 = Constant(tensor_tools.L2_normVector(vector_e2))
 
-        norm_e3 = tensor_tools.L2_normVector(self.e3)
+        norm_e3 = Constant(tensor_tools.L2_normVector(vector_e3))
 
-        self.e1 = (1/norm_e1)*self.e1
+        self.e1 = Constant((1/norm_e1)*vector_e1)
 
-        self.e2 = (1/norm_e2)*self.e2
+        self.e2 = Constant((1/norm_e2)*vector_e2)
 
-        self.e3 = (1/norm_e3)*self.e3
+        self.e3 = Constant((1/norm_e3)*vector_e3)
 
     # Defines the strain energy
 
