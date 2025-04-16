@@ -7,11 +7,6 @@ import tests.test_meshes.beam_gmsh as beam_gmsh
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
-parameters["form_compiler"]["representation"] = "uflacs"
-parameters["allow_extrapolation"] = True
-parameters["form_compiler"]["cpp_optimize"] = True
-parameters["form_compiler"]["quadrature_degree"] = 2
-
 # Beam geometry
 
 ratio_Lb = 1.5E-1
@@ -50,10 +45,12 @@ SideYMinus().mark(side_marker, 1)"""
 
 n_volumes = 1
 
-mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"#micropolar_beam"
+#mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"
 
-#beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
-#mesh_fileName, n_volumes, transfinite=True)
+mesh_fileName = "tests//test_meshes//micropolar_beam"
+
+beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
+mesh_fileName, n_volumes, transfinite=True)
 
 (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
 boundary_meshCollection, boundary_meshFunction,

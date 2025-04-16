@@ -130,6 +130,10 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[], verbose=False):
     traction_dictionary, variation_u, ds, boundary_physGroupsNamesToTags=
     boundary_physGroupsNamesToTags, verbose=verbose)
 
+    #traction_VarForm = (dot(as_vector([0.0, neumann_loads[0], 0.0]), 
+    #variation_u)*ds(6)+dot(as_vector([0.0, neumann_loads[0], 0.0]), 
+    #variation_u)*ds(4))
+
     # Constructs the variational forms for the moment work on the boun-
     # dary. Note that the function traction_work was reused, because the
     # variational construction is the same for traction and for moment

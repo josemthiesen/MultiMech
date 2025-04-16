@@ -1,18 +1,18 @@
 # Routine to test a hyperelastic disc
 
+from dolfin import *
+
 import os
 
-from dolfin import *
+from mpi4py import MPI
 
 from mshr import *
 
-import numpy as np
+#import periodic_structure as mesher
 
 import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework
-
-import tests.test_meshes.beam_gmsh as beam_gmsh
 
 ########################################################################
 ########################################################################
@@ -26,10 +26,10 @@ import tests.test_meshes.beam_gmsh as beam_gmsh
 
 # Defines the path to the results directory 
 
-results_pathGraphics = (os.getcwd()+"//tests//micropolar//Bauer_et_al/"+
+results_pathGraphics = (os.getcwd()+"//tests//micropolar//our_beam_1/"+
 "/results//graphics")
 
-results_pathText = (os.getcwd()+"//tests//micropolar//Bauer_et_al//res"+
+results_pathText = (os.getcwd()+"//tests//micropolar//our_beam_1//res"+
 "ults//text")
 
 displacement_fileName = ["displacement.xdmf", "microrotation.xdmf"]
@@ -69,11 +69,11 @@ post_processesSubmesh = []
 #                         Material properties                          #
 ########################################################################
 
-# Sets the Young modulus and the Poisson ration from psi to MPa
+# Sets the Young modulus and the Poisson ratio
 
-E = 1.2E4*0.00689476
+E = 100E6
 
-nu = 0.2
+nu = 0.4
 
 L = 0.4*(2.54*10)
 
@@ -113,21 +113,11 @@ material_properties["beta"] = beta
 
 material_properties["gamma"] = gamma
 
-# Sets the material as a HGO material
+# Sets the material as a neo-hookean material using the corresponding
+# class
 
-constitutive_model = dict()
-
-n_volumes = 1
-
-if n_volumes==2:
-
-    constitutive_model["Generic volume"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
-    material_properties)
-
-else:
-
-    constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
-    material_properties)
+constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -136,24 +126,17 @@ else:
 # Sets the dimensions of the beam from (Ramezani et al, 2009). Converts
 # from inches to mm
 
-beam_widthX = 1.0*(2.54*10.0)
+beam_widthX = 3.0
 
-beam_widthY = 1.0*(2.54*10.0)
+beam_widthY = 3.0
 
-beam_length = 10.0*(2.54*10.0)
+beam_length = 11
 
 # Defines the name of the file to save the mesh in. Do not write the fi-
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-mesh_fileName = "tests//test_meshes//micropolar_beam"
-
-# Generates the mesh
-
-beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
-mesh_fileName, n_volumes, transfinite=True, transfinite_x=5, 
-transfinite_y=5, transfinite_z=21, beam_widthX=beam_widthX, beam_widthY=
-beam_widthY, beam_length=beam_length)
+mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"
 
 # Defines a set of physical groups to create a submesh
 
@@ -177,21 +160,19 @@ polynomial_degreeMicrorotation = 1
 
 solver_parameters = dict()
 
-solver_parameters["linear_solver"] = "mumps"#"minres"
+solver_parameters["linear_solver"] = "minres"
 
-solver_parameters["newton_relative_tolerance"] = 1e-8#1e-3
+solver_parameters["newton_relative_tolerance"] = 1e-4
 
-solver_parameters["newton_absolute_tolerance"] = 1e-8#1e-3
+solver_parameters["newton_absolute_tolerance"] = 1e-4
 
-solver_parameters["newton_maximum_iterations"] = 30
+solver_parameters["newton_maximum_iterations"] = 10
 
-"""
+"""solver_parameters["preconditioner"] = "hypre_amg"
 
-solver_parameters["preconditioner"] = "petsc_amg"
+solver_parameters["krylov_absolute_tolerance"] = 1e-9
 
-solver_parameters["krylov_absolute_tolerance"] = 1e-6
-
-solver_parameters["krylov_relative_tolerance"] = 1e-6
+solver_parameters["krylov_relative_tolerance"] = 1e-9
 
 solver_parameters["krylov_maximum_iterations"] = 15000
 
@@ -207,7 +188,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 31
+maximum_loadingSteps = 11
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -217,7 +198,7 @@ maximum_loadingSteps = 31
 
 K = 9.3
 
-maximum_load = 0.5*((K*E)/(beam_length**3))*((beam_widthX*(beam_widthY**3))/(12*beam_widthX))#2.0E-4
+maximum_load = -2E6#0.5*((K*E)/(beam_length**3))*((beam_widthX*(beam_widthY**3))/(12*beam_widthX))#2.0E-4
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -234,9 +215,7 @@ traction_boundary = as_vector([0.0, load, 0.0])
 
 traction_dictionary = dict()
 
-traction_dictionary["upper"] = traction_boundary
-
-traction_dictionary["lower"] = traction_boundary
+traction_dictionary["bottom"] = traction_boundary
 
 # Defines a dictionary of moments on the boundary
 
@@ -244,7 +223,7 @@ moment_boundary = as_vector([0.0, 0.0, 0.0])
 
 moment_dictionary = dict()
 
-moment_dictionary["lower"] = moment_boundary
+moment_dictionary["bottom"] = moment_boundary
 
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags

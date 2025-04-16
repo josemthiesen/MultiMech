@@ -105,8 +105,8 @@ verbose=False):
     if verbose:
 
         print("Finishes creating the variational form of the inner wor"+
-        "k done by the first Piola stress tensor in a Cauchy continuum"+
-        " medium\n")
+        "k done by the\nfirst Piola stress tensor in a Cauchy continuu"+
+        "m medium\n")
 
     return inner_work
 
@@ -228,8 +228,8 @@ verbose=False):
     if verbose:
 
         print("Finishes creating the variational form of the inner wor"+
-        "k done by the first Piola stress tensor and its couple stress"+
-        " in a micropolar continuum medium\n")
+        "k done by the\nfirst Piola stress tensor and its couple stres"+
+        "s in a micropolar continu-\num medium\n")
 
     return inner_work
 
