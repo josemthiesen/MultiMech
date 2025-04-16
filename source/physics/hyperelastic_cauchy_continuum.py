@@ -19,7 +19,8 @@ traction_dictionary, maximum_loadingSteps, t_final, post_processes,
 mesh_fileName, solver_parameters, neumann_loads=[], dirichlet_loads=[],  
 polynomial_degree=2, t=0.0, fixed_supportPhysicalGroups=0, 
 simple_supportPhysicalGroups=dict(), volume_physGroupsSubmesh=[], 
-post_processesSubmesh=dict(), solution_name=["solution", "DNS"]):
+post_processesSubmesh=dict(), solution_name=["solution", "DNS"], verbose
+=False):
 
     ####################################################################
     #                               Mesh                               #
@@ -51,13 +52,15 @@ post_processesSubmesh=dict(), solution_name=["solution", "DNS"]):
 
     bc = BCs_tools.fixed_supportDirichletBC(U, boundary_meshFunction, 
     boundary_physicalGroups=fixed_supportPhysicalGroups,
-    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags)
+    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags, 
+    verbose=verbose)
 
     # Adds boundary conditions for simply supported facets
 
     bc = BCs_tools.simple_supportDirichletBC(U, boundary_meshFunction,
     simple_supportPhysicalGroups, boundary_conditions=bc,
-    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags)
+    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags, 
+    verbose=verbose)
 
     ####################################################################
     #                         Variational forms                        #
@@ -78,13 +81,13 @@ post_processesSubmesh=dict(), solution_name=["solution", "DNS"]):
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
     u_new, v, constitutive_model, dx, domain_physGroupsNamesToTags=
-    domain_physGroupsNamesToTags)
+    domain_physGroupsNamesToTags, verbose=verbose)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
     traction_dictionary, v, ds, boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags)
+    boundary_physGroupsNamesToTags, verbose=verbose)
 
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object

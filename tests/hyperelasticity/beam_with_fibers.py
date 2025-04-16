@@ -53,10 +53,18 @@ material_properties["E"] = E
 
 material_properties["v"] = v
 
+constitutive_model = dict()
+
 # Sets the material as a neo-hookean material using the corresponding
 # class
 
-constitutive_model = constitutive_models.Neo_Hookean(material_properties)
+constitutive_model[1] = constitutive_models.Neo_Hookean(material_properties)
+
+constitutive_model[2] = constitutive_models.Neo_Hookean(material_properties)
+
+constitutive_model[3] = constitutive_models.Neo_Hookean(material_properties)
+
+constitutive_model[4] = constitutive_models.Neo_Hookean(material_properties)
 
 ########################################################################
 #                                 Mesh                                 #
@@ -66,7 +74,7 @@ constitutive_model = constitutive_models.Neo_Hookean(material_properties)
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-mesh_fileName = "tests//test_meshes//intervertebral_disc"
+mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"
 
 ########################################################################
 #                            Function space                            #
@@ -127,7 +135,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = -2E7
+maximum_load = -2E10
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -144,13 +152,13 @@ traction_boundary = as_vector([0.0, load, 0.0])
 
 traction_dictionary = dict()
 
-traction_dictionary["top"] = traction_boundary
+traction_dictionary["bottom"] = traction_boundary
 
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags
 # or simply a tag
 
-fixed_supportPhysicalGroups = "bottom"
+fixed_supportPhysicalGroups = 5
 
 ########################################################################
 ########################################################################
