@@ -64,7 +64,7 @@ def clamp_boundary(x, on_boundary):
 
 u_max = 1E-1
 
-t_max = -2E-2
+t_max = -2E6
 
 t_final = 1.0
 
@@ -83,7 +83,7 @@ max_steps = 11
 
 delta_t = (t_final-t)/(max_steps-1)
 
-traction_magnitude = Expression("t_max*(t/t_final)", t_max=t_max, t=t, t_final=t_final, degree=0)  # Adjust as needed
+traction_magnitude = Expression("t_max*(t/t_final)", t_max=t_max, t=t, t_final=t_final, degree=1)  # Adjust as needed
 
 # Kinematics
 du = TrialFunction(V)
@@ -153,11 +153,11 @@ solver = NonlinearVariationalSolver(Res)
 
 solver.parameters["nonlinear_solver"] = "newton"
 
-solver.parameters["newton_solver"]["linear_solver"] = "minres"
+solver.parameters["newton_solver"]["linear_solver"] = "cg"
 
-solver.parameters["newton_solver"]["relative_tolerance"] = 1e-8#1e-3
+solver.parameters["newton_solver"]["relative_tolerance"] = 1e-4#1e-3
 
-solver.parameters["newton_solver"]["absolute_tolerance"] = 1e-8#1e-3
+solver.parameters["newton_solver"]["absolute_tolerance"] = 1e-4#1e-3
 
 solver.parameters["newton_solver"]["maximum_iterations"] = 10
 
@@ -166,7 +166,7 @@ file = File("tests//micropolar//Bauer_et_al//results//neo_hookean_beam.pvd")
 for i in range(max_steps):
 
     print("\n#########################################################"+
-    "###############\n#                                Step: "+str(i)+
+    "###############\n#                                Step: "+str(i+1)+
     "                              #\n################################"+
     "########################################\n")
 

@@ -74,7 +74,7 @@ mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"
 
 # Defines the shape functions degree
 
-polynomial_degree = 1
+polynomial_degree = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -82,7 +82,7 @@ polynomial_degree = 1
 
 # Sets some parameters
 
-parameters["form_compiler"]["representation"] = "uflacs"
+#parameters["form_compiler"]["representation"] = "quadrature"
 parameters["allow_extrapolation"] = True
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
@@ -91,7 +91,7 @@ parameters["form_compiler"]["quadrature_degree"] = 2
 
 solver_parameters = dict()
 
-solver_parameters["linear_solver"] = "cg"
+solver_parameters["linear_solver"] = "mumps"
 
 solver_parameters["newton_relative_tolerance"] = 1e-4
 
@@ -129,7 +129,7 @@ maximum_loadingSteps = 11
 
 maximum_load = -2E6#1E-1
 
-load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
+load = Expression("(t/t_final)*maximum_load", t=0.0, t_final=t_final,
 maximum_load=maximum_load, degree=1)
 
 # Assembles this load into the list of Neumann boundary conditions
@@ -167,7 +167,7 @@ dirichlet_loads = [displacement_load]
 
 prescribed_displacement = dict()
 
-prescribed_displacement["bottom"] = [2, displacement_load]
+#prescribed_displacement["bottom"] = [1, displacement_load]
 
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags
