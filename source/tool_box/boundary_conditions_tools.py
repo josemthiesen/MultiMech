@@ -3,6 +3,265 @@
 from dolfin import *
 
 ########################################################################
+#              Heterogeneous Dirichlet boundary conditions             #
+########################################################################
+
+# Defines a function to apply prescribed boundary conditions to a pro-
+# blem using an Expression as load prescriber
+
+def prescribed_DirichletBC(prescribed_conditionsDict, 
+field_functionSpace, boundary_meshFunction, boundary_conditions=[], 
+boundary_physGroupsNamesToTags=dict(), verbose=False):
+    
+    # Tests if the element is mixed and gets the number of fields
+
+    n_fields = 1
+
+    element_type = field_functionSpace.ufl_element().family()
+
+    if element_type=='Mixed':
+
+        # Gets the number of fields
+
+        n_fields = field_functionSpace.ufl_element().num_sub_elements()
+
+    # Iterates through the keys and values of the dictionary of prescri-
+    # bed Dirichlet boundary conditions. The key is a physical group or
+    # a tuple of physical groups, whereas the values are lists of: num-
+    # ber of the field if there is more than one; degrees of freedom to
+    # be prescribed; and the load expression
+
+    for physical_groups, load_info in prescribed_conditionsDict.items():
+
+        # Verifies whether the boundary physical groups is a list or not
+
+        if isinstance(physical_groups, tuple):
+
+            # Iterates through the regions
+
+            for physical_group in physical_groups:
+
+                # Verifies if the physical group is a string
+
+                physical_group = verify_stringPhysicalGroup(physical_group, 
+                boundary_physGroupsNamesToTags)
+
+                # Verifies if there is only one field
+
+                if n_fields==1:
+
+                    # Verifies if no DOFs are especified
+
+                    if len(load_info)==1:
+
+                        # Adds this particular boundary condition to the 
+                        # lot
+
+                        boundary_conditions.append(DirichletBC(
+                        field_functionSpace, load_info[0], 
+                        boundary_meshFunction, physical_group))
+
+                    # Otherwise, checks if there is a list of DOFs to be
+                    # prescribed
+
+                    else:
+
+                        if isinstance(load_info[0], list):
+
+                            # Iterates through the prescribed DOFs
+
+                            for dof_number in load_info[0]:
+
+                                # Adds this particular boundary condition 
+                                # to the lot
+
+                                boundary_conditions.append(DirichletBC(
+                                field_functionSpace.sub(dof_number), 
+                                load_info[1], boundary_meshFunction, 
+                                physical_group))
+
+                        else:
+
+                            # Adds this particular boundary condition to 
+                            # the lot
+
+                            boundary_conditions.append(DirichletBC(
+                            field_functionSpace.sub(load_info[0]), 
+                            load_info[1], boundary_meshFunction, 
+                            physical_group))
+
+                # Otherwise, iterates through the fields
+
+                else:
+
+                    for field in range(n_fields):
+
+                        # Verifies if this field is to be constrained or 
+                        # not
+
+                        if field==load_info[0]:
+
+                            # Checks whether a set of degrees of freedom
+                            # of the field is to be prescribed
+
+                            if len(load_info)>2:
+
+                                # Verifies if there is a list of DOFs
+
+                                if isinstance(load_info[1], list):
+
+                                    # Iterates through the prescribed
+                                    # DOFs
+
+                                    for dof_number in load_info[1]:
+
+                                        # Adds this particular boundary
+                                        # condition to the lot
+
+                                        boundary_conditions.append(DirichletBC(
+                                        field_functionSpace.sub(field).sub(
+                                        dof_number), load_info[2], 
+                                        boundary_meshFunction, 
+                                        physical_group))
+
+                                else:
+
+                                    # Adds this particular boundary con-
+                                    # dition to the lot
+
+                                    boundary_conditions.append(DirichletBC(
+                                    field_functionSpace.sub(field).sub(
+                                    load_info[1]), load_info[2], 
+                                    boundary_meshFunction, 
+                                    physical_group))
+
+                            else:
+
+                                # Adds this particular boundary condi-
+                                # tion to the lot
+
+                                boundary_conditions.append(DirichletBC(
+                                field_functionSpace.sub(field), 
+                                load_info[1], boundary_meshFunction, 
+                                physical_group))
+
+        # Otherwise, if there is only one physical group to apply boundary 
+        # conditions
+
+        else:
+
+            # Verifies if the physical group is a string
+
+            physical_group = verify_stringPhysicalGroup(physical_groups, 
+            boundary_physGroupsNamesToTags)
+
+            # Verifies if there is only one field
+
+            if n_fields==1:
+
+                # Verifies if no DOFs are especified
+
+                if len(load_info)==1:
+
+                    # Adds this particular boundary condition to the lot
+
+                    boundary_conditions.append(DirichletBC(
+                    field_functionSpace, load_info[0], 
+                    boundary_meshFunction, physical_group))
+
+                # Otherwise, checks if there is a list of DOFs to be
+                # prescribed
+
+                else:
+
+                    if isinstance(load_info[0], list):
+
+                        # Iterates through the prescribed DOFs
+
+                        for dof_number in load_info[0]:
+
+                            # Adds this particular boundary condition 
+                            # to the lot
+
+                            boundary_conditions.append(DirichletBC(
+                            field_functionSpace.sub(dof_number), 
+                            load_info[1], boundary_meshFunction, 
+                            physical_group))
+
+                    else:
+
+                        # Adds this particular boundary condition to 
+                        # the lot
+
+                        boundary_conditions.append(DirichletBC(
+                        field_functionSpace.sub(load_info[0]), 
+                        load_info[1], boundary_meshFunction, 
+                        physical_group))
+
+            # Otherwise, iterates through the fields
+
+            else:
+
+                for field in range(n_fields):
+
+                    # Verifies if this field is to be constrained or 
+                    # not
+
+                    if field==load_info[0]:
+
+                        # Checks whether a set of degrees of freedom
+                        # of the field is to be prescribed
+
+                        if len(load_info)>2:
+
+                            # Verifies if there is a list of DOFs
+
+                            if isinstance(load_info[1], list):
+
+                                # Iterates through the prescribed
+                                # DOFs
+
+                                for dof_number in load_info[1]:
+
+                                    # Adds this particular boundary
+                                    # condition to the lot
+
+                                    boundary_conditions.append(DirichletBC(
+                                    field_functionSpace.sub(field).sub(
+                                    dof_number), load_info[2], 
+                                    boundary_meshFunction, 
+                                    physical_group))
+
+                            else:
+
+                                # Adds this particular boundary con-
+                                # dition to the lot
+
+                                boundary_conditions.append(DirichletBC(
+                                field_functionSpace.sub(field).sub(
+                                load_info[1]), load_info[2], 
+                                boundary_meshFunction, 
+                                physical_group))
+
+                        else:
+
+                            # Adds this particular boundary condi-
+                            # tion to the lot
+
+                            boundary_conditions.append(DirichletBC(
+                            field_functionSpace.sub(field), 
+                            load_info[1], boundary_meshFunction, 
+                            physical_group))
+
+    # Returns the boundary conditions list
+
+    if verbose:
+
+        print("Finishes creating fixed support boundary conditions.\n")
+
+    return boundary_conditions
+
+########################################################################
 #               Homogeneous Dirichlet boundary conditions              #
 ########################################################################
 

@@ -45,10 +45,10 @@ SideYMinus().mark(side_marker, 1)"""
 
 n_volumes = 1
 
-mesh_fileName = "tests//test_meshes//micropolar_beam"
+mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"#micropolar_beam"
 
-beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
-mesh_fileName, n_volumes, transfinite=True)
+#beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
+#mesh_fileName, n_volumes, transfinite=True)
 
 (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
 boundary_meshCollection, boundary_meshFunction,
@@ -56,19 +56,28 @@ domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
 ) = mesh_tools.read_mshMesh(mesh_fileName, quadrature_degree=2)#"""
 
 # Function space for displacement
-V = VectorFunctionSpace(mesh, 'Lagrange', degree=2)
+V = VectorFunctionSpace(mesh, 'Lagrange', degree=1)
 
 # Boundary conditions
 def clamp_boundary(x, on_boundary):
     return on_boundary and near(x[2], 0.0)
 
-bc = DirichletBC(V, Constant((0.0, 0.0, 0.0)), clamp_boundary)
+u_max = 1E-1
 
-# Define traction (on the side y = -b/2)
-t_max = 1E-2
+t_max = -2E-2
+
 t_final = 1.0
 
 t = 0.0
+
+displacement = Expression("u_max*(t/t_final)", u_max=u_max, t=t, t_final=t_final, degree=1)  # Adjust as needed
+
+bc = [DirichletBC(V, Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5)]#,
+    #DirichletBC(V.sub(2), displacement, boundary_meshFunction, 6)]
+
+#bc = DirichletBC(V, Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 5) clamp_boundary)
+
+# Define traction (on the side y = -b/2)
 
 max_steps = 11
 
@@ -113,6 +122,10 @@ E = ((mu/(lmbda+mu))*((2*mu)+(3*lmbda)))
 
 nu = lmbda/(2*(lmbda+mu))
 
+E = 100E6
+
+nu = 0.4
+
 material_properties["E"] = E 
 
 material_properties["v"] = nu
@@ -121,7 +134,11 @@ constitutive_model = constitutive_models.Neo_Hookean(material_properties)
 
 P = constitutive_model.first_piolaStress(u)#"""
 
-variational_form = (inner(P, dF)*dx)-(dot(as_vector([0.0, traction_magnitude, 0.0]),v)*ds(6))
+traction_work = (dot(as_vector([0.0, traction_magnitude, 0.0]),v)*ds(6))
+
+print(traction_work)
+
+variational_form = (inner(P, dF)*dx)-traction_work
 
 # Variational problem
 #F_res = variational_form#derivative(Pi, u, v)
@@ -136,19 +153,26 @@ solver = NonlinearVariationalSolver(Res)
 
 solver.parameters["nonlinear_solver"] = "newton"
 
-solver.parameters["newton_solver"]["linear_solver"] = "mumps"#"minres"
+solver.parameters["newton_solver"]["linear_solver"] = "minres"
 
 solver.parameters["newton_solver"]["relative_tolerance"] = 1e-8#1e-3
 
 solver.parameters["newton_solver"]["absolute_tolerance"] = 1e-8#1e-3
 
-solver.parameters["newton_solver"]["maximum_iterations"] = 20
+solver.parameters["newton_solver"]["maximum_iterations"] = 10
 
 file = File("tests//micropolar//Bauer_et_al//results//neo_hookean_beam.pvd")
 
 for i in range(max_steps):
 
+    print("\n#########################################################"+
+    "###############\n#                                Step: "+str(i)+
+    "                              #\n################################"+
+    "########################################\n")
+
     traction_magnitude.t = t
+
+    displacement.t = t
 
     solver.solve()
 
