@@ -216,6 +216,18 @@ data_sets=["domain", "boundary"], quadrature_degree=2):
 def read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=dict(), 
 boundary_physicalGroupsNameToTag=dict(), quadrature_degree=2):
     
+    # Sets the compiler parameters
+
+    parameters["form_compiler"]["representation"] = "uflacs"
+
+    parameters["allow_extrapolation"] = True
+
+    parameters["form_compiler"]["cpp_optimize"] = True
+
+    parameters["form_compiler"]["quadrature_degree"] = quadrature_degree
+
+    # Verifies the dictionaries of names to tags
+    
     if len(domain_physicalGroupsNameToTag.keys())==0 or (len(
     boundary_physicalGroupsNameToTag.keys())==0):
         
@@ -278,8 +290,8 @@ boundary_physicalGroupsNameToTag=dict(), quadrature_degree=2):
     dx = Measure("dx", domain=mesh, subdomain_data=domain_meshFunction,
     metadata={"quadrature_degree": quadrature_degree})
 
-    ds = Measure("ds", domain=mesh, subdomain_data=boundary_meshFunction,
-    metadata={"quadrature_degree": quadrature_degree})
+    ds = Measure("ds", domain=mesh, subdomain_data=boundary_meshFunction)#,
+    #metadata={"quadrature_degree": quadrature_degree})
 
     # Sets the normal vector to the mesh's boundary
 

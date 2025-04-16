@@ -7,6 +7,11 @@ import tests.test_meshes.beam_gmsh as beam_gmsh
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
+parameters["form_compiler"]["representation"] = "uflacs"
+parameters["allow_extrapolation"] = True
+parameters["form_compiler"]["cpp_optimize"] = True
+parameters["form_compiler"]["quadrature_degree"] = 2
+
 # Beam geometry
 
 ratio_Lb = 1.5E-1
@@ -83,7 +88,7 @@ max_steps = 11
 
 delta_t = (t_final-t)/(max_steps-1)
 
-traction_magnitude = Expression("t_max*(t/t_final)", t_max=t_max, t=t, t_final=t_final, degree=1)  # Adjust as needed
+traction_magnitude = Expression("t_max*(t/t_final)", t_max=t_max, t=t, t_final=t_final, degree=0)  # Adjust as needed
 
 # Kinematics
 du = TrialFunction(V)

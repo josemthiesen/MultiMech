@@ -32,7 +32,8 @@ solution_name=["solution", "DNS"], verbose=False):
     (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
     boundary_meshCollection, boundary_meshFunction, 
     domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
-    ) = mesh_tools.read_mshMesh(mesh_fileName, quadrature_degree=2)
+    ) = mesh_tools.read_mshMesh(mesh_fileName, quadrature_degree=
+    quadrature_degree)
 
     ####################################################################
     #                          Function space                          #
@@ -86,21 +87,21 @@ solution_name=["solution", "DNS"], verbose=False):
 
     # Constructs the variational form for the inner work
 
-    #internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    #u_new, v, constitutive_model, dx, domain_physGroupsNamesToTags=
-    #domain_physGroupsNamesToTags, verbose=verbose)
+    internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
+    u_new, v, constitutive_model, dx, domain_physGroupsNamesToTags=
+    domain_physGroupsNamesToTags, verbose=verbose)
 
-    Piola = constitutive_model.first_piolaStress(u_new)
+    #Piola = constitutive_model.first_piolaStress(u_new)
 
-    internal_VarForm = (inner(Piola, grad(v))*dx)
+    #internal_VarForm = (inner(Piola, grad(v))*dx)
 
     # Constructs the variational forms for the traction work
 
-    #traction_VarForm = variational_tools.traction_work(
-    #traction_dictionary, v, ds, boundary_physGroupsNamesToTags=
-    #boundary_physGroupsNamesToTags, verbose=verbose)
+    traction_VarForm = variational_tools.traction_work(
+    traction_dictionary, v, ds, boundary_physGroupsNamesToTags=
+    boundary_physGroupsNamesToTags, verbose=verbose)
 
-    traction_VarForm = dot(as_vector([0.0, neumann_loads[0], 0.0]), v)*ds(6)
+    #traction_VarForm = dot(as_vector([0.0, neumann_loads[0], 0.0]), v)*ds(6)
 
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object

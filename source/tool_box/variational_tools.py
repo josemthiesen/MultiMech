@@ -267,10 +267,17 @@ boundary_physGroupsNamesToTags=dict(), verbose=False):
 
             for sub_physicalGroup in physical_group:
 
+                print("The physical group "+str(sub_physicalGroup)+" h"+
+                "as an area of "+str(assemble(1*ds(sub_physicalGroup)))+
+                "\n")
+
                 traction_form += dot(traction, field_variation)*ds(
                 sub_physicalGroup)
 
         else:
+
+            print("The physical group "+str(physical_group)+" has an a"+
+            "rea of "+str(assemble(1*ds(physical_group)))+"\n")
 
             traction_form += dot(traction, field_variation)*ds(
             physical_group)
