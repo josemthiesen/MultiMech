@@ -87,13 +87,23 @@ n  = FacetNormal(mesh)
 
 U = VectorElement("CG",mesh.ufl_cell(), 2) # Displacement, Q2
 
-V = VectorElement("CG",mesh.ufl_cell(), 2) # Microrotation, Q1
+V = VectorElement("CG",mesh.ufl_cell(), 1) # Microrotation, Q1
 
 # Define the mixed element for the monolithic solution
 
 MicroPolarMixedElement = MixedElement([U,V])
  
 UV = FunctionSpace(mesh, MicroPolarMixedElement)
+
+UV_subspaces = UV.split()
+
+print(UV.sub(0).dim())
+
+print(UV.sub(1).dim())
+
+print(UV_subspaces[0].dim())
+
+print(UV_subspaces[1].dim())
 
 ########################################################################
 #                         RVE post-processing                          #
@@ -305,7 +315,15 @@ vu, vphi = split(v)
 
 sol_new = Function(UV)
 
+print(len(sol_new.sub(0).vector().get_local()))
+
+print(len(sol_new.sub(1).vector().get_local()))
+
 u_new, phi_new = split(sol_new)
+
+print(len(u_new.vector()))
+
+print(len(phi_new.vector()))
 
 invgrad = inv(def_grad(u_new)).T
 

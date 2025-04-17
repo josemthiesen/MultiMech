@@ -209,10 +209,14 @@ solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
     " initiated             #\n#######################################"+
     "#################################\n")
 
+    # Splits the solution to show how many DOFs are at each field
+
+    split_solution = list(solution_field.split(deepcopy=True))
+
     for i in range(n_fields):
 
-        print("There are "+str(len(solution_field.sub(i).vector()))+" "+
-        "degrees of freedom in the "+str(i+1)+"-th field of the mesh\n")
+        print("There are "+str(len(split_solution[i].vector()))+" degrees "+
+        "of freedom in the "+str(i+1)+"-th field of the mesh\n")
 
     # Transforms the list of dictionaries of post-processing methods 
     # instructions into a list of live-wire dictionaries with the proper 

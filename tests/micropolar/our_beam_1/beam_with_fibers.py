@@ -14,6 +14,8 @@ import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as 
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
+import tests.test_meshes.beam_gmsh as beam_gmsh
+
 ########################################################################
 ########################################################################
 ##                      User defined parameters                       ##
@@ -138,6 +140,21 @@ beam_length = 11
 
 mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"
 
+mesh_fileName = "tests//test_meshes//micropolar_beam"
+
+# Generates the mesh
+
+transfinite_x = 2#5
+
+transfinite_y = 2#5
+
+transfinite_z = 2#21
+
+beam_gmsh.generate_micropolarBeam(mu, ratio_Lb, beta, gamma, 
+mesh_fileName, 1, transfinite=True, transfinite_x=transfinite_x,
+transfinite_y=transfinite_y, transfinite_z=transfinite_z, beam_widthX=
+beam_widthX, beam_widthY=beam_widthY, beam_length=beam_length)
+
 # Defines a set of physical groups to create a submesh
 
 volume_physGroupsSubmesh = []
@@ -160,7 +177,7 @@ polynomial_degreeMicrorotation = 1
 
 solver_parameters = dict()
 
-solver_parameters["linear_solver"] = "minres"
+solver_parameters["linear_solver"] = "mumps"
 
 solver_parameters["newton_relative_tolerance"] = 1e-4
 
@@ -198,7 +215,7 @@ maximum_loadingSteps = 11
 
 K = 9.3
 
-maximum_load = -2E6#0.5*((K*E)/(beam_length**3))*((beam_widthX*(beam_widthY**3))/(12*beam_widthX))#2.0E-4
+maximum_load = -1E6#0.5*((K*E)/(beam_length**3))*((beam_widthX*(beam_widthY**3))/(12*beam_widthX))#2.0E-4
 
 load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -215,7 +232,9 @@ traction_boundary = as_vector([0.0, load, 0.0])
 
 traction_dictionary = dict()
 
-traction_dictionary["bottom"] = traction_boundary
+traction_dictionary["lower"] = traction_boundary
+
+traction_dictionary["upper"] = traction_boundary
 
 # Defines a dictionary of moments on the boundary
 
@@ -223,7 +242,7 @@ moment_boundary = as_vector([0.0, 0.0, 0.0])
 
 moment_dictionary = dict()
 
-moment_dictionary["bottom"] = moment_boundary
+moment_dictionary["lower"] = moment_boundary
 
 # Defines the boundary physical groups to apply fixed support boundary
 # condition. This variable can be either a list of physical groups tags

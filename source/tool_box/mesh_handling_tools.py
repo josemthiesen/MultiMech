@@ -41,15 +41,15 @@ data_sets=["domain", "boundary"], quadrature_degree=2):
 
         if tag_dimensionality[1]==2:
 
-            boundary_physicalGroupsNameToTag[physical_group] = tag_dimensionality[
-            0]
+            boundary_physicalGroupsNameToTag[physical_group] = int(
+            tag_dimensionality[0])
 
         # If the dimensionality is 3, gets the domain
 
         elif tag_dimensionality[1]==3:
 
-            domain_physicalGroupsNameToTag[physical_group] = tag_dimensionality[
-            0]
+            domain_physicalGroupsNameToTag[physical_group] = int(
+            tag_dimensionality[0])
 
     # Initializes a dictionary whose keys are the element types and the
     # values are the list of physical groups tags to which each element

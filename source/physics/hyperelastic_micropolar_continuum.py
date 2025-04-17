@@ -36,6 +36,14 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[], verbose=False):
     domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
     ) = mesh_tools.read_mshMesh(mesh_fileName)
 
+    for key, value in boundary_physGroupsNamesToTags.items():
+
+        print(key, value, type(value))
+
+    print("")
+
+    print(type(6))
+
     ####################################################################
     #                          Function space                          #
     ####################################################################
@@ -111,7 +119,8 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[], verbose=False):
 
     solution_new = Function(monolithic_functionSpace)
 
-    # Splits the solution and the test function
+    # Splits the solution and the test function. Splits the fields but 
+    # keeps each one with the global vector of parameters
 
     u_new, phi_new = split(solution_new)
 
@@ -131,8 +140,7 @@ volume_physGroupsSubmesh=[], post_processesSubmesh=[], verbose=False):
     boundary_physGroupsNamesToTags, verbose=verbose)
 
     #traction_VarForm = (dot(as_vector([0.0, neumann_loads[0], 0.0]), 
-    #variation_u)*ds(6)+dot(as_vector([0.0, neumann_loads[0], 0.0]), 
-    #variation_u)*ds(4))
+    #variation_u)*ds(6))
 
     # Constructs the variational forms for the moment work on the boun-
     # dary. Note that the function traction_work was reused, because the
