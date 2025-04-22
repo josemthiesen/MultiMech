@@ -2,6 +2,8 @@
 
 import os
 
+import sys
+
 from dolfin import *
 
 from mshr import *
@@ -12,7 +14,9 @@ import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as 
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
-import tests.test_meshes.beam_micropolar_case_1 as beam_gmsh
+sys.path.insert(1, '/home/matheus-janczkowski/Github')
+
+import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 ########################################################################
 ########################################################################
