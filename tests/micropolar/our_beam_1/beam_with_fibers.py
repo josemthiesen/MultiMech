@@ -51,11 +51,15 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines a list of micropolar numbers
 
-    N_list = [0.1]
+    N_list = [0.2]
+
+    # Defines a list of load factors
+
+    load_factors = [5.0]
 
     # Defines the characteristic length as a ratio of the beam length
 
-    characteristic_length = RVE_width*n_RVEsZ*0.01
+    characteristic_length = RVE_width*n_RVEsZ*2.0#0.2#0.01
 
     # Iterates through the micropolar numbers
 
@@ -76,19 +80,19 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         # Calls the simulation for bending
 
-        beam_case_1(N, characteristic_length, True, gamma=0.0, RVE_width
-        =RVE_width, RVE_length=RVE_length, fiber_radius=fiber_radius, 
-        n_RVEsX=n_RVEsX, n_RVEsY=n_RVEsY, n_RVEsZ=n_RVEsZ, 
-        RVE_localizationX=RVE_localizationX, RVE_localizationY=
-        RVE_localizationY, RVE_localizationZ=RVE_localizationZ, 
-        flag_newMesh=flag_mesh)
+        beam_case_1(N, characteristic_length, True, load_factors[i], 
+        gamma=0.0, RVE_width=RVE_width, RVE_length=RVE_length, 
+        fiber_radius=fiber_radius, n_RVEsX=n_RVEsX, n_RVEsY=n_RVEsY, 
+        n_RVEsZ=n_RVEsZ, RVE_localizationX=RVE_localizationX, 
+        RVE_localizationY=RVE_localizationY, RVE_localizationZ=
+        RVE_localizationZ, flag_newMesh=flag_mesh)
 
 # Defines a function to try different parameters
 
-def beam_case_1(N_micropolar, characteristic_length, flag_bending, gamma
-=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, n_RVEsX=1, 
-n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=1, 
-RVE_localizationZ=3, flag_newMesh=True):
+def beam_case_1(N_micropolar, characteristic_length, flag_bending, 
+load_factor, gamma=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=
+0.25, n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, 
+RVE_localizationY=1, RVE_localizationZ=3, flag_newMesh=True):
     
     # Sets a sufix to denote the material parameters
 
@@ -96,11 +100,13 @@ RVE_localizationZ=3, flag_newMesh=True):
 
     if flag_bending:
 
-        sufix += "bending_lb_"+float_toString(characteristic_length)+"_"
+        sufix += ("_bending_lb_"+float_toString(characteristic_length)+
+        "_")
 
     else:
 
-        sufix += "torsion_lt_"+float_toString(characteristic_length)+"_"
+        sufix += ("_torsion_lt_"+float_toString(characteristic_length)+
+        "_")
 
     sufix += "gamma_"+float_toString(gamma)+"_"
 
@@ -255,9 +261,9 @@ RVE_localizationZ=3, flag_newMesh=True):
 
     solver_parameters["linear_solver"] = "mumps"#"mumps"
 
-    solver_parameters["newton_relative_tolerance"] = 1e-3#1e-8
+    solver_parameters["newton_relative_tolerance"] = 1e-8#1e-8
 
-    solver_parameters["newton_absolute_tolerance"] = 1e-3#1e-8
+    solver_parameters["newton_absolute_tolerance"] = 1e-5#1e-8
 
     solver_parameters["newton_maximum_iterations"] = 30
 
@@ -283,17 +289,22 @@ RVE_localizationZ=3, flag_newMesh=True):
 
     # Sets the maximum number of steps of loading
 
-    maximum_loadingSteps = 11
+    maximum_loadingSteps = 25
 
     ####################################################################
     #                        Boundary conditions                       #
     ####################################################################
 
     # Defines a load expression
+    
+    maximum_load = ((0.5*load_factor*E*((RVE_length*(RVE_width**3))/12))
+    /((n_RVEsZ*RVE_width)**3))
 
-    K = 9.3
+    maximum_load1 = 0.84E4
 
-    maximum_load = 2E5#0.5*((K*E)/(beam_length**3))*((beam_widthX*(beam_widthY**3))/(12*beam_widthX))#2.0E-4
+    maximum_load = 1E5
+
+    print(maximum_load1/maximum_load)
 
     load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
     maximum_load=maximum_load, degree=2)
