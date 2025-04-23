@@ -5,6 +5,33 @@ import os
 
 import copy
 
+import numpy as np
+
+# Defines a function to convert a float to a string substituting the dot
+# by an underline
+
+def float_toString(number):
+
+    # Converts the number to string
+
+    number = str(number)
+
+    new_number = ""
+
+    # Checks for dots
+
+    for i in range(len(number)):
+
+        if number[i]==".":
+
+            new_number += "_"
+
+        elif number[i]!=",":
+
+            new_number += number[i]
+
+    return new_number
+
 ########################################################################
 #                              Path tools                              #
 ########################################################################
