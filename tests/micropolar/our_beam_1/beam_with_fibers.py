@@ -48,16 +48,16 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsY = 3
 
-    n_RVEsZ = 10
+    n_RVEsZ = 11
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
 
-    RVE_localizationX = 1
+    RVE_localizationX = 2
 
-    RVE_localizationY = 1
+    RVE_localizationY = 2
 
-    RVE_localizationZ = 3
+    RVE_localizationZ = 6
 
     # Defines a list of lists, each list is a set of material parameters
     # - micropolar number of the matrix, micropolar number of the fiber,
