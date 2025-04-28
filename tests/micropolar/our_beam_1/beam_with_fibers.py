@@ -22,6 +22,16 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 def case1_varyingMicropolarNumber(flag_newMesh=False):
 
+    # Sets the Young modulus and the Poisson ration from psi to MPa
+
+    E_matrix = 100E6
+
+    nu_matrix = 0.4
+
+    E_fiber = 1000E6
+
+    nu_fiber = 0.4
+
     # Defines the RVE overall parameters
 
     RVE_width = 1.0
@@ -34,11 +44,11 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the number of RVEs at each direction
 
-    n_RVEsX = 1
+    n_RVEsX = 3
 
-    n_RVEsY = 1
+    n_RVEsY = 3
 
-    n_RVEsZ = 5
+    n_RVEsZ = 10
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
@@ -50,10 +60,14 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_localizationZ = 3
 
     # Defines a list of lists, each list is a set of material parameters
-    # - micropolar number, characteristic length, and load factor
+    # - micropolar number of the matrix, micropolar number of the fiber,
+    # characteristic length of the matrix, characteristic length of the
+    # fiber, and load factor
 
-    parameters_sets = [[0.002, RVE_width*n_RVEsZ*2.0, 5.0], [0.02, 
-    RVE_width*n_RVEsZ*2.0, 5.0], [0.2, RVE_width*n_RVEsZ*2.0, 5.0]]
+    parameters_sets = [[0.002, 0.002, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    n_RVEsZ*2.0), 5.0], [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    n_RVEsZ*2.0), 5.0], [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    n_RVEsZ*2.0), 5.0]]
 
     # Iterates through the simulations
 
@@ -70,8 +84,10 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         # Calls the simulation for bending
 
-        beam_case_1(parameters_sets[i][0], parameters_sets[i][1], True, 
-        parameters_sets[i][2], gamma=0.0, RVE_width=RVE_width, 
+        beam_case_1(E_matrix, E_fiber, nu_matrix, nu_fiber, 
+        parameters_sets[i][0], parameters_sets[i][1], parameters_sets[i
+        ][2], parameters_sets[i][3], True, parameters_sets[i][4], 
+        gamma_matrix=0.0, gamma_fiber=0.0, RVE_width=RVE_width, 
         RVE_length=RVE_length, fiber_radius=fiber_radius, n_RVEsX=
         n_RVEsX, n_RVEsY=n_RVEsY, n_RVEsZ=n_RVEsZ, RVE_localizationX=
         RVE_localizationX, RVE_localizationY=RVE_localizationY, 
@@ -79,10 +95,12 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
 # Defines a function to try different parameters
 
-def beam_case_1(N_micropolar, characteristic_length, flag_bending, 
-load_factor, gamma=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=
-0.25, n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, 
-RVE_localizationY=1, RVE_localizationZ=3, flag_newMesh=True):
+def beam_case_1(E_matrix, E_fiber, nu_matrix, nu_fiber, 
+N_micropolarMatrix, N_micropolarFiber, characteristic_lengthMatrix, 
+characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
+gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
+n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
+1, RVE_localizationZ=3, flag_newMesh=True):
     
     # Sets a sufix to denote the material parameters
 
@@ -90,17 +108,21 @@ RVE_localizationY=1, RVE_localizationZ=3, flag_newMesh=True):
 
     if flag_bending:
 
-        sufix += ("bending_lb_"+float_toString(characteristic_length)+
-        "_")
+        sufix += ("bending_matrix_lb_"+float_toString(
+        characteristic_lengthMatrix)+"_fiber_lb_"+float_toString(
+        characteristic_lengthFiber)+"_")
 
     else:
 
-        sufix += ("torsion_lt_"+float_toString(characteristic_length)+
-        "_")
+        sufix += ("torsion_matrix_lt_"+float_toString(
+        characteristic_lengthMatrix)+"_fiber_lt_"+float_toString(
+        characteristic_lengthFiber)+"_")
 
-    sufix += "gamma_"+float_toString(gamma)+"_"
+    sufix += ("matrix_gamma_"+float_toString(gamma_matrix)+"_fiber_gam"+
+    "ma_"+float_toString(gamma_fiber)+"_")
 
-    sufix += "N_"+float_toString(N_micropolar)
+    sufix += ("matrix_N_"+float_toString(N_micropolarMatrix)+"_fiber_N"+
+    "_"+float_toString(N_micropolarFiber))
 
     ####################################################################
     ####################################################################
@@ -157,54 +179,81 @@ RVE_localizationY=1, RVE_localizationZ=3, flag_newMesh=True):
     #                       Material properties                        #
     ####################################################################
 
-    # Sets the Young modulus and the Poisson ration from psi to MPa
-
-    E = 100E6
-
-    nu = 0.4
-
     # Converts to Lamé parameters
 
-    mu = E/(2*(1+nu))
+    mu_matrix = E_matrix/(2*(1+nu_matrix))
 
-    lmbda = (nu*E)/((1+nu)*(1-(2*nu)))
+    lmbda_matrix = (nu_matrix*E_matrix)/((1+nu_matrix)*(1-(2*nu_matrix)))
+
+    mu_fiber = E_fiber/(2*(1+nu_fiber))
+
+    lmbda_fiber = (nu_fiber*E_fiber)/((1+nu_fiber)*(1-(2*nu_fiber)))
 
     # Sets a dictionary of properties
 
-    material_properties = dict()
+    alpha_matrix = 0.0
 
-    alpha = 0.0
+    beta_matrix = 0.0
 
-    beta = 0.0
+    alpha_fiber = 0.0
+
+    beta_fiber = 0.0
 
     if flag_bending:
 
-        beta = 4*mu*(characteristic_length**2)
+        beta_matrix = 4*mu_matrix*(characteristic_lengthMatrix**2)
+
+        beta_fiber = 4*mu_fiber*(characteristic_lengthFiber**2)
 
     else:
 
-        beta = (2*mu*(characteristic_length**2))-gamma
+        beta_matrix = ((2*mu_matrix*(characteristic_lengthMatrix**2))-
+        gamma_matrix)
 
-    # Saves the properties into a dictionary
+        beta_fiber = ((2*mu_fiber*(characteristic_lengthFiber**2))-
+        gamma_fiber)
 
-    material_properties["mu"] = mu
+    # Saves the properties into a dictionary for the matrix
 
-    material_properties["lambda"] = lmbda
+    material_propertiesMatrix = dict()
 
-    material_properties["N"] = N_micropolar
+    material_propertiesMatrix["mu"] = mu_matrix
 
-    material_properties["alpha"] = alpha
+    material_propertiesMatrix["lambda"] = lmbda_matrix
 
-    material_properties["beta"] = beta
+    material_propertiesMatrix["N"] = N_micropolarMatrix
 
-    material_properties["gamma"] = gamma
+    material_propertiesMatrix["alpha"] = alpha_matrix
+
+    material_propertiesMatrix["beta"] = beta_matrix
+
+    material_propertiesMatrix["gamma"] = gamma_matrix
+
+    # And for the fiber
+
+    material_propertiesFiber = dict()
+
+    material_propertiesFiber["mu"] = mu_fiber
+
+    material_propertiesFiber["lambda"] = lmbda_fiber
+
+    material_propertiesFiber["N"] = N_micropolarFiber
+
+    material_propertiesFiber["alpha"] = alpha_fiber
+
+    material_propertiesFiber["beta"] = beta_fiber
+
+    material_propertiesFiber["gamma"] = gamma_fiber
 
     # Sets the material as a HGO material
 
     constitutive_model = dict()
 
-    constitutive_model = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
-    material_properties)
+    constitutive_model[("Matrix","RVE matrix")] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    material_propertiesMatrix)
+
+    constitutive_model[("Fiber","RVE fiber")] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    material_propertiesFiber)
 
     ####################################################################
     #                               Mesh                               #
@@ -285,8 +334,8 @@ RVE_localizationY=1, RVE_localizationZ=3, flag_newMesh=True):
 
     # Defines a load expression
     
-    maximum_load = ((0.5*load_factor*E*((RVE_length*(RVE_width**3))/12))
-    /((n_RVEsZ*RVE_width)**3))
+    maximum_load = ((0.5*load_factor*E_matrix*((RVE_length*(RVE_width**3
+    ))/12))/((n_RVEsZ*RVE_width)**3))
 
     maximum_load1 = 0.84E4
 
