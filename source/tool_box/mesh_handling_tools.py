@@ -4,14 +4,20 @@ from dolfin import *
 
 import meshio
 
+import source.tool_box.programming_tools as programming_tools
+
 ########################################################################
 #                              Mesh files                              #
 ########################################################################
 
 # Defines a function to read a mesh from a msh file
 
-def read_mshMesh(file_name, desired_elements=['tetra', 'triangle'],
-data_sets=["domain", "boundary"], quadrature_degree=2):
+@programming_tools.optional_argumentsInitializer({'desired_elements':
+lambda: ['tetra', 'triangle'], 'data_sets': lambda: ["domain", ("bound"+
+"ary")]})
+
+def read_mshMesh(file_name, desired_elements=None, data_sets=None, 
+quadrature_degree=2):
 
     # Reads the saved gmsh mesh using meshio
 
@@ -213,8 +219,12 @@ data_sets=["domain", "boundary"], quadrature_degree=2):
 
 # Defines a function to read a mesh from a xdmf file
 
-def read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=dict(), 
-boundary_physicalGroupsNameToTag=dict(), quadrature_degree=2):
+@programming_tools.optional_argumentsInitializer({('domain_physicalGro'+
+'upsNameToTag'): lambda: dict(), 'boundary_physicalGroupsNameToTag': 
+lambda: dict()})
+
+def read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=None, 
+boundary_physicalGroupsNameToTag=None, quadrature_degree=2):
     
     # Sets the compiler parameters
 

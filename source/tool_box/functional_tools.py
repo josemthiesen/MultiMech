@@ -1,4 +1,5 @@
-# Routine to store functions to help with functional analysis tasks
+# Routine to store functions to help with functional analysis tasks and
+# programmatic tools
 
 from dolfin import *
 

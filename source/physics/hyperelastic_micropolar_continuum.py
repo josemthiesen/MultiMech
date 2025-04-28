@@ -11,18 +11,26 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
+import source.tool_box.programming_tools as programming_tools
+
 # Defines a function to model a hyperelastic problem with a displacement
 # and a microrotation fields only
+
+@programming_tools.optional_argumentsInitializer({'neumann_loads': 
+lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: [], 
+'simple_supportDisplacementPhysicalGroups': lambda: dict(), ('simple_s'+
+'upportMicrorotationPhysicalGroups'): lambda: dict(), ('volume_physGro'+
+'upsSubmesh'): lambda: [], 'post_processesSubmesh': lambda: []})
 
 def hyperelasticity_displacementMicrorotationBased(constitutive_model, 
 traction_dictionary, moment_dictionary, maximum_loadingSteps, t_final, 
 post_processes, mesh_fileName, solver_parameters, 
 polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, 
-t=0.0, fixed_supportDisplacementPhysicalGroups=0, neumann_loads=[], 
-dirichlet_loads=[], fixed_supportMicrorotationPhysicalGroups=0, 
-solution_name=[], simple_supportDisplacementPhysicalGroups=dict(), 
-simple_supportMicrorotationPhysicalGroups=dict(),
-volume_physGroupsSubmesh=[], post_processesSubmesh=[], verbose=False):
+t=0.0, fixed_supportDisplacementPhysicalGroups=0, neumann_loads=None, 
+dirichlet_loads=None, fixed_supportMicrorotationPhysicalGroups=0, 
+solution_name=None, simple_supportDisplacementPhysicalGroups=None, 
+simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
+=None, post_processesSubmesh=None, verbose=False):
 
     ####################################################################
     #                               Mesh                               #

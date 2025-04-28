@@ -8,6 +8,8 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 
 import source.tool_box.post_processing_tools as post_processing_tools
 
+import source.tool_box.programming_tools as programming_tools
+
 ########################################################################
 #                        Newton-Raphson schemes                        #
 ########################################################################
@@ -15,11 +17,17 @@ import source.tool_box.post_processing_tools as post_processing_tools
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of a single field
 
+@programming_tools.optional_argumentsInitializer({'post_processesDict': 
+lambda: dict(), 'post_processesSubmeshDict': lambda: dict(), 
+'dirichlet_loads': lambda: [], 'neumann_loads': lambda: [],
+'solver_parameters': lambda: dict(), 'solution_name': lambda: [
+"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: []})
+
 def newton_raphsonSingleField(t, t_final, maximum_loadingSteps, solver, 
 solution_field, domain_meshCollection, constitutive_model, dx,
-post_processesDict=dict(), post_processesSubmeshDict=dict(), 
-dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
-solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
+post_processesDict=None, post_processesSubmeshDict=None, dirichlet_loads
+=None, neumann_loads=None, solver_parameters=None, solution_name=None, 
+volume_physGroupsSubmesh=None):
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
@@ -190,11 +198,18 @@ solution_name=["solution", "DNS"], volume_physGroupsSubmesh=[]):
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of multiple fields
 
+@programming_tools.optional_argumentsInitializer({'post_processesList': 
+lambda: [], 'post_processesSubmeshList': lambda: [], 
+'dirichlet_loads': lambda: [], 'neumann_loads': lambda: [],
+'solver_parameters': lambda: dict(), 'solution_name': lambda: [
+"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: []})
+
 def newton_raphsonMultipleFields(t, t_final, maximum_loadingSteps, 
 solver, solution_field, mixed_element, domain_meshCollection, 
-constitutive_model, dx, post_processesList=[], post_processesSubmeshList
-=[], dirichlet_loads=[], neumann_loads=[], solver_parameters=dict(), 
-solution_name=[["solution", "DNS"]], volume_physGroupsSubmesh=[]):
+constitutive_model, dx, post_processesList=None, 
+post_processesSubmeshList=None, dirichlet_loads=None, neumann_loads=None, 
+solver_parameters=None, solution_name=None, volume_physGroupsSubmesh=
+None):
 
     # Evaluates the pseudotime step
 

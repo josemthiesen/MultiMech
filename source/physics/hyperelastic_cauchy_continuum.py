@@ -11,16 +11,24 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
+import source.tool_box.programming_tools as programming_tools
+
 # Defines a function to model a hyperelastic problem with a displacement
 # field only
 
+@programming_tools.optional_argumentsInitializer({'neumann_loads': 
+lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: [
+"solution", "DNS"], 'simple_supportPhysicalGroups': lambda: dict(), 
+'volume_physGroupsSubmesh': lambda: [], 'post_processesSubmesh': lambda: 
+dict(), 'prescribed_displacement': lambda: dict()})
+
 def hyperelasticity_displacementBased(constitutive_model, 
 traction_dictionary, maximum_loadingSteps, t_final, post_processes, 
-mesh_fileName, solver_parameters, neumann_loads=[], dirichlet_loads=[],  
-prescribed_displacement=dict(), polynomial_degree=2, quadrature_degree=2,
-t=0.0, fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=dict(
-), volume_physGroupsSubmesh=[], post_processesSubmesh=dict(), 
-solution_name=["solution", "DNS"], verbose=False):
+mesh_fileName, solver_parameters, neumann_loads=None, dirichlet_loads=
+None, prescribed_displacement=None, polynomial_degree=2, 
+quadrature_degree=2, t=0.0, fixed_supportPhysicalGroups=0, 
+simple_supportPhysicalGroups=None, volume_physGroupsSubmesh=None, 
+post_processesSubmesh=None, solution_name=None, verbose=False):
 
     ####################################################################
     #                               Mesh                               #

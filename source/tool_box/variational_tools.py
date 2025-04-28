@@ -6,6 +6,8 @@ import copy
 
 import source.tool_box.tensor_tools as tensor_tools
 
+import source.tool_box.programming_tools as programming_tools
+
 ########################################################################
 #                            Internal work                             #
 ########################################################################
@@ -18,8 +20,11 @@ import source.tool_box.tensor_tools as tensor_tools
 # are the constitutive model classes. This internal work is calculated 
 # using the first Piola-Kirchhoff stress tensor
 
+@programming_tools.optional_argumentsInitializer({('domain_physGroupsN'+
+'amesToTags'): lambda: dict()})
+
 def hyperelastic_internalWorkFirstPiola(trial_function, test_function, 
-constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict(),
+constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=None,
 verbose=False):
     
     # Gets the physical groups from the domain mesh function
@@ -119,10 +124,13 @@ verbose=False):
 # culated using the first Piola-Kirchhoff stress tensor and its couple
 # stress
 
+@programming_tools.optional_argumentsInitializer({('domain_physGroupsN'+
+'amesToTags'): lambda: dict()})
+
 def hyperelastic_micropolarInternalWorkFirstPiola(
 displacement_trialFunction, microrotation_trialFunction, 
 displacement_testFunction, microrotation_testFunction,
-constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=dict(),
+constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=None,
 verbose=False):
     
     # Gets the physical groups from the domain mesh function
@@ -242,8 +250,11 @@ verbose=False):
 # nary of traction loads, where the keys are the corresponding boundary
 # physical groups and the values are the traction loads
 
+@programming_tools.optional_argumentsInitializer({('boundary_physGroup'+
+'sNamesToTags'): lambda: dict()})
+
 def traction_work(traction_dictionary, field_variation, ds, 
-boundary_physGroupsNamesToTags=dict(), verbose=False):
+boundary_physGroupsNamesToTags=None, verbose=False):
 
     # Gets the physical groups tags
 
@@ -298,8 +309,11 @@ boundary_physGroupsNamesToTags=dict(), verbose=False):
 # Defines a function to verify if a physical group is consistent and if
 # it is the whole list of existing physical groups
 
+@programming_tools.optional_argumentsInitializer({('physical_groupsNam'+
+'esToTags'): lambda: dict()})
+
 def verify_physicalGroups(physical_group, physical_groupsList, 
-physical_groupsNamesToTags=dict()):
+physical_groupsNamesToTags=None):
             
     # If the key of the dictionary is a string, it is the physical
     # group's name. Hence, converts it to its corresponding number tag

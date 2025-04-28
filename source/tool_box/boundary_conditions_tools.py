@@ -2,6 +2,8 @@
 
 from dolfin import *
 
+import source.tool_box.programming_tools as programming_tools
+
 ########################################################################
 #              Heterogeneous Dirichlet boundary conditions             #
 ########################################################################
@@ -9,9 +11,12 @@ from dolfin import *
 # Defines a function to apply prescribed boundary conditions to a pro-
 # blem using an Expression as load prescriber
 
+@programming_tools.optional_argumentsInitializer({'boundary_conditions':
+lambda: [], 'boundary_physGroupsNamesToTags': lambda: dict()})
+
 def prescribed_DirichletBC(prescribed_conditionsDict, 
-field_functionSpace, boundary_meshFunction, boundary_conditions=[], 
-boundary_physGroupsNamesToTags=dict(), verbose=False):
+field_functionSpace, boundary_meshFunction, boundary_conditions=None, 
+boundary_physGroupsNamesToTags=None, verbose=False):
     
     # Tests if the element is mixed and gets the number of fields
 
@@ -274,9 +279,12 @@ boundary_physGroupsNamesToTags=dict(), verbose=False):
 # of the vector as subfields, which are not physical fields alone per
 # se. If sub_fields is an empty list, all DOFs are constrained
 
+@programming_tools.optional_argumentsInitializer({'boundary_conditions':
+lambda: [], 'boundary_physGroupsNamesToTags': lambda: dict()})
+
 def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
-], boundary_physGroupsNamesToTags=dict(), verbose=False):
+boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=
+None, boundary_physGroupsNamesToTags=None, verbose=False):
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
@@ -391,9 +399,12 @@ boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=[
 # Defines a function to apply a simple support. If sub_fields is an empty
 # list, all DOFs are constrained
 
+@programming_tools.optional_argumentsInitializer({'boundary_conditions':
+lambda: [], 'boundary_physGroupsNamesToTags': lambda: dict()})
+
 def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=[],
-boundary_physGroupsNamesToTags=dict(), verbose=False):
+boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=
+None, boundary_physGroupsNamesToTags=None, verbose=False):
     
     # Verifies if the boundary physical groups is a dictionary
 

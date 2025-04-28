@@ -49,25 +49,15 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     RVE_localizationZ = 3
 
-    # Defines a list of micropolar numbers
+    # Defines a list of lists, each list is a set of material parameters
+    # - micropolar number, characteristic length, and load factor
 
-    N_list = [0.2]
+    parameters_sets = [[0.002, RVE_width*n_RVEsZ*2.0, 5.0], [0.02, 
+    RVE_width*n_RVEsZ*2.0, 5.0], [0.2, RVE_width*n_RVEsZ*2.0, 5.0]]
 
-    # Defines a list of load factors
+    # Iterates through the simulations
 
-    load_factors = [5.0]
-
-    # Defines the characteristic length as a ratio of the beam length
-
-    characteristic_length = RVE_width*n_RVEsZ*2.0#0.2#0.01
-
-    # Iterates through the micropolar numbers
-
-    for i in range(len(N_list)):
-
-        # Gets the micropolar number
-
-        N = N_list[i]
+    for i in range(len(parameters_sets)):
 
         # Makes a new mesh just for the first test and if a new mesh is
         # asked for
@@ -80,12 +70,12 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         # Calls the simulation for bending
 
-        beam_case_1(N, characteristic_length, True, load_factors[i], 
-        gamma=0.0, RVE_width=RVE_width, RVE_length=RVE_length, 
-        fiber_radius=fiber_radius, n_RVEsX=n_RVEsX, n_RVEsY=n_RVEsY, 
-        n_RVEsZ=n_RVEsZ, RVE_localizationX=RVE_localizationX, 
-        RVE_localizationY=RVE_localizationY, RVE_localizationZ=
-        RVE_localizationZ, flag_newMesh=flag_mesh)
+        beam_case_1(parameters_sets[i][0], parameters_sets[i][1], True, 
+        parameters_sets[i][2], gamma=0.0, RVE_width=RVE_width, 
+        RVE_length=RVE_length, fiber_radius=fiber_radius, n_RVEsX=
+        n_RVEsX, n_RVEsY=n_RVEsY, n_RVEsZ=n_RVEsZ, RVE_localizationX=
+        RVE_localizationX, RVE_localizationY=RVE_localizationY, 
+        RVE_localizationZ=RVE_localizationZ, flag_newMesh=flag_mesh)
 
 # Defines a function to try different parameters
 
@@ -100,12 +90,12 @@ RVE_localizationY=1, RVE_localizationZ=3, flag_newMesh=True):
 
     if flag_bending:
 
-        sufix += ("_bending_lb_"+float_toString(characteristic_length)+
+        sufix += ("bending_lb_"+float_toString(characteristic_length)+
         "_")
 
     else:
 
-        sufix += ("_torsion_lt_"+float_toString(characteristic_length)+
+        sufix += ("torsion_lt_"+float_toString(characteristic_length)+
         "_")
 
     sufix += "gamma_"+float_toString(gamma)+"_"
@@ -125,20 +115,18 @@ RVE_localizationY=1, RVE_localizationZ=3, flag_newMesh=True):
     # Defines the path to the results directory 
 
     results_pathGraphics = (os.getcwd()+"//tests//micropolar//our_beam"+
-    "_1//results//graphics")
+    "_1//results//graphics//"+sufix)
 
     results_pathText = (os.getcwd()+"//tests//micropolar//our_beam_1//"+
-    "results//text")
+    "results//text//"+sufix)
 
-    displacement_fileName = ["displacement"+sufix+".xdmf", "microrotat"+
-    "ion"+sufix+".xdmf"]
+    displacement_fileName = ["displacement.xdmf", "microrotation.xdmf"]
 
-    homogenized_displacementFileName = ["homogenized_displacement"+sufix
-    +".txt", "homogenized_microrotation"+sufix+".txt"]
+    homogenized_displacementFileName = ["homogenized_displacement.txt", 
+    "homogenized_microrotation.txt"]
 
     homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
-    "gradient"+sufix+".txt", "homogenized_microrotation_grad"+sufix+"."+
-    "txt"]
+    "gradient.txt", "homogenized_microrotation_grad.txt"]
 
     post_processes = []
 
