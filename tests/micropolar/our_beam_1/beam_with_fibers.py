@@ -46,11 +46,11 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the number of RVEs at each direction
 
-    n_RVEsX = 1
+    n_RVEsX = 3
 
-    n_RVEsY = 1
+    n_RVEsY = 3
 
-    n_RVEsZ = 5
+    n_RVEsZ = 11
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1

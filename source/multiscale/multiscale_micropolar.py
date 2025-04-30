@@ -22,11 +22,13 @@ lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: [],
 'upportMicrorotationPhysicalGroups'): lambda: dict(), ('volume_physGro'+
 'upsSubmesh'): lambda: [], 'post_processesSubmesh': lambda: []})
 
-def micropolar_microscale(constitutive_model, 
-traction_dictionary, moment_dictionary, maximum_loadingSteps, t_final, 
-post_processes, mesh_fileName, solver_parameters, 
-polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, 
-t=0.0, fixed_supportDisplacementPhysicalGroups=0, neumann_loads=None, 
+def micropolar_microscale(macro_displacementName, 
+macro_gradDisplacementName, macro_microrotationName, 
+macro_gradMicrorotationName, constitutive_model, traction_dictionary, 
+moment_dictionary, maximum_loadingSteps, t_final, post_processes, 
+mesh_fileName, solver_parameters, polynomial_degreeDisplacement=2, 
+polynomial_degreeMicrorotation=2, t=0.0, 
+fixed_supportDisplacementPhysicalGroups=0, neumann_loads=None, 
 dirichlet_loads=None, fixed_supportMicrorotationPhysicalGroups=0, 
 solution_name=None, simple_supportDisplacementPhysicalGroups=None, 
 simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
@@ -57,12 +59,56 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     microrotation_element = VectorElement("CG", mesh.ufl_cell(), 
     polynomial_degreeMicrorotation)
 
+    # Defines the finite element spaces for the Lagrange multipliers, 
+    # which enforce the micro-scale kinematical constraints. The degree 
+    # of the polynomial is 0 because the lagrange multiplier is constant
+    # throughout the element
+
+    # Displacement constraint (impedes rigid body translation)
+
+    lagrangeMult_U = VectorElement("Real", mesh.ufl_cell(), 0) 
+
+    # Displacement gradient constraint (impedes rigid body rotation)
+
+    lagrangeMult_GradU = TensorElement("Real", mesh.ufl_cell(), 0) 
+
+    # Microrotation constraint
+
+    lagrangeMult_Phi = VectorElement("Real", mesh.ufl_cell(), 0) 
+
+    # Microrotation gradient constraint
+
+    lagrangeMult_GradPhi = TensorElement("Real", mesh.ufl_cell(), 0)
+
+    # Defines the finite element spaces for post-processing
+
+    Space_Piola_1st = TensorElement("DG", mesh.ufl_cell(), 0)
+
+    # Defines the mixed element for the monolithic solution
+    
     mixed_element = MixedElement([displacement_element, 
-    microrotation_element])
+    microrotation_element, lagrangeMult_U, lagrangeMult_GradU, 
+    lagrangeMult_Phi, lagrangeMult_GradPhi])
 
     # Defines the finite element space for the monolithic solution
 
     monolithic_functionSpace = FunctionSpace(mesh, mixed_element)
+
+    ####################################################################
+    #                         Macro quantities                         #
+    ####################################################################
+
+    # Reads the macro displacement, microrotation, and their gradients
+
+    u_RVE_homogenized = file_tools.txt_toList(macro_displacementName)
+
+    grad_u_RVE_homogenized = file_tools.txt_toList(
+    macro_gradDisplacementName)
+
+    phi_RVE_homogenized = file_tools.txt_toList(macro_microrotationName)
+
+    grad_phi_RVE_homogenized = file_tools.txt_toList(
+    macro_gradMicrorotationName)
 
     ####################################################################
     #                         Variational forms                        #
