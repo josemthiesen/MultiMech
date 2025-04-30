@@ -4,6 +4,8 @@ import os
 
 import sys
 
+import numpy as np
+
 from dolfin import *
 
 from mshr import *
@@ -44,20 +46,20 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the number of RVEs at each direction
 
-    n_RVEsX = 3
+    n_RVEsX = 1
 
-    n_RVEsY = 3
+    n_RVEsY = 1
 
-    n_RVEsZ = 11
+    n_RVEsZ = 5
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
 
-    RVE_localizationX = 2
+    RVE_localizationX = np.ceil(0.5*n_RVEsX)
 
-    RVE_localizationY = 2
+    RVE_localizationY = np.ceil(0.5*n_RVEsY)
 
-    RVE_localizationZ = 6
+    RVE_localizationZ = np.ceil(0.5*n_RVEsZ)
 
     # Defines a list of lists, each list is a set of material parameters
     # - micropolar number of the matrix, micropolar number of the fiber,
@@ -150,6 +152,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
     "gradient.txt", "homogenized_microrotation_grad.txt"]
 
+    stress_fieldFileName = ["cauchy_stress.xdmf", "couple_cauchy_stres"+
+    "s.xdmf"]
+
     post_processes = []
 
     # Iterates through the fields (displacement and microrotation)
@@ -158,20 +163,30 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
         post_processes.append(dict())
 
-        post_processes[-1]["save field"] = {"directory path":
+        post_processes[-1]["SaveField"] = {"directory path":
         results_pathGraphics, "file name":displacement_fileName[i]}
 
         # Put "" in the subdomain to integrate over the entire domain
 
-        post_processes[-1]["homogenize field"] = {"directory path":
+        post_processes[-1]["HomogenizeField"] = {"directory path":
         results_pathText, "file name":homogenized_displacementFileName[i
         ], "subdomain":""}
 
         # Put "" in the subdomain to integrate over the entire domain
 
-        post_processes[-1]["homogenize field's gradient"] = {"director"+
-        "y path":results_pathText, "file name":
+        post_processes[-1]["HomogenizeFieldsGradient"] = {"directory p"+
+        "ath":results_pathText, "file name":
         homogenized_gradDisplacementFileName[i], "subdomain":""}
+
+        # Adds the stress field to the displacement field even though
+        # it can be evaluated with any field, since it takes all fields
+        # simultaneously
+
+        if i==0:
+
+            post_processes[-1]["SaveStressField"] = {"directory path":
+            results_pathText, "file name": stress_fieldFileName[i], 
+            "polynomial degree": 1}
 
     post_processesSubmesh = []
 

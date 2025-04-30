@@ -87,8 +87,10 @@ volume_physGroupsSubmesh=None):
 
     for post_processName, post_process in post_processes.items():
 
-        post_processingObjects[post_processName] = post_process[0](
-        post_process[2], post_process[3], False)
+        post_processingObjects[post_processName] = (
+        post_process.initialization_function(
+        post_process.additional_information, 
+        post_process.code_providedInfo, False))
 
     # Initializes a dictionary of post processes objects for the submesh, 
     # files for example, for each field
@@ -97,8 +99,10 @@ volume_physGroupsSubmesh=None):
 
     for post_processName, post_process in post_processesSubmesh.items():
 
-        post_processingObjectsSubmesh[post_processName] = post_process[
-        0](post_process[2], post_process[3], True)
+        post_processingObjectsSubmesh[post_processName] = (
+        post_process.initialization_function(
+        post_process.additional_information, 
+        post_process.code_providedInfo, True))
     
     # Updates the solver parameters
 
@@ -138,9 +142,9 @@ volume_physGroupsSubmesh=None):
             # Sets the field number as -1, for this problem has a single
             # field only. It must be -1 in this case
 
-            post_processingObjects[post_processName] = post_process[1](
-            post_processingObjects[post_processName], solution_field, -1, 
-            t)
+            post_processingObjects[post_processName] = (
+            post_process.update_function(post_processingObjects[
+            post_processName], solution_field, -1, t))
 
         # If a submesh is to be populated with part of the solution
 
@@ -162,9 +166,10 @@ volume_physGroupsSubmesh=None):
                 # Sets the field number as -1, for this problem has a 
                 # single field only. It must be -1 in this case
 
-                post_processingObjectsSubmesh[post_processName] = post_process[
-                1](post_processingObjectsSubmesh[post_processName], 
-                solution_submesh, -1, t)
+                post_processingObjectsSubmesh[post_processName] = (
+                post_process.update_function(
+                post_processingObjectsSubmesh[post_processName], 
+                solution_submesh, -1, t))
 
         # Updates the pseudo time variables and the counter
 
@@ -199,10 +204,10 @@ volume_physGroupsSubmesh=None):
 # ational problem of multiple fields
 
 @programming_tools.optional_argumentsInitializer({'post_processesList': 
-lambda: [], 'post_processesSubmeshList': lambda: [], 
-'dirichlet_loads': lambda: [], 'neumann_loads': lambda: [],
-'solver_parameters': lambda: dict(), 'solution_name': lambda: [
-"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: []})
+lambda: [], 'post_processesSubmeshList': lambda: [], 'dirichlet_loads': 
+lambda: [], 'neumann_loads': lambda: [], 'solver_parameters': lambda: 
+dict(), 'solution_name': lambda: ["solution", "DNS"], ('volume_physGro'+
+'upsSubmesh'): lambda: []})
 
 def newton_raphsonMultipleFields(t, t_final, maximum_loadingSteps, 
 solver, solution_field, mixed_element, domain_meshCollection, 
@@ -235,11 +240,13 @@ None):
 
     # Transforms the list of dictionaries of post-processing methods 
     # instructions into a list of live-wire dictionaries with the proper 
-    # methods and needed information
+    # methods and needed information. Two dictionaries are created: one
+    # for the post-processing methods that work on a single field; the
+    # methods that work on multiple fields at once
     
     post_processes = post_processing_tools.post_processingSelectionMultipleFields(
-    post_processesList, n_fields, solution_field.function_space().mesh(), 
-    constitutive_model, dx) 
+    post_processesList, n_fields, solution_field.function_space().mesh(
+    ), constitutive_model, dx) 
     
     # Initializes the list of submesh post processes. It is a list, be-
     # cause each field will ocupy a component
@@ -288,8 +295,10 @@ None):
 
         for post_processName, post_process in post_processes[i].items():
 
-            post_processingObjects[-1][post_processName] = post_process[
-            0](post_process[2], post_process[3], False)
+            post_processingObjects[-1][post_processName] = (
+            post_process.initialization_function(
+            post_process.additional_information, 
+            post_process.code_providedInfo, False))
 
     # Makes the same thing for the submesh post-processes
 
@@ -313,8 +322,10 @@ None):
             for post_processName, post_process in post_processesSubmesh[i
             ].items():
 
-                post_processingObjectsSubmesh[-1][post_processName] = post_process[
-                0](post_process[2], post_process[3], True)
+                post_processingObjectsSubmesh[-1][post_processName] = (
+                post_process.initialization_function(
+                post_process.additional_information, 
+                post_process.code_providedInfo, True))
     
     # Updates the solver parameters
 
@@ -355,7 +366,7 @@ None):
 
                 split_solution[i].rename(*solution_name[i])
 
-        # Post-process the solution
+        # Evaluates the post-processes
 
         if len(post_processes)>0:
                 
@@ -366,9 +377,9 @@ None):
                 for post_processName, post_process in post_processes[i
                 ].items():
 
-                    post_processingObjects[i][post_processName] = post_process[
-                    1](post_processingObjects[i][post_processName], 
-                    split_solution, i, t)
+                    post_processingObjects[i][post_processName] = (
+                    post_process.update_function(post_processingObjects[
+                    i][post_processName], split_solution, i, t))
 
         # If a submesh is to be populated with part of the solution
 
@@ -399,9 +410,10 @@ None):
                 for post_processName, post_process in post_processesSubmesh[
                 i].items():
 
-                    post_processingObjectsSubmesh[i][post_processName] = post_process[
-                    1](post_processingObjectsSubmesh[i][post_processName], 
-                    split_solutionSubmesh, i, t)
+                    post_processingObjectsSubmesh[i][post_processName] = (
+                    post_process.update_function(
+                    post_processingObjectsSubmesh[i][post_processName], 
+                    split_solutionSubmesh, i, t))
 
         # Updates the pseudo time variables and the counter
 
