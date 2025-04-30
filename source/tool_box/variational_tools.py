@@ -429,8 +429,11 @@ physical_groupsNamesToTags):
 
     # Assembles and solves the variational form
 
-    solve((inner(projected_fieldTrial, v)*dx==(inner(field, v)*dx(
-    subdomain))), projected_field)
+    bilinear_form = inner(projected_fieldTrial, v)*dx
+                     
+    linear_form = (inner(field, v)*dx(subdomain))
+
+    solve(bilinear_form==linear_form, projected_field)
 
     # Returns the projected field
 

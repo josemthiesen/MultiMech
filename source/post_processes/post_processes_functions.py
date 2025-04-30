@@ -62,7 +62,7 @@ def update_fieldSaving(file, field, field_number, time):
         return file
 
 ########################################################################
-#                             Stress field                             #
+#                          Cauchy stress field                         #
 ########################################################################
 
 # Defines a function to initialize the Cauchy stress field file
@@ -112,10 +112,27 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
     file = XDMFFile(file_name)
 
-    # Assembles the file and the function space into a list
+    # Assembles the file and the function space into a class
 
-    output_object = [file, W, constitutive_model, dx, 
-    physical_groupsList, physical_groupsNamesToTags]
+    class OutputObject:
+
+        def __init__(self, file, W, constitutive_model, dx, 
+        physical_groupsList, physical_groupsNamesToTags):
+            
+            self.file = file 
+
+            self.W = W 
+
+            self.constitutive_model = constitutive_model
+
+            self.dx = dx 
+
+            self.physical_groupsList = physical_groupsList 
+
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+
+    output_object = OutputObject(file, W, constitutive_model, dx, 
+    physical_groupsList, physical_groupsNamesToTags)
 
     return output_object
 
@@ -123,23 +140,18 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
 def update_cauchyStressSaving(output_object, field, field_number, time):
 
-    # Recovers the object items
-
-    (file, W, constitutive_model, dx, physical_groupsList, 
-    physical_groupsNamesToTags) = output_object
-
     # Verifies if the domain is homogeneous
 
-    if isinstance(constitutive_model, dict):
+    if isinstance(output_object.constitutive_model, dict):
 
         # Initializes the Cauchy stress function
 
-        cauchy_stressFunction = Function(W)
+        cauchy_stressFunction = Function(output_object.W)
 
         # If the domain is heterogeneous, the stress field must be pro-
         # jected for each subdomain
 
-        for subdomain, local_constitutiveModel in constitutive_model.items():
+        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
 
             # Gets the Cauchy stress field
 
@@ -157,8 +169,9 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
                     # Projects the cauchy stress into a function
 
                     cauchy_stressProjected = variational_tools.projection_overRegion(
-                    cauchy_stress, W, dx, sub, physical_groupsList,
-                    physical_groupsNamesToTags)
+                    cauchy_stress, output_object.W, output_object.dx, 
+                    sub, output_object.physical_groupsList,
+                    output_object.physical_groupsNamesToTags)
 
                     # Updates the parameters vector of the FEM interpolation of 
                     # the Cauchy stress 
@@ -172,8 +185,9 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
                 # Projects the cauchy stress into a function
 
                 cauchy_stressProjected = variational_tools.projection_overRegion(
-                cauchy_stress, W, dx, subdomain, physical_groupsList,
-                physical_groupsNamesToTags)
+                cauchy_stress, output_object.W, output_object.dx, 
+                subdomain, output_object.physical_groupsList,
+                output_object.physical_groupsNamesToTags)
 
                 # Updates the parameters vector of the FEM interpolation of 
                 # the Cauchy stress 
@@ -184,23 +198,189 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
 
         # Writes the field to the file
 
-        file.write(cauchy_stressFunction, time)
+        output_object.file.write(cauchy_stressFunction, time)
 
     else:
 
         # Gets the Cauchy stress field
 
-        cauchy_stress = constitutive_model.cauchy_stress(field)
+        cauchy_stress = output_object.constitutive_model.cauchy_stress(
+        field)
 
         # Projects the cauchy stress into a function
 
-        cauchy_stressFunction = project(cauchy_stress, W)
+        cauchy_stressFunction = project(cauchy_stress, output_object.W)
 
         # Writes the field to the file
 
-        file.write(cauchy_stressFunction, time)
+        output_object.file.write(cauchy_stressFunction, time)
 
-    return [file, W, constitutive_model, dx]
+    # Returns the class
+
+    return output_object
+
+########################################################################
+#                      Couple Cauchy stress field                      #
+########################################################################
+
+# Defines a function to initialize the couple Cauchy stress field file
+
+def initialize_coupleCauchyStressSaving(data, direct_codeData, 
+submesh_flag):
+
+    # Gets the directory and the name of the file
+
+    parent_path = data[0]
+
+    file_name = data[1]
+
+    # Gets the polynomial degree of the interpolation function
+
+    polynomial_degree = data[2]
+
+    # Gets the mesh, the constitutive model, and the volume integrator
+    # from the data directly provided by the code
+
+    mesh = direct_codeData[0]
+
+    constitutive_model = direct_codeData[1]
+
+    dx = direct_codeData[2]
+
+    physical_groupsList = direct_codeData[3] 
+    
+    physical_groupsNamesToTags = direct_codeData[4]
+
+    # Creates the function space for the stress as a tensor
+
+    W = 0.0
+
+    if polynomial_degree==0:
+
+        W = TensorFunctionSpace(mesh, "DG", 0)
+
+    else:
+
+        W = TensorFunctionSpace(mesh, "CG", polynomial_degree)
+
+    # Gets the name of the file with the path to it
+
+    file_name = file_tools.verify_path(parent_path, file_name)
+
+    # Initializes the file
+
+    file = XDMFFile(file_name)
+
+    # Assembles the file and the function space into a class
+
+    class OutputObject:
+
+        def __init__(self, file, W, constitutive_model, dx, 
+        physical_groupsList, physical_groupsNamesToTags):
+            
+            self.file = file 
+
+            self.W = W 
+
+            self.constitutive_model = constitutive_model
+
+            self.dx = dx 
+
+            self.physical_groupsList = physical_groupsList 
+
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+
+    output_object = OutputObject(file, W, constitutive_model, dx, 
+    physical_groupsList, physical_groupsNamesToTags)
+
+    return output_object
+
+# Defines a function to update the couple Cauchy stress field
+
+def update_coupleCauchyStressSaving(output_object, field, field_number, 
+time):
+
+    # Verifies if the domain is homogeneous
+
+    if isinstance(output_object.constitutive_model, dict):
+
+        # Initializes the Cauchy stress function
+
+        cauchy_stressFunction = Function(output_object.W)
+
+        # If the domain is heterogeneous, the stress field must be pro-
+        # jected for each subdomain
+
+        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
+
+            # Gets the Cauchy stress field
+
+            couple_cauchyStress = local_constitutiveModel.couple_cauchyStress(
+            field)
+
+            # Verifies if more than one physical group is given for the
+            # same constitutive model
+
+            if isinstance(subdomain, tuple):
+
+                # Iterates though the elements of the tuple
+
+                for sub in subdomain:
+
+                    # Projects the cauchy stress into a function
+
+                    cauchy_stressProjected = variational_tools.projection_overRegion(
+                    couple_cauchyStress, output_object.W, 
+                    output_object.dx, sub, 
+                    output_object.physical_groupsList,
+                    output_object.physical_groupsNamesToTags)
+
+                    # Updates the parameters vector of the FEM interpolation of 
+                    # the Cauchy stress 
+
+                    cauchy_stressFunction.vector()[:] = (
+                    cauchy_stressFunction.vector()[:]+
+                    cauchy_stressProjected.vector()[:])
+
+            else:
+
+                # Projects the cauchy stress into a function
+
+                cauchy_stressProjected = variational_tools.projection_overRegion(
+                couple_cauchyStress, output_object.W, output_object.dx, 
+                subdomain, output_object.physical_groupsList,
+                output_object.physical_groupsNamesToTags)
+
+                # Updates the parameters vector of the FEM interpolation of 
+                # the Cauchy stress 
+
+                cauchy_stressFunction.vector()[:] = (
+                cauchy_stressFunction.vector()[:]+
+                cauchy_stressProjected.vector()[:])
+
+        # Writes the field to the file
+
+        output_object.file.write(cauchy_stressFunction, time)
+
+    else:
+
+        # Gets the Cauchy stress field
+
+        couple_cauchyStress = output_object.constitutive_model.couple_cauchyStress(
+        field)
+
+        # Projects the cauchy stress into a function
+
+        cauchy_stressFunction = project(couple_cauchyStress, 
+        output_object.W)
+
+        # Writes the field to the file
+
+        output_object.file.write(cauchy_stressFunction, time)
+
+    # Returns the class
+
+    return output_object
 
 ########################################################################
 #                            Homogenization                            #
@@ -223,6 +403,10 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
     # Gets the integration measure
 
     dx = direct_codeData[0]
+
+    physical_groupsList = direct_codeData[1] 
+    
+    physical_groupsNamesToTags = direct_codeData[2]
 
     # Evaluates the volume of the domain
 
@@ -247,15 +431,37 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
         subdomain = tuple(subdomain)
 
-    if isinstance(subdomain, int) or isinstance(subdomain, tuple):
+    if isinstance(subdomain, int):
 
         volume = assemble(1*dx(subdomain))
 
+    elif isinstance(subdomain, tuple):
+
+        for sub in subdomain:
+
+            if isinstance(sub, str):
+
+                volume += assemble(1*dx(variational_tools.verify_physicalGroups(
+                sub, physical_groupsList, physical_groupsNamesToTags=
+                physical_groupsNamesToTags)))
+
+            else:
+
+                volume += assemble(1*dx(sub))
+
     # Otherwise, integrates over the whole domain to get the volume
 
-    else:
+    elif isinstance(subdomain, str):
 
-        volume = assemble(1*dx)
+        if len(subdomain)==0:
+
+            volume = assemble(1*dx)
+
+        else:
+
+            volume = assemble(1*dx(variational_tools.verify_physicalGroups(
+            subdomain, physical_groupsList, physical_groupsNamesToTags=
+            physical_groupsNamesToTags)))
 
     # Initializes the homogenized field list
 
@@ -267,26 +473,29 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
     # Assembles the output
 
-    output = [homogenized_fieldList, (1.0/volume), dx, subdomain, 
-    file_name]
+    class OutputObject:
 
-    return output
+        def __init__(self, homogenized_fieldList, inverse_volume, dx, 
+        subdomain, file_name):
+            
+            self.homogenized_fieldList = homogenized_fieldList
+
+            self.inverse_volume = inverse_volume
+
+            self.dx = dx 
+
+            self.subdomain = subdomain 
+
+            self.file_name = file_name
+
+    output_object = OutputObject(homogenized_fieldList, (1.0/volume), dx, 
+    subdomain, file_name)
+
+    return output_object
 
 # Defines a function to update the homogenized field
 
 def update_fieldHomogenization(output_object, field, field_number, time):
-
-    # Gets the data
-
-    homogenized_fieldList = output_object[0]
-
-    inverse_volume = output_object[1]
-
-    dx = output_object[2]
-    
-    subdomain = output_object[3]
-
-    file_name = output_object[4]
 
     # If the problem has a single field
 
@@ -295,16 +504,12 @@ def update_fieldHomogenization(output_object, field, field_number, time):
         # Homogenizes the field and updates the list of homogenized field
         # along time
 
-        homogenized_fieldList = homogenization_tools.homogenize_genericField(
-        field, homogenized_fieldList, time, inverse_volume, dx, 
-        subdomain, file_name)
-        
-        # Assembles the output
+        output_object.homogenized_fieldList = homogenization_tools.homogenize_genericField(
+        field, output_object.homogenized_fieldList, time, 
+        output_object.inverse_volume, output_object.dx, 
+        output_object.subdomain, output_object.file_name)
 
-        output = [homogenized_fieldList, inverse_volume, dx, subdomain, 
-        file_name]
-
-        return output
+        return output_object
 
     # If the problem has multiple fields
 
@@ -313,16 +518,12 @@ def update_fieldHomogenization(output_object, field, field_number, time):
         # Homogenizes the field and updates the list of homogenized field
         # along time
 
-        homogenized_fieldList = homogenization_tools.homogenize_genericField(
-        field[field_number], homogenized_fieldList, time, inverse_volume, 
-        dx, subdomain, file_name)
-        
-        # Assembles the output
+        output_object.homogenized_fieldList = homogenization_tools.homogenize_genericField(
+        field[field_number], output_object.homogenized_fieldList, time, 
+        output_object.inverse_volume, output_object.dx, 
+        output_object.subdomain, output_object.file_name)
 
-        output = [homogenized_fieldList, inverse_volume, dx, subdomain, 
-        file_name]
-
-        return output
+        return output_object
 
 # Defines a function to initialize the homogenization of the gradient of 
 # a field

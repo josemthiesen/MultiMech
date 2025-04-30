@@ -44,14 +44,6 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
     ) = mesh_tools.read_mshMesh(mesh_fileName)
 
-    for key, value in boundary_physGroupsNamesToTags.items():
-
-        print(key, value, type(value))
-
-    print("")
-
-    print(type(6))
-
     ####################################################################
     #                          Function space                          #
     ####################################################################

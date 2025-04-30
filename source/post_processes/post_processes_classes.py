@@ -1,5 +1,5 @@
-# Routine to store some methods to post-process solution inside the 
-# pseudotime stepping methods
+# Routine to store some classes of methods to post-process solution in-
+# side the pseudotime stepping methods
 
 from dolfin import *
 
@@ -86,6 +86,22 @@ class SaveStressField(PostProcessMethod):
         context.constitutive_model, context.dx, 
         context.physical_groupsList, context.domain_physGroupsNamesToTags])
 
+# Sets a class for the method to save the couple stress field
+
+class SaveCoupleStressField(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_coupleCauchyStressSaving, 
+        post_functions.update_coupleCauchyStressSaving, ["directory pa"+
+        "th", "file name", "polynomial degree"], [context.mesh, 
+        context.constitutive_model, context.dx, 
+        context.physical_groupsList, context.domain_physGroupsNamesToTags])
+
 # Sets a class for the method to homogenize a field
 
 class HomogenizeField(PostProcessMethod):
@@ -98,7 +114,8 @@ class HomogenizeField(PostProcessMethod):
 
         super().__init__(post_functions.initialize_fieldHomogenization, 
         post_functions.update_fieldHomogenization, ["directory path", 
-        "file name", "subdomain"], [context.dx])
+        "file name", "subdomain"], [context.dx, 
+        context.physical_groupsList, context.domain_physGroupsNamesToTags])
 
 # Sets a class for the method to homogenize the gradient of a field
 
@@ -112,4 +129,5 @@ class HomogenizeFieldsGradient(PostProcessMethod):
 
         super().__init__(post_functions.initialize_gradientFieldHomogenization, 
         post_functions.update_gradientFieldHomogenization, ["directory"+
-        " path", "file name", "subdomain"], [context.dx])
+        " path", "file name", "subdomain"], [context.dx, 
+        context.physical_groupsList, context.domain_physGroupsNamesToTags])

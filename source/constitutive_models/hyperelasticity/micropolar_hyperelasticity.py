@@ -137,7 +137,9 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma, sigma_couple = self.cauchy_stress(fields_list)
+        sigma = self.cauchy_stress(fields_list)
+
+        sigma_couple = self.couple_cauchyStress(fields_list)
 
         # Evaluates the second Piola-Kirchhoff stress tensors using the
         # pull back operation
@@ -159,7 +161,9 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma, sigma_couple = self.cauchy_stress(fields_list)
+        sigma = self.cauchy_stress(fields_list)
+
+        sigma_couple = self.couple_cauchyStress(fields_list)
 
         # Evaluates the first Piola-Kirchhoff stress tensors using the
         # Piola transformation
@@ -181,7 +185,9 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma, sigma_couple = self.cauchy_stress(fields_list)
+        sigma = self.cauchy_stress(fields_list)
+
+        sigma_couple = self.couple_cauchyStress(fields_list)
 
         # Multiplies by the jacobian to get the Kirchhoff stresses
 
@@ -238,17 +244,57 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         sigma = V_bar*diff(psi_total, V_barTransposed)
 
-        sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)#"""
+        # Returns them
 
-        """
-        J = det(V_bar)
+        return sigma
+    
+    # Defines a function to evaluate the couple Cauchy stress tensor u-
+    # sing the derivative of the Helmholtz potential with respect to the
+    # V_bar tensor. This function receives the deformation gradient, the 
+    # rotation tensor of the microrotation field, and the curvature ten-
+    # sor in the referential configuration
+    
+    def couple_cauchyStress(self, fields_list):
 
-        sigma = (((self.lmbda/2)*((J*J)-1)*I)+(self.mu*((V_bar*V_bar.T)-
-        I))+((self.kappa/2)*((V_bar*V_bar.T)-(V_bar*V_bar))))
+        # Retrieves the fields
 
-        sigma_couple = V_bar*((self.alpha*tr(k_curvatureSpatial)*I)+(
-        self.beta*k_curvatureSpatial)+(self.gamma*k_curvatureSpatial.T))"""
+        u, phi = fields_list
+
+        # Evaluates the deformation gradient
+
+        I = Identity(3)
+
+        F = grad(u)+I 
+
+        # Evaluates the rotation tensor using phi
+
+        R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
+
+        # Evaluates the curvature tensor in the referential configuration
+
+        K_curvatureReferential = constitutive_tools.micropolar_curvatureTensor(
+        phi)
+
+        # Evaluates the micropolar stretch and the jacobian
+    
+        V_bar = F*(R_bar.T)
+
+        # Evaluates the push-forward of the curvature tensor
+
+        k_curvatureSpatial = R_bar*K_curvatureReferential*R_bar.T
+
+        # Transforms the tensors into variables to differentiate the e-
+        # nergy potential
+
+        k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
+
+        V_barTransposed = variable(V_bar.T)
+
+        psi_total = self.strain_energy(V_barTransposed.T, 
+        k_curvatureSpatialTransposed.T)
+
+        sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
 
         # Returns them
 
-        return sigma, sigma_couple
+        return sigma_couple

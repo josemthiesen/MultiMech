@@ -182,11 +182,15 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
         # it can be evaluated with any field, since it takes all fields
         # simultaneously
 
-        if i==3:
+        if i==0:
 
             post_processes[-1]["SaveStressField"] = {"directory path":
-            results_pathText, "file name": stress_fieldFileName[i], 
+            results_pathText, "file name": stress_fieldFileName[0], 
             "polynomial degree": 1}
+
+            post_processes[-1]["SaveCoupleStressField"] = {"directory "+
+            "path": results_pathText, "file name": stress_fieldFileName[
+            1], "polynomial degree": 1}
 
     post_processesSubmesh = []
 
