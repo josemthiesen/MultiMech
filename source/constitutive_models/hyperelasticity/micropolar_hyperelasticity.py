@@ -85,6 +85,18 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
             self.kappa = Constant(2*self.mu*((N_micropolar**2)/(1-(
             N_micropolar**2))))
 
+        # Precomputes the Helmholtz free potential differentiation
+
+        V_transposed = variable(Identity(3))
+
+        k_transposed = variable(Identity(3))
+
+        pre_psi = self.strain_energy(V_transposed.T, k_transposed.T)
+
+        self.dpsi_dVt = diff(pre_psi, V_transposed)
+
+        self.dpsi_dkt = diff(pre_psi, k_transposed)
+
     # Defines a function to evaluate the Helmholtz free energy density
 
     def strain_energy(self, V_bar, k_curvatureSpatial):
@@ -232,7 +244,7 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         k_curvatureSpatial = R_bar*K_curvatureReferential*R_bar.T
 
-        # Transforms the tensors into variables to differentiate the e-
+        """# Transforms the tensors into variables to differentiate the e-
         # nergy potential
 
         k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
@@ -242,7 +254,14 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         psi_total = self.strain_energy(V_barTransposed.T, 
         k_curvatureSpatialTransposed.T)
 
-        sigma = V_bar*diff(psi_total, V_barTransposed)
+        sigma = V_bar*diff(psi_total, V_barTransposed)"""
+
+        # Evaluates the derivative replacing the already precompiled de-
+        # rivative
+
+        evaluate_diff = ufl.replace(self.dpsi_dVt, {Identity(3): V_bar.T})
+
+        sigma = V_bar*evaluate_diff
 
         # Returns them
 
