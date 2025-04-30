@@ -96,13 +96,7 @@ def dispatch_processes(methods_names, context_class):
 # The dictionary of additional information has the name of each additio-
 # nal information as keys and the informations themselves as values
 
-def post_processingSelectionSingleField(post_processes, mesh,
-constitutive_model, dx):
-    
-    # Saves the code-provided information into the context class
-
-    context_class = post_classes.PostProcessContext(mesh, 
-    constitutive_model, dx)
+def post_processingSelectionSingleField(post_processes, context_class):
 
     # Constructs a dictionary of post processess that are implemented. 
     # If you implement any new post-processing tool, the code will auto-
@@ -179,7 +173,7 @@ constitutive_model, dx):
 # must receive all or a set of fields as input
 
 def post_processingSelectionMultipleFields(post_processesUnifield,
-n_fields, mesh, constitutive_model, dx):
+n_fields, context_class):
     
     # Iterates through the number of fields
 
@@ -189,7 +183,7 @@ n_fields, mesh, constitutive_model, dx):
         # th proper methods and stuff
 
         post_processesUnifield[i] = post_processingSelectionSingleField(
-        post_processesUnifield[i], mesh, constitutive_model, dx)
+        post_processesUnifield[i], context_class)
 
     # Returns the new live list of dictionaries
 

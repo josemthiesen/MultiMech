@@ -88,6 +88,10 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
     dx = direct_codeData[2]
 
+    physical_groupsList = direct_codeData[3] 
+    
+    physical_groupsNamesToTags = direct_codeData[4]
+
     # Creates the function space for the stress as a tensor
 
     W = 0.0
@@ -110,7 +114,8 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
     # Assembles the file and the function space into a list
 
-    output_object = [file, W, constitutive_model, dx]
+    output_object = [file, W, constitutive_model, dx, 
+    physical_groupsList, physical_groupsNamesToTags]
 
     return output_object
 
@@ -120,7 +125,8 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
 
     # Recovers the object items
 
-    file, W, constitutive_model, dx = output_object
+    (file, W, constitutive_model, dx, physical_groupsList, 
+    physical_groupsNamesToTags) = output_object
 
     # Verifies if the domain is homogeneous
 
@@ -139,16 +145,42 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
 
             cauchy_stress = local_constitutiveModel.cauchy_stress(field)
 
-            # Projects the cauchy stress into a function
+            # Verifies if more than one physical group is given for the
+            # same constitutive model
 
-            cauchy_stressProjected = variational_tools.projection_overRegion(
-            cauchy_stress, W, dx, subdomain)
+            if isinstance(subdomain, tuple):
 
-            # Updates the parameters vector of the FEM interpolation of 
-            # the Cauchy stress 
+                # Iterates though the elements of the tuple
 
-            cauchy_stressFunction.vector()[:] = (
-            cauchy_stressFunction.vector()[:]+cauchy_stressProjected.vector()[:])
+                for sub in subdomain:
+
+                    # Projects the cauchy stress into a function
+
+                    cauchy_stressProjected = variational_tools.projection_overRegion(
+                    cauchy_stress, W, dx, sub, physical_groupsList,
+                    physical_groupsNamesToTags)
+
+                    # Updates the parameters vector of the FEM interpolation of 
+                    # the Cauchy stress 
+
+                    cauchy_stressFunction.vector()[:] = (
+                    cauchy_stressFunction.vector()[:]+
+                    cauchy_stressProjected.vector()[:])
+
+            else:
+
+                # Projects the cauchy stress into a function
+
+                cauchy_stressProjected = variational_tools.projection_overRegion(
+                cauchy_stress, W, dx, subdomain, physical_groupsList,
+                physical_groupsNamesToTags)
+
+                # Updates the parameters vector of the FEM interpolation of 
+                # the Cauchy stress 
+
+                cauchy_stressFunction.vector()[:] = (
+                cauchy_stressFunction.vector()[:]+
+                cauchy_stressProjected.vector()[:])
 
         # Writes the field to the file
 

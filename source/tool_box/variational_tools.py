@@ -411,7 +411,13 @@ physical_groupsNamesToTags=None):
 
 # Defines a function to project a field over a region of the domain
 
-def projection_overRegion(field, V, dx, subdomain):
+def projection_overRegion(field, V, dx, subdomain, physical_groupsList,
+physical_groupsNamesToTags):
+
+    # Checks the subdomain for strings
+
+    subdomain = verify_physicalGroups(subdomain, physical_groupsList, 
+    physical_groupsNamesToTags=physical_groupsNamesToTags)
 
     # Creates the projected field
 

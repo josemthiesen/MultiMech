@@ -187,4 +187,5 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     post_processes, post_processesSubmeshList=post_processesSubmesh, 
     dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
     solver_parameters=solver_parameters, volume_physGroupsSubmesh=
-    volume_physGroupsSubmesh, solution_name=solution_name)
+    volume_physGroupsSubmesh, solution_name=solution_name,
+    domain_physGroupsNamesToTags=domain_physGroupsNamesToTags)

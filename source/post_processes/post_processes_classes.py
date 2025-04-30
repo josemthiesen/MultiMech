@@ -1,6 +1,8 @@
 # Routine to store some methods to post-process solution inside the 
 # pseudotime stepping methods
 
+from dolfin import *
+
 import source.post_processes.post_processes_functions as post_functions
 
 ########################################################################
@@ -13,13 +15,18 @@ class PostProcessContext:
 
     # Sets the common information provided to the class by the system
 
-    def __init__(self, mesh, constitutive_model, dx):
+    def __init__(self, mesh, constitutive_model, dx, 
+    domain_physGroupsNamesToTags):
 
         self.mesh = mesh
 
         self.constitutive_model = constitutive_model
         
         self.dx = dx
+
+        self.physical_groupsList = set(dx.subdomain_data().array())
+        
+        self.domain_physGroupsNamesToTags = domain_physGroupsNamesToTags
 
 # Defines a template for the post-processes' classes
 
@@ -76,7 +83,8 @@ class SaveStressField(PostProcessMethod):
         super().__init__(post_functions.initialize_cauchyStressSaving, 
         post_functions.update_cauchyStressSaving, ["directory path", 
         "file name", "polynomial degree"], [context.mesh, 
-        context.constitutive_model, context.dx])
+        context.constitutive_model, context.dx, 
+        context.physical_groupsList, context.domain_physGroupsNamesToTags])
 
 # Sets a class for the method to homogenize a field
 
