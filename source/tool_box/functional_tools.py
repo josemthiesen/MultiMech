@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 
 import source.tool_box.file_handling_tools as file_tools
 
+import source.tool_box.numerical_tools as numerical_tools
+
 ########################################################################
 #                        Time stepping classes                         #
 ########################################################################
@@ -31,7 +33,7 @@ class TimeSteppingClasses(ABC):
 
 class MacroQuantitiesInTime(TimeSteppingClasses):
 
-    def __init__(self, dictionary_VariablesToFiles, ):
+    def __init__(self, dictionary_VariablesToFiles):
 
         # Stores the dictionary of variables
 
@@ -62,7 +64,23 @@ class MacroQuantitiesInTime(TimeSteppingClasses):
 
         for variable, variable_dataDict in self.variables.items():
 
-            pass
+            # Gets the keys of the variable data dictionary
+
+            data_keys = list(variable_dataDict.keys())
+
+            # Gets the closest key to the given time value
+
+            time_key = numerical_tools.closest_numberInList(time_value,
+            data_keys)
+
+            # Gets the data value for this time step to the variable 
+            # contained in this class with this variable's name
+
+            setattr(self, variable, variable_dataDict[time_key])
+
+            # Deletes this key-data pair from the data dictionary
+
+            variable_dataDict.pop(time_key)
 
 ########################################################################
 #     Creation and pre-evaluation of discontinuous function spaces     #

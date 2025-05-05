@@ -12,6 +12,8 @@ import source.tool_box.programming_tools as programming_tools
 
 import source.post_processes.post_processes_classes as post_classes
 
+import source.tool_box.functional_tools as functional_tools
+
 ########################################################################
 #                        Newton-Raphson schemes                        #
 ########################################################################
@@ -23,13 +25,14 @@ import source.post_processes.post_processes_classes as post_classes
 lambda: dict(), 'post_processesSubmeshDict': lambda: dict(), 
 'dirichlet_loads': lambda: [], 'neumann_loads': lambda: [],
 'solver_parameters': lambda: dict(), 'solution_name': lambda: [
-"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: []})
+"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], ('macro_qu'+
+'antitiesClasses'): lambda: []})
 
 def newton_raphsonSingleField(t, t_final, maximum_loadingSteps, solver, 
 solution_field, mesh_dataClass, constitutive_model, post_processesDict=
 None, post_processesSubmeshDict=None, dirichlet_loads=None, 
 neumann_loads=None, solver_parameters=None, solution_name=None, 
-volume_physGroupsSubmesh=None):
+volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
@@ -42,6 +45,13 @@ volume_physGroupsSubmesh=None):
     # Evaluates the pseudotime step
 
     delta_t = (t_final-t)/(maximum_loadingSteps-1)
+
+    # Initializes the classes of macroscale quantities
+
+    for MacroScaleClass in macro_quantitiesClasses:
+
+        MacroScaleClass = functional_tools.MacroQuantitiesInTime(
+        MacroScaleClass)
 
     # Constructs the class of code-provided information for the post-
     # processes
@@ -205,6 +215,12 @@ volume_physGroupsSubmesh=None):
 
             neumann_load.t = t
 
+        # Updates the classes of macroscale quantities
+
+        for MacroScaleClass in macro_quantitiesClasses:
+
+            MacroScaleClass.update(t)
+
         # Verifies if the maximum number of laoding steps has been 
         # reached
 
@@ -223,17 +239,25 @@ volume_physGroupsSubmesh=None):
 lambda: [], 'post_processesSubmeshList': lambda: [], 'dirichlet_loads': 
 lambda: [], 'neumann_loads': lambda: [], 'solver_parameters': lambda: 
 dict(), 'solution_name': lambda: ["solution", "DNS"], ('volume_physGro'+
-'upsSubmesh'): lambda: []})
+'upsSubmesh'): lambda: [], 'macro_quantitiesClasses': lambda: []})
 
 def newton_raphsonMultipleFields(t, t_final, maximum_loadingSteps, 
 solver, solution_field, mixed_element, mesh_dataClass, 
 constitutive_model, post_processesList=None, post_processesSubmeshList=
 None, dirichlet_loads=None, neumann_loads=None, solver_parameters=None, 
-solution_name=None, volume_physGroupsSubmesh=None):
+solution_name=None, volume_physGroupsSubmesh=None, 
+macro_quantitiesClasses=None):
 
     # Evaluates the pseudotime step
 
     delta_t = (t_final-t)/(maximum_loadingSteps-1)
+
+    # Initializes the classes of macroscale quantities
+
+    for MacroScaleClass in macro_quantitiesClasses:
+
+        MacroScaleClass = functional_tools.MacroQuantitiesInTime(
+        MacroScaleClass)
     
     # Gets the number of fields in the mixed element
 
@@ -460,6 +484,12 @@ solution_name=None, volume_physGroupsSubmesh=None):
         for neumann_load in neumann_loads:
 
             neumann_load.t = t
+
+        # Updates the classes of macroscale quantities
+
+        for MacroScaleClass in macro_quantitiesClasses:
+
+            MacroScaleClass.update(t)
 
         # Verifies if the maximum number of laoding steps has been 
         # reached
