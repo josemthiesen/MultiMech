@@ -46,11 +46,11 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the number of RVEs at each direction
 
-    n_RVEsX = 3
+    n_RVEsX = 1
 
-    n_RVEsY = 3
+    n_RVEsY = 1
 
-    n_RVEsZ = 11
+    n_RVEsZ = 5
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
@@ -185,12 +185,12 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
         if i==0:
 
             post_processes[-1]["SaveStressField"] = {"directory path":
-            results_pathText, "file name": stress_fieldFileName[0], 
+            results_pathGraphics, "file name": stress_fieldFileName[0], 
             "polynomial degree": 1}
 
             post_processes[-1]["SaveCoupleStressField"] = {"directory "+
-            "path": results_pathText, "file name": stress_fieldFileName[
-            1], "polynomial degree": 1}
+            "path": results_pathGraphics, "file name": 
+            stress_fieldFileName[1], "polynomial degree": 1}
 
     post_processesSubmesh = []
 

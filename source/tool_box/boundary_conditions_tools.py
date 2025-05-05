@@ -12,11 +12,10 @@ import source.tool_box.programming_tools as programming_tools
 # blem using an Expression as load prescriber
 
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
-lambda: [], 'boundary_physGroupsNamesToTags': lambda: dict()})
+lambda: []})
 
 def prescribed_DirichletBC(prescribed_conditionsDict, 
-field_functionSpace, boundary_meshFunction, boundary_conditions=None, 
-boundary_physGroupsNamesToTags=None, verbose=False):
+field_functionSpace, mesh_dataClass, boundary_conditions=None):
     
     # Tests if the element is mixed and gets the number of fields
 
@@ -49,7 +48,7 @@ boundary_physGroupsNamesToTags=None, verbose=False):
                 # Verifies if the physical group is a string
 
                 physical_group = verify_stringPhysicalGroup(physical_group, 
-                boundary_physGroupsNamesToTags)
+                mesh_dataClass.boundary_physicalGroupsNameToTag)
 
                 # Verifies if there is only one field
 
@@ -64,7 +63,8 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                         boundary_conditions.append(DirichletBC(
                         field_functionSpace, load_info[0], 
-                        boundary_meshFunction, physical_group))
+                        mesh_dataClass.boundary_meshFunction, 
+                        physical_group))
 
                     # Otherwise, checks if there is a list of DOFs to be
                     # prescribed
@@ -82,7 +82,8 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                                 boundary_conditions.append(DirichletBC(
                                 field_functionSpace.sub(dof_number), 
-                                load_info[1], boundary_meshFunction, 
+                                load_info[1], 
+                                mesh_dataClass.boundary_meshFunction, 
                                 physical_group))
 
                         else:
@@ -92,7 +93,8 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                             boundary_conditions.append(DirichletBC(
                             field_functionSpace.sub(load_info[0]), 
-                            load_info[1], boundary_meshFunction, 
+                            load_info[1], 
+                            mesh_dataClass.boundary_meshFunction, 
                             physical_group))
 
                 # Otherwise, iterates through the fields
@@ -126,7 +128,7 @@ boundary_physGroupsNamesToTags=None, verbose=False):
                                         boundary_conditions.append(DirichletBC(
                                         field_functionSpace.sub(field).sub(
                                         dof_number), load_info[2], 
-                                        boundary_meshFunction, 
+                                        mesh_dataClass.boundary_meshFunction, 
                                         physical_group))
 
                                 else:
@@ -137,7 +139,7 @@ boundary_physGroupsNamesToTags=None, verbose=False):
                                     boundary_conditions.append(DirichletBC(
                                     field_functionSpace.sub(field).sub(
                                     load_info[1]), load_info[2], 
-                                    boundary_meshFunction, 
+                                    mesh_dataClass.boundary_meshFunction, 
                                     physical_group))
 
                             else:
@@ -147,7 +149,8 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                                 boundary_conditions.append(DirichletBC(
                                 field_functionSpace.sub(field), 
-                                load_info[1], boundary_meshFunction, 
+                                load_info[1], 
+                                mesh_dataClass.boundary_meshFunction, 
                                 physical_group))
 
         # Otherwise, if there is only one physical group to apply boundary 
@@ -158,7 +161,7 @@ boundary_physGroupsNamesToTags=None, verbose=False):
             # Verifies if the physical group is a string
 
             physical_group = verify_stringPhysicalGroup(physical_groups, 
-            boundary_physGroupsNamesToTags)
+            mesh_dataClass.boundary_physicalGroupsNameToTag)
 
             # Verifies if there is only one field
 
@@ -172,7 +175,8 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                     boundary_conditions.append(DirichletBC(
                     field_functionSpace, load_info[0], 
-                    boundary_meshFunction, physical_group))
+                    mesh_dataClass.boundary_meshFunction, physical_group
+                    ))
 
                 # Otherwise, checks if there is a list of DOFs to be
                 # prescribed
@@ -190,7 +194,8 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                             boundary_conditions.append(DirichletBC(
                             field_functionSpace.sub(dof_number), 
-                            load_info[1], boundary_meshFunction, 
+                            load_info[1], 
+                            mesh_dataClass.boundary_meshFunction, 
                             physical_group))
 
                     else:
@@ -200,7 +205,8 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                         boundary_conditions.append(DirichletBC(
                         field_functionSpace.sub(load_info[0]), 
-                        load_info[1], boundary_meshFunction, 
+                        load_info[1], 
+                        mesh_dataClass.boundary_meshFunction, 
                         physical_group))
 
             # Otherwise, iterates through the fields
@@ -234,7 +240,7 @@ boundary_physGroupsNamesToTags=None, verbose=False):
                                     boundary_conditions.append(DirichletBC(
                                     field_functionSpace.sub(field).sub(
                                     dof_number), load_info[2], 
-                                    boundary_meshFunction, 
+                                    mesh_dataClass.boundary_meshFunction, 
                                     physical_group))
 
                             else:
@@ -245,7 +251,7 @@ boundary_physGroupsNamesToTags=None, verbose=False):
                                 boundary_conditions.append(DirichletBC(
                                 field_functionSpace.sub(field).sub(
                                 load_info[1]), load_info[2], 
-                                boundary_meshFunction, 
+                                mesh_dataClass.boundary_meshFunction, 
                                 physical_group))
 
                         else:
@@ -255,12 +261,13 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 
                             boundary_conditions.append(DirichletBC(
                             field_functionSpace.sub(field), 
-                            load_info[1], boundary_meshFunction, 
+                            load_info[1], 
+                            mesh_dataClass.boundary_meshFunction, 
                             physical_group))
 
     # Returns the boundary conditions list
 
-    if verbose:
+    if mesh_dataClass.verbose:
 
         print("Finishes creating fixed support boundary conditions.\n")
 
@@ -280,18 +287,18 @@ boundary_physGroupsNamesToTags=None, verbose=False):
 # se. If sub_fields is an empty list, all DOFs are constrained
 
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
-lambda: [], 'boundary_physGroupsNamesToTags': lambda: dict()})
+lambda: [], 'sub_fieldsToApplyBC': lambda: []})
 
-def fixed_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups=0, sub_fieldsToApplyBC=[], boundary_conditions=
-None, boundary_physGroupsNamesToTags=None, verbose=False):
+def fixed_supportDirichletBC(field_functionSpace, mesh_dataClass, 
+boundary_physicalGroups=0, sub_fieldsToApplyBC=None, boundary_conditions=
+None):
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
 
     if boundary_physicalGroups==0:
 
-        if verbose:
+        if mesh_dataClass.verbose:
 
             print("Creates no fixed support boundary condition.\n")
 
@@ -320,7 +327,7 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
             # Verifies if the physical group is a string
 
             physical_group = verify_stringPhysicalGroup(physical_group, 
-            boundary_physGroupsNamesToTags)
+            mesh_dataClass.boundary_physicalGroupsNameToTag)
 
             # Verifies if there is only one field
 
@@ -330,7 +337,7 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
 
                 boundary_conditions.append(DirichletBC(
                 field_functionSpace, Constant((0.0, 0.0, 0.0)), 
-                boundary_meshFunction, physical_group))
+                mesh_dataClass.boundary_meshFunction, physical_group))
 
             # Otherwise, iterates through the fields
 
@@ -348,7 +355,8 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
 
                         boundary_conditions.append(DirichletBC(
                         field_functionSpace.sub(field), Constant((0.0, 0.0, 
-                        0.0)), boundary_meshFunction, physical_group))
+                        0.0)), mesh_dataClass.boundary_meshFunction, 
+                        physical_group))
 
     # Otherwise, if there is only one physical group to apply boundary 
     # conditions
@@ -358,7 +366,8 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
         # Verifies if the physical group is a string
 
         boundary_physicalGroups = verify_stringPhysicalGroup(
-        boundary_physicalGroups, boundary_physGroupsNamesToTags)
+        boundary_physicalGroups, 
+        mesh_dataClass.boundary_physicalGroupsNameToTag)
 
         # Verifies if there is only one field
 
@@ -367,8 +376,9 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
             # Adds this particular boundary condition to the lot
 
             boundary_conditions.append(DirichletBC(field_functionSpace,
-            Constant((0.0, 0.0, 0.0)), boundary_meshFunction, 
-            boundary_physicalGroups))
+            Constant((0.0, 0.0, 0.0)), 
+            mesh_dataClass.boundary_meshFunction, boundary_physicalGroups
+            ))
 
         # Otherwise, iterates through the fields
 
@@ -385,12 +395,12 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
 
                     boundary_conditions.append(DirichletBC(
                     field_functionSpace.sub(field), Constant((0.0, 0.0, 
-                    0.0)), boundary_meshFunction, 
+                    0.0)), mesh_dataClass.boundary_meshFunction, 
                     boundary_physicalGroups))
 
     # Returns the boundary conditions list
 
-    if verbose:
+    if mesh_dataClass.verbose:
 
         print("Finishes creating fixed support boundary conditions.\n")
 
@@ -400,11 +410,11 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
 # list, all DOFs are constrained
 
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
-lambda: [], 'boundary_physGroupsNamesToTags': lambda: dict()})
+lambda: [], 'sub_fieldsToApplyBC': lambda: []})
 
-def simple_supportDirichletBC(field_functionSpace, boundary_meshFunction, 
-boundary_physicalGroups, sub_fieldsToApplyBC=[], boundary_conditions=
-None, boundary_physGroupsNamesToTags=None, verbose=False):
+def simple_supportDirichletBC(field_functionSpace, mesh_dataClass, 
+boundary_physicalGroups, sub_fieldsToApplyBC=None, boundary_conditions=
+None):
     
     # Verifies if the boundary physical groups is a dictionary
 
@@ -420,7 +430,7 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
 
     if len(list(boundary_physicalGroups.keys()))==0:
 
-        if verbose:
+        if mesh_dataClass.verbose:
 
             print("Creates no simple support boundary condition.\n")
 
@@ -445,7 +455,7 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
         # Verifies if the physical group is a string
 
         physical_group = verify_stringPhysicalGroup(physical_group, 
-        boundary_physGroupsNamesToTags)
+        mesh_dataClass.boundary_physicalGroupsNameToTag)
 
         # Verifies if there is only one field
 
@@ -462,7 +472,8 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
 
                     boundary_conditions.append(DirichletBC(
                     field_functionSpace.sub(i), Constant(0.0), 
-                    boundary_meshFunction, physical_group))
+                    mesh_dataClass.boundary_meshFunction, physical_group
+                    ))
 
         # Otherwise, iterates through the fields
 
@@ -487,12 +498,13 @@ None, boundary_physGroupsNamesToTags=None, verbose=False):
 
                             boundary_conditions.append(DirichletBC(
                             field_functionSpace.sub(field).sub(i), 
-                            Constant(0.0), boundary_meshFunction, 
+                            Constant(0.0), 
+                            mesh_dataClass.boundary_meshFunction, 
                             physical_group))
 
     # Returns the boundary conditions list
 
-    if verbose:
+    if mesh_dataClass.verbose:
 
         print("Finishes creating fixed support boundary conditions.\n")
 

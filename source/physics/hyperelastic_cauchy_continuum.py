@@ -37,11 +37,8 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
     # Reads the mesh and constructs some fenics objects using the xdmf 
     # file
 
-    (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction, 
-    domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
-    ) = mesh_tools.read_mshMesh(mesh_fileName, quadrature_degree=
-    quadrature_degree)
+    mesh_dataClass = mesh_tools.read_mshMesh(mesh_fileName, 
+    quadrature_degree=quadrature_degree, verbose=verbose)
 
     ####################################################################
     #                          Function space                          #
@@ -59,24 +56,19 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
 
     # Defines the boundary conditions for fixed facets
 
-    bc = BCs_tools.fixed_supportDirichletBC(U, boundary_meshFunction, 
+    bc = BCs_tools.fixed_supportDirichletBC(U, mesh_dataClass, 
     boundary_physicalGroups=fixed_supportPhysicalGroups,
-    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags, 
-    verbose=verbose, boundary_conditions=[])
+    boundary_conditions=[])
 
     # Adds boundary conditions for simply supported facets
 
-    bc = BCs_tools.simple_supportDirichletBC(U, boundary_meshFunction,
-    simple_supportPhysicalGroups, boundary_conditions=bc,
-    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags, 
-    verbose=verbose)
+    bc = BCs_tools.simple_supportDirichletBC(U, mesh_dataClass,
+    simple_supportPhysicalGroups, boundary_conditions=bc)
 
     # Adds prescribed displacement using the Dirichlet loads
 
     bc = BCs_tools.prescribed_DirichletBC(prescribed_displacement, U,
-    boundary_meshFunction, boundary_conditions=bc, 
-    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags, 
-    verbose=verbose)
+    mesh_dataClass, boundary_conditions=bc)
 
     ####################################################################
     #                         Variational forms                        #
@@ -96,8 +88,7 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    u_new, v, constitutive_model, dx, domain_physGroupsNamesToTags=
-    domain_physGroupsNamesToTags, verbose=verbose)
+    u_new, v, constitutive_model, mesh_dataClass)
 
     #Piola = constitutive_model.first_piolaStress(u_new)
 
@@ -106,8 +97,7 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, v, ds, boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
+    traction_dictionary, v, mesh_dataClass)
 
     #traction_VarForm = dot(as_vector([0.0, neumann_loads[0], 0.0]), v)*ds(6)
 
@@ -134,8 +124,8 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
     # Iterates through the pseudotime stepping algortihm 
 
     newton_raphson_tools.newton_raphsonSingleField(t, t_final, 
-    maximum_loadingSteps, solver, u_new, domain_meshCollection, 
-    constitutive_model, dx, post_processesDict=post_processes, 
+    maximum_loadingSteps, solver, u_new, mesh_dataClass, 
+    constitutive_model, post_processesDict=post_processes, 
     post_processesSubmeshDict=post_processesSubmesh, neumann_loads=
     neumann_loads, dirichlet_loads=dirichlet_loads, solver_parameters=
     solver_parameters, volume_physGroupsSubmesh=volume_physGroupsSubmesh,

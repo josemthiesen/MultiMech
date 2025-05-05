@@ -6,6 +6,39 @@ import meshio
 
 import source.tool_box.programming_tools as programming_tools
 
+# Defines a class for the mesh data
+
+class MeshData:
+
+    def __init__(self, mesh, dx, ds, n, domain_meshCollection, 
+    domain_meshFunction, boundary_meshCollection, boundary_meshFunction, 
+    domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag,
+    verbose):
+        
+        # Saves the mesh parameters
+
+        self.mesh = mesh
+        
+        self.dx = dx
+        
+        self.ds = ds
+        
+        self.n = n
+        
+        self.domain_meshCollection = domain_meshCollection 
+
+        self.domain_meshFunction = domain_meshFunction
+        
+        self.boundary_meshCollection = boundary_meshCollection
+        
+        self.boundary_meshFunction = boundary_meshFunction
+
+        self.domain_physicalGroupsNameToTag = domain_physicalGroupsNameToTag
+        
+        self.boundary_physicalGroupsNameToTag = boundary_physicalGroupsNameToTag
+        
+        self.verbose = verbose
+
 ########################################################################
 #                              Mesh files                              #
 ########################################################################
@@ -17,7 +50,7 @@ lambda: ['tetra', 'triangle'], 'data_sets': lambda: ["domain", ("bound"+
 "ary")]})
 
 def read_mshMesh(file_name, desired_elements=None, data_sets=None, 
-quadrature_degree=2):
+quadrature_degree=2, verbose=False):
 
     # Reads the saved gmsh mesh using meshio
 
@@ -215,7 +248,7 @@ quadrature_degree=2):
     return read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=
     domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag=
     boundary_physicalGroupsNameToTag, quadrature_degree=
-    quadrature_degree)
+    quadrature_degree, verbose=verbose)
 
 # Defines a function to read a mesh from a xdmf file
 
@@ -224,7 +257,8 @@ quadrature_degree=2):
 lambda: dict()})
 
 def read_xdmfMesh(file_name, domain_physicalGroupsNameToTag=None, 
-boundary_physicalGroupsNameToTag=None, quadrature_degree=2):
+boundary_physicalGroupsNameToTag=None, quadrature_degree=2, verbose=
+False):
     
     # Sets the compiler parameters
 
@@ -310,11 +344,12 @@ boundary_physicalGroupsNameToTag=None, quadrature_degree=2):
     print("Finishes creating the mesh functions, measures, and tags di"+
     "ctionaries.\n")
 
-    # Returns these objects
+    # Stores these objects inside a class and returns it
 
-    return (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction, 
-    domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag)
+    return MeshData(mesh, dx, ds, n, domain_meshCollection, 
+    domain_meshFunction, boundary_meshCollection, boundary_meshFunction, 
+    domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag,
+    verbose)
 
 ########################################################################
 #                              Submeshing                              #

@@ -20,16 +20,12 @@ import source.tool_box.programming_tools as programming_tools
 # are the constitutive model classes. This internal work is calculated 
 # using the first Piola-Kirchhoff stress tensor
 
-@programming_tools.optional_argumentsInitializer({('domain_physGroupsN'+
-'amesToTags'): lambda: dict()})
-
 def hyperelastic_internalWorkFirstPiola(trial_function, test_function, 
-constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=None,
-verbose=False):
+constitutive_modelDictionary, mesh_dataClass):
     
     # Gets the physical groups from the domain mesh function
 
-    physical_groupsList = set(dx.subdomain_data().array())
+    physical_groupsList = set(mesh_dataClass.dx.subdomain_data().array())
 
     # Initializes the variational form of the inner work
 
@@ -50,7 +46,7 @@ verbose=False):
 
             physical_group = verify_physicalGroups(physical_group, 
             physical_groupsList, physical_groupsNamesToTags=
-            domain_physGroupsNamesToTags)
+            mesh_dataClass.domain_physicalGroupsNameToTag)
 
             # Initializes objects for the stresses at the reference 
             # configuration
@@ -69,31 +65,33 @@ verbose=False):
                 for sub_physicalGroup in physical_group:
 
                     print("The volume of the", sub_physicalGroup, "sub"+
-                    "domain is:", assemble(1*dx(sub_physicalGroup)), 
-                    "\n")
+                    "domain is:", assemble(1*mesh_dataClass.dx(
+                    sub_physicalGroup)), "\n")
 
                     # Constructs the variational forms for the inner 
                     # work
 
                     inner_work += (inner(first_piola, grad(test_function
-                    ))*dx(sub_physicalGroup))
+                    ))*mesh_dataClass.dx(sub_physicalGroup))
 
             else:
 
                 print("The volume of the", physical_group, "subdomain "+
-                "is:", assemble(1*dx(physical_group)), "\n")
+                "is:", assemble(1*mesh_dataClass.dx(physical_group)), 
+                "\n")
 
                 # Constructs the variational forms for the inner work
 
                 inner_work += (inner(first_piola, grad(test_function))*
-                dx(physical_group))
+                mesh_dataClass.dx(physical_group))
 
     # If the constitutive model is not a dictionary, the domain is homo-
     # geneous
 
     else:
 
-        print("The volume of the domain is:", assemble(1*dx), "\n")
+        print("The volume of the domain is:", assemble(1*
+        mesh_dataClass.dx), "\n")
 
         # Initializes objects for the stresses at the reference configu-
         # ration
@@ -103,11 +101,12 @@ verbose=False):
 
         # Constructs the variational forms for the inner work
 
-        inner_work = inner(first_piola, grad(test_function))*dx
+        inner_work = (inner(first_piola, grad(test_function))*
+        mesh_dataClass.dx)
 
     # Returns the inner work variational form
 
-    if verbose:
+    if mesh_dataClass.verbose:
 
         print("Finishes creating the variational form of the inner wor"+
         "k done by the\nfirst Piola stress tensor in a Cauchy continuu"+
@@ -124,18 +123,15 @@ verbose=False):
 # culated using the first Piola-Kirchhoff stress tensor and its couple
 # stress
 
-@programming_tools.optional_argumentsInitializer({('domain_physGroupsN'+
-'amesToTags'): lambda: dict()})
-
 def hyperelastic_micropolarInternalWorkFirstPiola(
 displacement_trialFunction, microrotation_trialFunction, 
 displacement_testFunction, microrotation_testFunction,
-constitutive_modelDictionary, dx, domain_physGroupsNamesToTags=None,
-verbose=False):
+constitutive_modelDictionary, mesh_dataClass):
     
     # Gets the physical groups from the domain mesh function
 
-    physical_groupsList = set(dx.subdomain_data().array())
+    physical_groupsList = set(mesh_dataClass.dx.subdomain_data().array(
+    ))
 
     # Initializes the variational form of the inner work
 
@@ -156,7 +152,7 @@ verbose=False):
 
             physical_group = verify_physicalGroups(physical_group, 
             physical_groupsList, physical_groupsNamesToTags=
-            domain_physGroupsNamesToTags)
+            mesh_dataClass.domain_physicalGroupsNameToTag)
 
             # Initializes objects for the stresses at the reference 
             # configuration
@@ -181,14 +177,17 @@ verbose=False):
                     # work of the first Piola-Kirchhoff stress
 
                     inner_work += (inner(first_piola, grad(
-                    displacement_testFunction))*dx(sub_physicalGroup))
+                    displacement_testFunction))*mesh_dataClass.dx(
+                    sub_physicalGroup))
 
                     # Adds the parcel of the couple stress
 
                     inner_work += ((inner(couple_firstPiola, grad(
-                    microrotation_testFunction))*dx(sub_physicalGroup))-
-                    (inner(kirchhoff, tensor_tools.skew_2OrderTensor(
-                    microrotation_testFunction))*dx(sub_physicalGroup)))
+                    microrotation_testFunction))*mesh_dataClass.dx(
+                    sub_physicalGroup))-(inner(kirchhoff, 
+                    tensor_tools.skew_2OrderTensor(
+                    microrotation_testFunction))*mesh_dataClass.dx(
+                    sub_physicalGroup)))
 
             else:
 
@@ -196,14 +195,17 @@ verbose=False):
                 # the first Piola-Kirchhoff stress
 
                 inner_work += (inner(first_piola, grad(
-                displacement_testFunction))*dx(physical_group))
+                displacement_testFunction))*mesh_dataClass.dx(
+                physical_group))
 
                 # Adds the parcel of the couple stress
 
                 inner_work += ((inner(couple_firstPiola, grad(
-                microrotation_testFunction))*dx(physical_group))-(inner(
-                kirchhoff, tensor_tools.skew_2OrderTensor(
-                microrotation_testFunction))*dx(physical_group)))
+                microrotation_testFunction))*mesh_dataClass.dx(
+                physical_group))-(inner(kirchhoff, 
+                tensor_tools.skew_2OrderTensor(
+                microrotation_testFunction))*mesh_dataClass.dx(
+                physical_group)))
 
     # If the constitutive model is not a dictionary, the domain is homo-
     # geneous
@@ -223,17 +225,18 @@ verbose=False):
         # first Piola-Kirchhoff stress
 
         inner_work += (inner(first_piola, grad(displacement_testFunction
-        ))*dx)
+        ))*mesh_dataClass.dx)
 
         # Adds the parcel of the couple stress
 
         inner_work += ((inner(couple_firstPiola, grad(
-        microrotation_testFunction))*dx)-(inner(kirchhoff, 
-        tensor_tools.skew_2OrderTensor(microrotation_testFunction))*dx))
+        microrotation_testFunction))*mesh_dataClass.dx)-(inner(kirchhoff, 
+        tensor_tools.skew_2OrderTensor(microrotation_testFunction))*
+        mesh_dataClass.dx))
 
     # Returns the inner work variational form
 
-    if verbose:
+    if mesh_dataClass.verbose:
 
         print("Finishes creating the variational form of the inner wor"+
         "k done by the\nfirst Piola stress tensor and its couple stres"+
@@ -250,15 +253,12 @@ verbose=False):
 # nary of traction loads, where the keys are the corresponding boundary
 # physical groups and the values are the traction loads
 
-@programming_tools.optional_argumentsInitializer({('boundary_physGroup'+
-'sNamesToTags'): lambda: dict()})
-
-def traction_work(traction_dictionary, field_variation, ds, 
-boundary_physGroupsNamesToTags=None, verbose=False):
+def traction_work(traction_dictionary, field_variation, mesh_dataClass):
 
     # Gets the physical groups tags
 
-    physical_groupsTags = set(ds.subdomain_data().array())
+    physical_groupsTags = set(mesh_dataClass.ds.subdomain_data().array(
+    ))
 
     # Initializes the variational form
 
@@ -272,30 +272,31 @@ boundary_physGroupsNamesToTags=None, verbose=False):
             
         physical_group = verify_physicalGroups(physical_group, 
         physical_groupsTags, physical_groupsNamesToTags=
-        boundary_physGroupsNamesToTags)
+        mesh_dataClass.boundary_physicalGroupsNameToTag)
 
         if isinstance(physical_group, list):
 
             for sub_physicalGroup in physical_group:
 
                 print("The physical group "+str(sub_physicalGroup)+" h"+
-                "as an area of "+str(assemble(1*ds(sub_physicalGroup)))+
-                "\n")
+                "as an area of "+str(assemble(1*mesh_dataClass.ds(
+                sub_physicalGroup)))+"\n")
 
-                traction_form += dot(traction, field_variation)*ds(
-                sub_physicalGroup)
+                traction_form += (dot(traction, field_variation)*
+                mesh_dataClass.ds(sub_physicalGroup))
 
         else:
 
             print("The physical group "+str(physical_group)+" has an a"+
-            "rea of "+str(assemble(1*ds(physical_group)))+"\n")
+            "rea of "+str(assemble(1*mesh_dataClass.ds(physical_group)))
+            +"\n")
 
-            traction_form += dot(traction, field_variation)*ds(
-            physical_group)
+            traction_form += (dot(traction, field_variation)*
+            mesh_dataClass.ds(physical_group))
 
     # Returns the variational form
 
-    if verbose:
+    if mesh_dataClass.verbose:
 
         print("Finishes creating the variational form of the work done"+
         " by the traction on the boundary\n")

@@ -39,10 +39,12 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # Reads the mesh and constructs some fenics objects using the xdmf 
     # file
 
-    (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction, 
-    domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
-    ) = mesh_tools.read_mshMesh(mesh_fileName)
+    #(mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
+    #boundary_meshCollection, boundary_meshFunction, 
+    #domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
+    #)
+    mesh_dataClass = mesh_tools.read_mshMesh(mesh_fileName, verbose=
+    verbose)
 
     ####################################################################
     #                          Function space                          #
@@ -51,18 +53,19 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # Constructs elements for the displacement and for the microrotation
     # fields
 
-    displacement_element = VectorElement("CG", mesh.ufl_cell(), 
-    polynomial_degreeDisplacement)
+    displacement_element = VectorElement("CG", 
+    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeDisplacement)
 
-    microrotation_element = VectorElement("CG", mesh.ufl_cell(), 
-    polynomial_degreeMicrorotation)
+    microrotation_element = VectorElement("CG", 
+    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeMicrorotation)
 
     mixed_element = MixedElement([displacement_element, 
     microrotation_element])
 
     # Defines the finite element space for the monolithic solution
 
-    monolithic_functionSpace = FunctionSpace(mesh, mixed_element)
+    monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
+    mixed_element)
 
     ####################################################################
     #                        Boundary conditions                       #
@@ -72,37 +75,32 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # placement
 
     bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace, 
-    boundary_meshFunction, boundary_physicalGroups=
-    fixed_supportDisplacementPhysicalGroups, sub_fieldsToApplyBC=[0],
-    boundary_physGroupsNamesToTags=boundary_physGroupsNamesToTags, 
-    verbose=verbose)
+    mesh_dataClass, boundary_physicalGroups=
+    fixed_supportDisplacementPhysicalGroups, sub_fieldsToApplyBC=[0])
 
     # Defines the boundary conditions for fixed facets in terms of mi-
     # crorotation
 
     bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace, 
-    boundary_meshFunction, boundary_physicalGroups=
+    mesh_dataClass, boundary_physicalGroups=
     fixed_supportMicrorotationPhysicalGroups, sub_fieldsToApplyBC=[1],
-    boundary_conditions=bc, boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
+    boundary_conditions=bc)
 
     # Adds boundary conditions for simply supported facets in terms of
     # displacement
 
     bc = BCs_tools.simple_supportDirichletBC(monolithic_functionSpace, 
-    boundary_meshFunction, boundary_physicalGroups=
+    mesh_dataClass, boundary_physicalGroups=
     simple_supportDisplacementPhysicalGroups, boundary_conditions=bc,
-    sub_fieldsToApplyBC=[0], boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
+    sub_fieldsToApplyBC=[0])
 
     # Adds boundary conditions for simply supported facets in terms of
     # microrotation
 
     bc = BCs_tools.simple_supportDirichletBC(monolithic_functionSpace, 
-    boundary_meshFunction, boundary_physicalGroups=
+    mesh_dataClass, boundary_physicalGroups=
     simple_supportMicrorotationPhysicalGroups, boundary_conditions=bc,
-    sub_fieldsToApplyBC=[1], boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
+    sub_fieldsToApplyBC=[1])
 
     ####################################################################
     #                         Variational forms                        #
@@ -129,15 +127,13 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
-    u_new, phi_new, variation_u, variation_phi, constitutive_model, dx,
-    domain_physGroupsNamesToTags=domain_physGroupsNamesToTags, verbose=
-    verbose)
+    u_new, phi_new, variation_u, variation_phi, constitutive_model, 
+    mesh_dataClass)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, variation_u, ds, boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
+    traction_dictionary, variation_u, mesh_dataClass)
 
     #traction_VarForm = (dot(as_vector([0.0, neumann_loads[0], 0.0]), 
     #variation_u)*ds(6))
@@ -147,8 +143,7 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # variational construction is the same for traction and for moment
 
     moment_VarForm = variational_tools.traction_work(
-    moment_dictionary, variation_phi, ds, boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
+    moment_dictionary, variation_phi, mesh_dataClass)
 
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object
@@ -175,9 +170,8 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     newton_raphson_tools.newton_raphsonMultipleFields(t, t_final, 
     maximum_loadingSteps, solver, solution_new, mixed_element, 
-    domain_meshCollection, constitutive_model, dx, post_processesList=
+    mesh_dataClass, constitutive_model, post_processesList=
     post_processes, post_processesSubmeshList=post_processesSubmesh, 
     dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
     solver_parameters=solver_parameters, volume_physGroupsSubmesh=
-    volume_physGroupsSubmesh, solution_name=solution_name,
-    domain_physGroupsNamesToTags=domain_physGroupsNamesToTags)
+    volume_physGroupsSubmesh, solution_name=solution_name)

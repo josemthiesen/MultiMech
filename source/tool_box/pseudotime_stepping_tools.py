@@ -23,14 +23,13 @@ import source.post_processes.post_processes_classes as post_classes
 lambda: dict(), 'post_processesSubmeshDict': lambda: dict(), 
 'dirichlet_loads': lambda: [], 'neumann_loads': lambda: [],
 'solver_parameters': lambda: dict(), 'solution_name': lambda: [
-"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], 'domain_ph'+
-'ysGroupsNamesToTags': lambda: dict()})
+"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: []})
 
 def newton_raphsonSingleField(t, t_final, maximum_loadingSteps, solver, 
-solution_field, domain_meshCollection, constitutive_model, dx,
-post_processesDict=None, post_processesSubmeshDict=None, dirichlet_loads
-=None, neumann_loads=None, solver_parameters=None, solution_name=None, 
-volume_physGroupsSubmesh=None, domain_physGroupsNamesToTags=None):
+solution_field, mesh_dataClass, constitutive_model, post_processesDict=
+None, post_processesSubmeshDict=None, dirichlet_loads=None, 
+neumann_loads=None, solver_parameters=None, solution_name=None, 
+volume_physGroupsSubmesh=None):
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
@@ -49,7 +48,8 @@ volume_physGroupsSubmesh=None, domain_physGroupsNamesToTags=None):
 
     context_class = post_classes.PostProcessContext(
     solution_field.function_space().mesh(), 
-    constitutive_model, dx, domain_physGroupsNamesToTags)
+    constitutive_model, mesh_dataClass.dx, 
+    mesh_dataClass.domain_physicalGroupsNameToTag)
 
     # Transforms the dictionary of post-processing methods instructions
     # into a live-wire dictionary with the proper methods and needed in-
@@ -81,13 +81,15 @@ volume_physGroupsSubmesh=None, domain_physGroupsNamesToTags=None):
         (RVE_submesh, domain_meshFunction, function_spaceSubmesh,
         RVE_meshMapping, parent_meshMapping, solution_submesh, 
         RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
-        domain_meshCollection, volume_physGroupsSubmesh, function_space)
+        mesh_dataClass.domain_meshCollection, volume_physGroupsSubmesh, 
+        function_space)
 
         # Constructs the class of code-provided information for the post-
         # processes
 
         context_classRVE = post_classes.PostProcessContext(RVE_submesh, 
-        constitutive_model, dx_submesh, domain_physGroupsNamesToTags)
+        constitutive_model, dx_submesh, 
+        mesh_dataClass.domain_physicalGroupsNameToTag)
 
         # Initializes the post process for the submesh if there's any
 
@@ -221,15 +223,13 @@ volume_physGroupsSubmesh=None, domain_physGroupsNamesToTags=None):
 lambda: [], 'post_processesSubmeshList': lambda: [], 'dirichlet_loads': 
 lambda: [], 'neumann_loads': lambda: [], 'solver_parameters': lambda: 
 dict(), 'solution_name': lambda: ["solution", "DNS"], ('volume_physGro'+
-'upsSubmesh'): lambda: [], 'domain_physGroupsNamesToTags': lambda: dict(
-)})
+'upsSubmesh'): lambda: []})
 
 def newton_raphsonMultipleFields(t, t_final, maximum_loadingSteps, 
-solver, solution_field, mixed_element, domain_meshCollection, 
-constitutive_model, dx, post_processesList=None, 
-post_processesSubmeshList=None, dirichlet_loads=None, neumann_loads=None, 
-solver_parameters=None, solution_name=None, volume_physGroupsSubmesh=
-None, domain_physGroupsNamesToTags=None):
+solver, solution_field, mixed_element, mesh_dataClass, 
+constitutive_model, post_processesList=None, post_processesSubmeshList=
+None, dirichlet_loads=None, neumann_loads=None, solver_parameters=None, 
+solution_name=None, volume_physGroupsSubmesh=None):
 
     # Evaluates the pseudotime step
 
@@ -257,8 +257,8 @@ None, domain_physGroupsNamesToTags=None):
     # processes
 
     context_class = post_classes.PostProcessContext(
-    solution_field.function_space().mesh(), constitutive_model, dx, 
-    domain_physGroupsNamesToTags)
+    solution_field.function_space().mesh(), constitutive_model, 
+    mesh_dataClass.dx, mesh_dataClass.domain_physicalGroupsNameToTag)
 
     # Transforms the list of dictionaries of post-processing methods 
     # instructions into a list of live-wire dictionaries with the proper 
@@ -289,13 +289,15 @@ None, domain_physGroupsNamesToTags=None):
         (RVE_submesh, domain_meshFunction, function_spaceSubmesh, 
         RVE_meshMapping, parent_meshMapping, solution_submesh, 
         RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
-        domain_meshCollection, volume_physGroupsSubmesh, solution_field)
+        mesh_dataClass.domain_meshCollection, volume_physGroupsSubmesh, 
+        solution_field)
 
         # Constructs the class of code-provided information for the post-
         # processes
 
         context_classRVE = post_classes.PostProcessContext(RVE_submesh, 
-        constitutive_model, dx_submesh, domain_physGroupsNamesToTags)
+        constitutive_model, dx_submesh, 
+        mesh_dataClass.domain_physicalGroupsNameToTag)
 
         # Initializes the post process for the submesh if there's any
 
