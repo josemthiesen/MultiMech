@@ -43,20 +43,20 @@ homogenized_dispRVEFileName = "homogenized_displacement_RVE.txt"
 
 post_processes = dict()
 
-post_processes["save field"] = {"directory path":results_path, 
+post_processes["SaveField"] = {"directory path":results_path, 
 "file name":displacement_fileName}
 
-post_processes["save stress field"] = {"directory path":results_path,
+post_processes["SaveStressField"] = {"directory path":results_path,
 "file name":stress_fileName, "polynomial degree":1}
 
 # Put "" in the subdomain to integrate over the entire domain
 
-post_processes["homogenize field"] = {"directory path":results_path,
+post_processes["HomogenizeField"] = {"directory path":results_path,
 "file name":homogenized_displacementFileName, "subdomain":[2]}
 
 # Put "" in the subdomain to integrate over the entire domain
 
-post_processes["homogenize field's gradient"] = {"directory path":
+post_processes["HomogenizeFieldsGradient"] = {"directory path":
 results_path, "file name":homogenized_gradDisplacementFileName, 
 "subdomain":""}
 
@@ -67,7 +67,7 @@ post_processesSubmesh = dict()
 # THe subdomain variable must be "" for a submesh, for there isn't sub-
 # domains in a submesh
 
-post_processesSubmesh["homogenize field"] = {"directory path":
+post_processesSubmesh["HomogenizeField"] = {"directory path":
 results_path, "file name":homogenized_dispRVEFileName, "subdomain":""}
 
 ########################################################################
@@ -192,13 +192,6 @@ polynomial_degree = 2
 ########################################################################
 #                           Solver parameters                          #
 ########################################################################
-
-# Sets some parameters
-
-parameters["form_compiler"]["representation"] = "uflacs"
-parameters["allow_extrapolation"] = True
-parameters["form_compiler"]["cpp_optimize"] = True
-parameters["form_compiler"]["quadrature_degree"] = 2
 
 # Sets the solver parameters in a dictionary
 

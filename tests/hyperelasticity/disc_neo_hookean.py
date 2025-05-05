@@ -32,7 +32,7 @@ displacement_fileName = "displacement.xdmf"
 
 post_processes = dict()
 
-post_processes["save field"] = {"directory path":results_path, 
+post_processes["SaveField"] = {"directory path":results_path, 
 "file name":displacement_fileName}
 
 ########################################################################
@@ -79,13 +79,6 @@ polynomial_degree = 1
 ########################################################################
 #                           Solver parameters                          #
 ########################################################################
-
-# Sets some parameters
-
-parameters["form_compiler"]["representation"] = "uflacs"
-parameters["allow_extrapolation"] = True
-parameters["form_compiler"]["cpp_optimize"] = True
-parameters["form_compiler"]["quadrature_degree"] = 2
 
 # Sets the solver parameters in a dictionary
 

@@ -48,7 +48,8 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
 
     print("Polynomial degree:", polynomial_degree, "\n")
 
-    U = VectorFunctionSpace(mesh, "Lagrange", polynomial_degree)
+    U = VectorFunctionSpace(mesh_dataClass.mesh, "Lagrange", 
+    polynomial_degree)
 
     ####################################################################
     #                        Boundary conditions                       #

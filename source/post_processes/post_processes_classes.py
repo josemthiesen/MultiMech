@@ -23,10 +23,19 @@ class PostProcessContext:
         self.constitutive_model = constitutive_model
         
         self.dx = dx
-
-        self.physical_groupsList = set(dx.subdomain_data().array())
         
         self.domain_physGroupsNamesToTags = domain_physGroupsNamesToTags
+
+        # Gets the physical groups from the integration measure inside a
+        # try-except box because submeshes do not have physical groups
+
+        try:
+
+            self.physical_groupsList = set(dx.subdomain_data().array())
+
+        except:
+
+            self.physical_groupsList = None
 
 # Defines a template for the post-processes' classes
 
