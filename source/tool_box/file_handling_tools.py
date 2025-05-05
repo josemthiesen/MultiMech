@@ -5,7 +5,57 @@ import os
 
 import copy
 
+from collections import OrderedDict
+
 import numpy as np
+
+########################################################################
+#                            Parsing tools                             #
+########################################################################
+
+# Defines a function to convert a list of lists of the format [[t0, A0],
+# [t1, A1], ..., [tn, An]] into a dictionary, where ti are the keys and
+# Ai are the values
+
+def list_toDict(original_list):
+
+    # Checks if the list has the required format
+
+    if len(original_list)==0:
+
+        raise ValueError("The original list is empty, so it cannot be "+
+        "translated to a dictionary")
+    
+    # Initializes the dictionary
+
+    list_dictionary = OrderedDict()
+
+    # Iterates through the list
+
+    for sublist in original_list:
+
+        # Checks if the length of the list is at least two
+
+        if len(sublist)<2:
+
+            raise KeyError("Each sublist to be translated to a pair ke"+
+            "y-value must have at least a length of 2")
+        
+        # Checks if the first element is not a list
+
+        if (not (isinstance(sublist[0], float) or isinstance(sublist[0], 
+        str) or isinstance(sublist[0], tuple))):
+            
+            raise KeyError("The first element of the sublist must be a"+
+            " number, a string, or a tuple to be translated into a key")
+        
+        # After the last checks, pairs the key to the value
+
+        list_dictionary[sublist[0]] = copy.deepcopy(sublist[1])
+
+    # Returns the dictionary
+
+    return list_dictionary
 
 # Defines a function to convert a float to a string substituting the dot
 # by an underline

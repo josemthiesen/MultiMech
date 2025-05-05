@@ -41,10 +41,8 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # Reads the mesh and constructs some fenics objects using the xdmf 
     # file
 
-    (mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    boundary_meshCollection, boundary_meshFunction, 
-    domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
-    ) = mesh_tools.read_mshMesh(mesh_fileName)
+    mesh_dataClass = mesh_tools.read_mshMesh(mesh_fileName, verbose=
+    verbose)
 
     ####################################################################
     #                          Function space                          #
@@ -53,11 +51,11 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # Constructs elements for the displacement and for the microrotation
     # fields
 
-    displacement_element = VectorElement("CG", mesh.ufl_cell(), 
-    polynomial_degreeDisplacement)
+    displacement_element = VectorElement("CG", 
+    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeDisplacement)
 
-    microrotation_element = VectorElement("CG", mesh.ufl_cell(), 
-    polynomial_degreeMicrorotation)
+    microrotation_element = VectorElement("CG", 
+    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeMicrorotation)
 
     # Defines the finite element spaces for the Lagrange multipliers, 
     # which enforce the micro-scale kinematical constraints. The degree 
@@ -66,33 +64,39 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     # Displacement constraint (impedes rigid body translation)
 
-    lagrangeMult_U = VectorElement("Real", mesh.ufl_cell(), 0) 
+    lagrangeMult_U = VectorElement("Real", mesh_dataClass.mesh.ufl_cell(
+    ), 0) 
 
     # Displacement gradient constraint (impedes rigid body rotation)
 
-    lagrangeMult_GradU = TensorElement("Real", mesh.ufl_cell(), 0) 
+    lagrangeMult_GradU = TensorElement("Real", 
+    mesh_dataClass.mesh.ufl_cell(), 0) 
 
     # Microrotation constraint
 
-    lagrangeMult_Phi = VectorElement("Real", mesh.ufl_cell(), 0) 
+    lagrangeMult_Phi = VectorElement("Real", 
+    mesh_dataClass.mesh.ufl_cell(), 0) 
 
     # Microrotation gradient constraint
 
-    lagrangeMult_GradPhi = TensorElement("Real", mesh.ufl_cell(), 0)
+    lagrangeMult_GradPhi = TensorElement("Real", 
+    mesh_dataClass.mesh.ufl_cell(), 0)
 
     # Defines the finite element spaces for post-processing
 
-    Space_Piola_1st = TensorElement("DG", mesh.ufl_cell(), 0)
+    Space_Piola_1st = TensorElement("DG", mesh_dataClass.mesh.ufl_cell(
+    ), 0)
 
     # Defines the mixed element for the monolithic solution
-    
+
     mixed_element = MixedElement([displacement_element, 
     microrotation_element, lagrangeMult_U, lagrangeMult_GradU, 
     lagrangeMult_Phi, lagrangeMult_GradPhi])
 
     # Defines the finite element space for the monolithic solution
 
-    monolithic_functionSpace = FunctionSpace(mesh, mixed_element)
+    monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
+    mixed_element)
 
     ####################################################################
     #                         Macro quantities                         #
@@ -135,26 +139,20 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
-    u_new, phi_new, variation_u, variation_phi, constitutive_model, dx,
-    domain_physGroupsNamesToTags=domain_physGroupsNamesToTags, verbose=
-    verbose)
+    u_new, phi_new, variation_u, variation_phi, constitutive_model, 
+    mesh_dataClass)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, variation_u, ds, boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
-
-    #traction_VarForm = (dot(as_vector([0.0, neumann_loads[0], 0.0]), 
-    #variation_u)*ds(6))
+    traction_dictionary, variation_u, mesh_dataClass)
 
     # Constructs the variational forms for the moment work on the boun-
     # dary. Note that the function traction_work was reused, because the
     # variational construction is the same for traction and for moment
 
     moment_VarForm = variational_tools.traction_work(
-    moment_dictionary, variation_phi, ds, boundary_physGroupsNamesToTags=
-    boundary_physGroupsNamesToTags, verbose=verbose)
+    moment_dictionary, variation_phi, mesh_dataClass)
 
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object
@@ -164,7 +162,11 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     residual_derivative = derivative(residual_form, solution_new, 
     delta_solution)
 
-    Res = NonlinearVariationalProblem(residual_form, solution_new, bc, 
+    # Makes the boundary condition an empty list, because the macrosca-
+    # le boundary conditions are applied directly onto the variational
+    # form, using Lagrange multipliers
+
+    Res = NonlinearVariationalProblem(residual_form, solution_new, [], 
     J=residual_derivative)
 
     ####################################################################
@@ -181,9 +183,8 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     newton_raphson_tools.newton_raphsonMultipleFields(t, t_final, 
     maximum_loadingSteps, solver, solution_new, mixed_element, 
-    domain_meshCollection, constitutive_model, dx, post_processesList=
+    mesh_dataClass, constitutive_model, post_processesList=
     post_processes, post_processesSubmeshList=post_processesSubmesh, 
     dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
     solver_parameters=solver_parameters, volume_physGroupsSubmesh=
-    volume_physGroupsSubmesh, solution_name=solution_name,
-    domain_physGroupsNamesToTags=domain_physGroupsNamesToTags)
+    volume_physGroupsSubmesh, solution_name=solution_name)

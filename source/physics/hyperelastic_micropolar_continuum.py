@@ -38,11 +38,7 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     # Reads the mesh and constructs some fenics objects using the xdmf 
     # file
-
-    #(mesh, dx, ds, n, domain_meshCollection, domain_meshFunction, 
-    #boundary_meshCollection, boundary_meshFunction, 
-    #domain_physGroupsNamesToTags, boundary_physGroupsNamesToTags
-    #)
+    
     mesh_dataClass = mesh_tools.read_mshMesh(mesh_fileName, verbose=
     verbose)
 

@@ -3,6 +3,67 @@
 
 from dolfin import *
 
+from abc import ABC, abstractmethod
+
+import source.tool_box.file_handling_tools as file_tools
+
+########################################################################
+#                        Time stepping classes                         #
+########################################################################
+
+# Defines an abstract class as template for the time-stepping algorithms
+
+class TimeSteppingClasses(ABC):
+
+    @abstractmethod
+
+    # The following methods have the pass argument only because they 
+    # will be defined in the child classes
+
+    def update(self, time_value):
+
+        pass
+
+# Defines a class to store macroquantities as constants, then, it is up-
+# dated during the time-stepping algorithm. This class retrieves the da-
+# ta from txt files, convert them to lists and, then, uses them to as-
+# sign to FEniCS constants
+
+class MacroQuantitiesInTime(TimeSteppingClasses):
+
+    def __init__(self, dictionary_VariablesToFiles, ):
+
+        # Stores the dictionary of variables
+
+        self.variables = dictionary_VariablesToFiles
+
+        # Iterates through the dictionary of file names to read them in-
+        # to lists
+
+        for variable, file_name in self.variables.items():
+
+            # Converts the lists into dictionaries
+
+            self.variables[variable] = (file_tools.list_toDict(
+            file_tools.txt_toList(file_name)))
+
+            # Initializes the variable in the class data structure to u-
+            # se it after as class.variable
+
+            setattr(self, variable, self.variables[variable][list(
+            self.variables[variable].keys())[0]])
+
+    # Defines a function to update the macro quantitites given the cur-
+    # rent time value
+
+    def update(self, time_value):
+        
+        # Iterates through the variables
+
+        for variable, variable_dataDict in self.variables.items():
+
+            pass
+
 ########################################################################
 #     Creation and pre-evaluation of discontinuous function spaces     #
 ########################################################################
