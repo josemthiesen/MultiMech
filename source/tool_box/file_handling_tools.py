@@ -9,6 +9,8 @@ from collections import OrderedDict
 
 import numpy as np
 
+import source.tool_box.programming_tools as programming_tools
+
 ########################################################################
 #                            Parsing tools                             #
 ########################################################################
@@ -263,7 +265,7 @@ def txt_toList(file_name):
                 read_list = recursion_listAppending(read_element, 
                 read_list, indexes_list, -len(indexes_list))
 
-                #print("\nUpdated list:", read_list, "\n")
+                print("\nUpdated list:", read_list, "\n")
 
                 # Clears the read element
 
@@ -292,14 +294,14 @@ def txt_toList(file_name):
 
         elif current_character=="[":
 
-            #print("\nAdds new sublist")
+            print("\nAdds new sublist")
 
             # Adds a new empty list to the read list
             
             read_list = recursion_listAppending([], read_list, 
             indexes_list, -len(indexes_list))
 
-            #print("\nUpdated list:", read_list, "\n")
+            print("\nUpdated list:", read_list, "\n")
 
             # Updates the list of indexes and the counter of elements in
             # the sublist (makes it 0, as a new empty list is added)
@@ -376,13 +378,13 @@ def recursion_listWriting(accessed_list, saved_string):
 def recursion_listAppending(added_element, accessed_list, indexes_list, 
 indexes_counter=None):
     
-    #print("Added element:", added_element)
+    print("Added element:", added_element)
 
-    #print("Accessed list:", accessed_list)
+    print("Accessed list:", accessed_list)
 
-    #print("Indexes list:", indexes_list)
+    print("Indexes list:", indexes_list)
 
-    #print("Indexes counter:", indexes_counter)
+    print("Indexes counter:", indexes_counter)
 
     # Verifies if it was not given
 
@@ -476,6 +478,37 @@ index_combination=[], index_combinations=[], component=0):
 
     return index_combinations
 
+# Defines a function to build a list full of zeros given a list of di-
+# mensions
+
+@programming_tools.optional_argumentsInitializer({'zeros_list': lambda: 
+[]})
+
+def initialize_listFromDimensions(dimensions_list, zeros_list=None):
+
+    print(dimensions_list, zeros_list)
+
+    # If the list has no dimensions left, returns the list of zeros
+
+    if len(dimensions_list)==1:
+
+        for i in range(dimensions_list[0]):
+
+            zeros_list.append(0.0)
+
+        return zeros_list
+    
+    # Otherwise populates the dimension with zeros
+
+    for i in range(dimensions_list[0]):
+
+        print("for:", zeros_list)
+
+        zeros_list.append(initialize_listFromDimensions(
+        dimensions_list[1:]))
+
+    return zeros_list
+
 ########################################################################
 #                               Testing                                #
 ########################################################################
@@ -518,6 +551,44 @@ def test_indexBuilder():
 
     print(len(indexes), "combinations:", indexes, "\n\n")
 
+def test_nullListBuilder():
+
+    dimensionality = [3]
+
+    print("\ndimensionality: ", dimensionality)
+
+    print(initialize_listFromDimensions(dimensionality))
+
+    dimensionality = [3,3]
+
+    print("\ndimensionality: ", dimensionality)
+
+    print(initialize_listFromDimensions(dimensionality))
+
+    dimensionality = (3,2,3)
+
+    print("\ndimensionality: ", dimensionality)
+
+    print(initialize_listFromDimensions(dimensionality))
+
+def tensor_test():
+
+    t=[[0.0,[[0.0, 0.0, 0.0],[0.0]]]]
+
+    print("Original t:", t)
+
+    list_toTxt(t, "test")
+
+    print("Appended t:", t)
+
+    t = txt_toList("test")
+
+    print("Read t:    ", t)
+
 #general_test()
 
 #test_indexBuilder()
+
+#test_nullListBuilder()
+
+tensor_test()

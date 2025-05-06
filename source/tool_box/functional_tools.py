@@ -50,10 +50,11 @@ class MacroQuantitiesInTime(TimeSteppingClasses):
             file_tools.txt_toList(file_name)))
 
             # Initializes the variable in the class data structure to u-
-            # se it after as class.variable
+            # se it after as class.variable. Uses FEniCS constant, so it
+            # might be just assigned later to spare compilation time
 
-            setattr(self, variable, self.variables[variable][list(
-            self.variables[variable].keys())[0]])
+            setattr(self, variable, Constant(self.variables[variable][
+            list(self.variables[variable].keys())[0]]))
 
     # Defines a function to update the macro quantitites given the cur-
     # rent time value
@@ -74,9 +75,11 @@ class MacroQuantitiesInTime(TimeSteppingClasses):
             data_keys)
 
             # Gets the data value for this time step to the variable 
-            # contained in this class with this variable's name
+            # contained in this class with this variable's name. Uses 
+            # the assign method, since this variables has already been
+            # created as a fenics Constant
 
-            setattr(self, variable, variable_dataDict[time_key])
+            getattr(self, variable).assign(variable_dataDict[time_key])
 
             # Deletes this key-data pair from the data dictionary
 

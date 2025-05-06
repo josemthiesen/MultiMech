@@ -4,6 +4,8 @@ from dolfin import *
 
 import numpy as np
 
+import inspect
+
 import source.tool_box.mesh_handling_tools as mesh_tools
 
 import source.tool_box.post_processing_tools as post_processing_tools
@@ -42,16 +44,19 @@ volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
     print("There are "+str(len(solution_field.vector()))+" degrees of "+
     "freedom in the mesh\n")
 
-    # Evaluates the pseudotime step
-
-    delta_t = (t_final-t)/(maximum_loadingSteps-1)
-
-    # Initializes the classes of macroscale quantities
+    # Verifies if the classes of macroscale quantities are indeed clas-
+    # ses
 
     for MacroScaleClass in macro_quantitiesClasses:
 
-        MacroScaleClass = functional_tools.MacroQuantitiesInTime(
-        MacroScaleClass)
+        if not inspect.isclass(MacroScaleClass):
+
+            raise TypeError("The objects in 'macro_quantitiesClasses' "+
+            "must be classes")
+
+    # Evaluates the pseudotime step
+
+    delta_t = (t_final-t)/(maximum_loadingSteps-1)
 
     # Constructs the class of code-provided information for the post-
     # processes
@@ -252,12 +257,15 @@ macro_quantitiesClasses=None):
 
     delta_t = (t_final-t)/(maximum_loadingSteps-1)
 
-    # Initializes the classes of macroscale quantities
+    # Verifies if the classes of macroscale quantities are indeed clas-
+    # ses
 
     for MacroScaleClass in macro_quantitiesClasses:
 
-        MacroScaleClass = functional_tools.MacroQuantitiesInTime(
-        MacroScaleClass)
+        if not inspect.isclass(MacroScaleClass):
+
+            raise TypeError("The objects in 'macro_quantitiesClasses' "+
+            "must be classes")
     
     # Gets the number of fields in the mixed element
 

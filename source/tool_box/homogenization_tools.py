@@ -47,23 +47,36 @@ inverse_volume, dx, subdomain, file_name):
 
     else:
 
-        # Makes the homogenized value a list
+        # Makes the homogenized value a list with the format of the 
+        # field to be homogenized, e.g. vectors, tensors and so forth
 
-        homogenized_value = []
+        homogenized_value = np.zeros(dimensionality)
 
         # Get the possible combinations of indexes
 
         indexes_combinations = file_tools.get_indexesCombinations(
         dimensionality)
 
-        if isinstance(subdomain, int) or isinstance(subdomain, tuple):
+        if isinstance(subdomain, int):
 
             # Iterates through the combinations
 
             for index_combination in indexes_combinations:
 
-                homogenized_value.append(inverse_volume*assemble(field[
-                *index_combination]*dx(subdomain)))
+                homogenized_value[*index_combination] = (inverse_volume*
+                assemble(field[*index_combination]*dx(subdomain)))
+                
+        elif isinstance(subdomain, tuple):
+
+            # Iterates through the combinations
+
+            for index_combination in indexes_combinations:
+
+                for subsubdomain in subdomain:
+
+                    homogenized_value[*index_combination] += (
+                    inverse_volume*assemble(field[*index_combination]*
+                    dx(subsubdomain)))
 
         else:
 
@@ -71,8 +84,12 @@ inverse_volume, dx, subdomain, file_name):
 
             for index_combination in indexes_combinations:
 
-                homogenized_value.append(inverse_volume*assemble(field[
-                *index_combination]*dx))
+                homogenized_value[*index_combination] = (inverse_volume*
+                assemble(field[*index_combination]*dx))
+
+        # Gets the homogenized value back to a list
+
+        homogenized_value = homogenized_value.tolist()
 
     # Updates the homogenized field
 
