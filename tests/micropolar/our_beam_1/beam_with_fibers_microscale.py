@@ -58,8 +58,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     # fiber, and load factor
 
     parameters_sets = [[0.002, 0.002, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0], [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0]]#, [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    n_RVEsZ*2.0), 5.0]]#, [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    #n_RVEsZ*2.0), 5.0]]#, [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
     #n_RVEsZ*2.0), 5.0]]
 
     # Iterates through the simulations

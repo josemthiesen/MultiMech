@@ -169,21 +169,39 @@ def post_processingSelectionSingleField(post_processes, context_class):
 # onaries to work with processes that receive only one field as input, 
 # where each component correspond to a field; the keys are the names of 
 # the processes, and the values are dictionaries of additional informa-
-# tion. The post_processesMultifield is a dictionary of processes that
-# must receive all or a set of fields as input
+# tion
 
 def post_processingSelectionMultipleFields(post_processesUnifield,
-n_fields, context_class):
+context_class):
     
     # Iterates through the number of fields
 
     for i in range(len(post_processesUnifield)):
 
+        # gets the number of the field to which this post process be-
+        # longs
+
+        try:
+
+            field_number = copy.deepcopy(post_processesUnifield[i][0])
+
+        except:
+
+            raise KeyError("The post-processes list for multiple field"+
+            " physics must be a list of lists, i.e. each process is a "+
+            "sublist with the first component being the number of the "+
+            "field that is used for this particular post-process and t"+
+            "he second value is the dictionary of the process")
+
         # Transforms the component dictionary into a live dictionary wi-
         # th proper methods and stuff
 
         post_processesUnifield[i] = post_processingSelectionSingleField(
-        post_processesUnifield[i], context_class)
+        post_processesUnifield[i][1], context_class)
+
+        # Adds the number of the field as key
+
+        post_processesUnifield[i]["field number"] = field_number
 
     # Returns the new live list of dictionaries
 

@@ -328,6 +328,22 @@ t_final=None):
     solution_field.function_space().mesh(), constitutive_model, 
     mesh_dataClass.dx, mesh_dataClass.domain_physicalGroupsNameToTag)
 
+    # Verifies if the post processes is a list
+
+    if not isinstance(post_processesList, list):
+
+        raise ValueError("post_processesList must be a list of diction"+
+        "aries in newton_raphsonMultipleFields, because there must be "+
+        "post-processing steps for each field.")
+
+    # Verifies if the post processes for the submesh is a list
+
+    if not isinstance(post_processesSubmeshList, list):
+
+        raise ValueError("post_processesSubmeshList must be a list of "+
+        "dictionaries in newton_raphsonMultipleFields, because there m"+
+        "ust be post-processing steps for each field.")
+
     # Transforms the list of dictionaries of post-processing methods 
     # instructions into a list of live-wire dictionaries with the proper 
     # methods and needed information. Two dictionaries are created: one
@@ -335,7 +351,7 @@ t_final=None):
     # methods that work on multiple fields at once
     
     post_processes = post_processing_tools.post_processingSelectionMultipleFields(
-    post_processesList, n_fields, context_class) 
+    post_processesList, context_class) 
     
     # Initializes the list of submesh post processes. It is a list, be-
     # cause each field will ocupy a component
@@ -374,15 +390,7 @@ t_final=None):
         # Initializes the post process for the submesh if there's any
 
         post_processesSubmesh = post_processing_tools.post_processingSelectionMultipleFields(
-        post_processesSubmeshList, n_fields, context_classRVE) 
-
-    # Verifies if the post processes is a list
-
-    if not isinstance(post_processes, list):
-
-        raise ValueError("post_processes must be a list of dictionarie"+
-        "s in newton_raphsonMultipleFields, because there must be post"+
-        "-processing steps for each field.")
+        post_processesSubmeshList, context_classRVE) 
     
     # Initializes a dictionary of post processes objects, files for e-
     # xample, for each field
@@ -395,10 +403,12 @@ t_final=None):
 
         for post_processName, post_process in post_processes[i].items():
 
-            post_processingObjects[-1][post_processName] = (
-            post_process.initialization_function(
-            post_process.additional_information, 
-            post_process.code_providedInfo, False))
+            if post_processName!="field number":
+
+                post_processingObjects[-1][post_processName] = (
+                post_process.initialization_function(
+                post_process.additional_information, 
+                post_process.code_providedInfo, False))
 
     # Makes the same thing for the submesh post-processes
 
@@ -420,10 +430,12 @@ t_final=None):
         for post_processName, post_process in post_processesSubmesh[i
         ].items():
 
-            post_processingObjectsSubmesh[-1][post_processName] = (
-            post_process.initialization_function(
-            post_process.additional_information, 
-            post_process.code_providedInfo, True))
+            if post_processName!="field number":
+
+                post_processingObjectsSubmesh[-1][post_processName] = (
+                post_process.initialization_function(
+                post_process.additional_information, 
+                post_process.code_providedInfo, True))
     
     # Updates the solver parameters
 
@@ -490,14 +502,21 @@ t_final=None):
 
         for i in range(len(post_processes)):
 
+            # Get the field number for this process
+
+            field_number = post_processes[i]["field number"]
+
             # Updates the post processes objects
 
             for post_processName, post_process in post_processes[i
             ].items():
+                
+                if post_processName!="field number":
 
-                post_processingObjects[i][post_processName] = (
-                post_process.update_function(post_processingObjects[
-                i][post_processName], split_solution, i, t))
+                    post_processingObjects[i][post_processName] = (
+                    post_process.update_function(post_processingObjects[
+                    i][post_processName], split_solution, field_number, 
+                    t))
 
         # If a submesh is to be populated with part of the solution
 
@@ -515,11 +534,11 @@ t_final=None):
 
             # Post-process the submesh solution
 
-            for i in range(n_fields):
+            # Updates the name of the fields
 
-                # Updates the name of the fields
-
-                if len(solution_name)==n_fields:
+            if len(solution_name)==n_fields:
+                    
+                for i in range(n_fields):
 
                     split_solutionSubmesh[i].rename(*solution_name[i])
 
@@ -527,13 +546,19 @@ t_final=None):
 
             for i in range(len(post_processesSubmesh)):
 
-                for post_processName, post_process in post_processesSubmesh[
-                i].items():
+                # Get the field number for this process
 
-                    post_processingObjectsSubmesh[i][post_processName] = (
-                    post_process.update_function(
-                    post_processingObjectsSubmesh[i][post_processName], 
-                    split_solutionSubmesh, i, t))
+                field_number = post_processesSubmesh[i]["field number"]
+
+                for post_processName, post_process in post_processesSubmesh[i
+                ].items():
+                    
+                    if post_processName!="field number":
+
+                        post_processingObjectsSubmesh[i][post_processName
+                        ] = post_process.update_function(
+                        post_processingObjectsSubmesh[i][post_processName], 
+                        split_solutionSubmesh, field_number, t)
 
         # Updates the pseudo time variables and the counter
         

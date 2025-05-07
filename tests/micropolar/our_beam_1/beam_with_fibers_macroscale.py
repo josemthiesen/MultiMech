@@ -67,9 +67,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     # fiber, and load factor
 
     parameters_sets = [[0.002, 0.002, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0], [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0], [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0]]
+    n_RVEsZ*2.0), 5.0]]#, [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    #n_RVEsZ*2.0), 5.0], [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    #n_RVEsZ*2.0), 5.0]]
 
     # Iterates through the simulations
 
@@ -166,21 +166,21 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     for i in range(2):
 
-        post_processes.append(dict())
+        post_processes.append([i, dict()])
 
-        post_processes[-1]["SaveField"] = {"directory path":
+        post_processes[-1][-1]["SaveField"] = {"directory path":
         results_pathGraphics, "file name":displacement_fileName[i]}
 
         # Put "" in the subdomain to integrate over the entire domain
 
-        post_processes[-1]["HomogenizeField"] = {"directory path":
+        post_processes[-1][-1]["HomogenizeField"] = {"directory path":
         results_pathText, "file name":homogenized_displacementFileName[i
         ], "subdomain":""}
 
         # Put "" in the subdomain to integrate over the entire domain
 
-        post_processes[-1]["HomogenizeFieldsGradient"] = {"directory p"+
-        "ath":results_pathText, "file name":
+        post_processes[-1][-1]["HomogenizeFieldsGradient"] = {"directo"+
+        "ry path":results_pathText, "file name":
         homogenized_gradDisplacementFileName[i], "subdomain":""}
 
         # Adds the stress field to the displacement field even though
@@ -189,17 +189,17 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
         if i==0:
 
-            post_processes[-1]["SaveStressField"] = {"directory path":
-            results_pathGraphics, "file name": stress_fieldFileName[0], 
-            "polynomial degree": 1}
+            post_processes[-1][-1]["SaveStressField"] = {"directory pa"+
+            "th": results_pathGraphics, "file name": 
+            stress_fieldFileName[0], "polynomial degree": 1}
 
-            post_processes[-1]["SaveCoupleStressField"] = {"directory "+
-            "path": results_pathGraphics, "file name": 
+            post_processes[-1][-1]["SaveCoupleStressField"] = {"direct"+
+            "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
-        post_processesSubmesh.append(dict())
+        post_processesSubmesh.append([i, dict()])
 
-        post_processesSubmesh[-1]["SaveField"] = {"directory path":
+        post_processesSubmesh[-1][-1]["SaveField"] = {"directory path":
         results_pathGraphics, "file name":displacement_fileNameSubmesh[i
         ]}
 

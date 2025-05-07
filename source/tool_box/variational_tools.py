@@ -410,6 +410,58 @@ physical_groupsNamesToTags=None):
         
     return physical_group
 
+# Defines a function to project a field that is piecewise continuous in-
+# to a finite element space. The field is given by a list of lists, whe-
+# re each sublist is a pair of the function to be projected (i.e. the 
+# value of the field) and the tag associated with its particular domain
+# region (i.e. the physical group number or name)
+
+@programming_tools.optional_argumentsInitializer({'solution_names': 
+lambda: ["field", "field"]})
+
+def project_piecewiseField(field_list, dx, V, physical_groupsList,
+physical_groupsNamesToTags, solution_names=None):
+    
+    # Creates the projected field
+
+    projected_fieldTrial = TrialFunction(V)
+
+    v = TestFunction(V)
+
+    projected_field = Function(V)
+
+    projected_field.rename(*solution_names)
+
+    # Assembles and solves the variational form
+
+    bilinear_form = inner(projected_fieldTrial, v)*dx
+
+    # Initializes the linear form
+
+    linear_form = 0.0
+
+    # Iterates through the pairs of function to be projected and physi-
+    # cal group tag
+
+    for projected_function, subdomain in field_list:
+
+        # Checks the subdomain for strings
+
+        subdomain = verify_physicalGroups(subdomain,physical_groupsList, 
+        physical_groupsNamesToTags=physical_groupsNamesToTags)
+
+        # Updates the linear form
+
+        linear_form += (inner(projected_function, v)*dx(subdomain))
+
+    # Solves the algebraic system to get the FEM parameters
+
+    solve(bilinear_form==linear_form, projected_field)
+
+    # Returns the projected field
+
+    return projected_field
+
 # Defines a function to project a field over a region of the domain
 
 def projection_overRegion(field, V, dx, subdomain, physical_groupsList,

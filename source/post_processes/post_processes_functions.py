@@ -144,9 +144,10 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
 
     if isinstance(output_object.constitutive_model, dict):
 
-        # Initializes the Cauchy stress function
+        # Initializes a list of pairs of constitutive models and inte-
+        # gration domain
 
-        cauchy_stressFunction = Function(output_object.W)
+        integration_pairs = []
 
         # If the domain is heterogeneous, the stress field must be pro-
         # jected for each subdomain
@@ -166,35 +167,25 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
 
                 for sub in subdomain:
 
-                    # Projects the cauchy stress into a function
+                    # Adds this pair of constitutive model and integra-
+                    # tion domain to the list of such pairs
 
-                    cauchy_stressProjected = variational_tools.projection_overRegion(
-                    cauchy_stress, output_object.W, output_object.dx, 
-                    sub, output_object.physical_groupsList,
-                    output_object.physical_groupsNamesToTags)
-
-                    # Updates the parameters vector of the FEM interpolation of 
-                    # the Cauchy stress 
-
-                    cauchy_stressFunction.vector()[:] = (
-                    cauchy_stressFunction.vector()[:]+
-                    cauchy_stressProjected.vector()[:])
+                    integration_pairs.append([cauchy_stress, sub])
 
             else:
 
-                # Projects the cauchy stress into a function
+                # Adds this pair of constitutive model and integration
+                # domain to the list of such pairs
 
-                cauchy_stressProjected = variational_tools.projection_overRegion(
-                cauchy_stress, output_object.W, output_object.dx, 
-                subdomain, output_object.physical_groupsList,
-                output_object.physical_groupsNamesToTags)
+                integration_pairs.append([cauchy_stress, subdomain])
 
-                # Updates the parameters vector of the FEM interpolation of 
-                # the Cauchy stress 
+        # Projects this piecewise continuous field of stress into a FE 
+        # space
 
-                cauchy_stressFunction.vector()[:] = (
-                cauchy_stressFunction.vector()[:]+
-                cauchy_stressProjected.vector()[:])
+        cauchy_stressFunction = variational_tools.project_piecewiseField(
+        integration_pairs, output_object.dx, output_object.W, 
+        output_object.physical_groupsList, 
+        output_object.physical_groupsNamesToTags)
 
         # Writes the field to the file
 
@@ -300,13 +291,15 @@ submesh_flag):
 def update_coupleCauchyStressSaving(output_object, field, field_number, 
 time):
 
-    # Verifies if the domain is homogeneous
+    # Verifies if the domain is homogeneous. If the constitutive model 
+    # is a dictionary, the domain in heterogeneous
 
     if isinstance(output_object.constitutive_model, dict):
 
-        # Initializes the Cauchy stress function
+        # Initializes a list of pairs of constitutive models and inte-
+        # gration domain
 
-        cauchy_stressFunction = Function(output_object.W)
+        integration_pairs = []
 
         # If the domain is heterogeneous, the stress field must be pro-
         # jected for each subdomain
@@ -327,36 +320,26 @@ time):
 
                 for sub in subdomain:
 
-                    # Projects the cauchy stress into a function
+                    # Adds this pair of constitutive model and integra-
+                    # tion domain to the list of such pairs
 
-                    cauchy_stressProjected = variational_tools.projection_overRegion(
-                    couple_cauchyStress, output_object.W, 
-                    output_object.dx, sub, 
-                    output_object.physical_groupsList,
-                    output_object.physical_groupsNamesToTags)
-
-                    # Updates the parameters vector of the FEM interpolation of 
-                    # the Cauchy stress 
-
-                    cauchy_stressFunction.vector()[:] = (
-                    cauchy_stressFunction.vector()[:]+
-                    cauchy_stressProjected.vector()[:])
+                    integration_pairs.append([couple_cauchyStress, sub])
 
             else:
 
-                # Projects the cauchy stress into a function
+                # Adds this pair of constitutive model and integration 
+                # domain to the list of such pairs
 
-                cauchy_stressProjected = variational_tools.projection_overRegion(
-                couple_cauchyStress, output_object.W, output_object.dx, 
-                subdomain, output_object.physical_groupsList,
-                output_object.physical_groupsNamesToTags)
+                integration_pairs.append([couple_cauchyStress, subdomain
+                ])
 
-                # Updates the parameters vector of the FEM interpolation of 
-                # the Cauchy stress 
+        # Projects this piecewise continuous field of stress into a FE 
+        # space
 
-                cauchy_stressFunction.vector()[:] = (
-                cauchy_stressFunction.vector()[:]+
-                cauchy_stressProjected.vector()[:])
+        cauchy_stressFunction = variational_tools.project_piecewiseField(
+        integration_pairs, output_object.dx, output_object.W, 
+        output_object.physical_groupsList, 
+        output_object.physical_groupsNamesToTags)
 
         # Writes the field to the file
 
