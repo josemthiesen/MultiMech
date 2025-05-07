@@ -164,11 +164,18 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     ].macro_gradMicrorotation)*dx)-(inner(v_lagrangeGradMicrorotation,
     grad(phi_new))*dx))) 
 
+    l_du = (-(1/total_volume)*((dot(lagrange_displacement, variation_u)*
+    dx)+(inner(lagrange_gradDisp, grad(variation_u))*dx)))
+
+    l_dphi = (-(1/total_volume)*((dot(lagrange_microrotation,
+    variation_phi)*dx)+(inner(lagrange_gradMicrorotation, grad(
+    variation_phi))*dx))) 
+
     # Assembles the residual, takes the Gateaux derivative and assembles
     # the nonlinear problem object
 
-    residual_form = (internal_VarForm-Int_dlambu-Int_dlambphi-
-    Int_dlambgrau-Int_dlambgradphi)
+    residual_form = (((1/total_volume)*internal_VarForm)+Int_dlambu+
+    Int_dlambphi+Int_dlambgrau+Int_dlambgradphi+l_du+l_dphi)
 
     residual_derivative = derivative(residual_form, solution_new, 
     delta_solution)
@@ -192,7 +199,7 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
 
     # Iterates through the pseudotime stepping algortihm 
 
-    newton_raphson_tools.newton_raphsonMultipleFields(t, t_final, 
+    newton_raphson_tools.newton_raphsonMultipleFields(
     maximum_loadingSteps, solver, solution_new, mixed_element, 
     mesh_dataClass, constitutive_model, post_processesList=
     post_processes, solver_parameters=solver_parameters, solution_name=

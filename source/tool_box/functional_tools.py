@@ -33,11 +33,16 @@ class TimeSteppingClasses(ABC):
 
 class MacroQuantitiesInTime(TimeSteppingClasses):
 
-    def __init__(self, dictionary_VariablesToFiles):
+    def __init__(self, dictionary_VariablesToFiles, time_tolerance=1E-5):
 
         # Stores the dictionary of variables
 
         self.variables = dictionary_VariablesToFiles
+
+        # Initializes a list of time keys. All the macro quantities must
+        # have the same time points
+
+        self.time_keys = []
 
         # Iterates through the dictionary of file names to read them in-
         # to lists
@@ -49,12 +54,27 @@ class MacroQuantitiesInTime(TimeSteppingClasses):
             self.variables[variable] = (file_tools.list_toDict(
             file_tools.txt_toList(file_name)))
 
+            # Updates the time keys
+
+            if len(self.time_keys)==0:
+
+                self.time_keys = list(self.variables[variable].keys())
+
+            # Otherwise, checks if the time keys are equal given a tole-
+            # rance
+
+            else:
+
+                test_timeKeysConsistency(self.time_keys, list(
+                self.variables[variable].keys()), time_tolerance=
+                time_tolerance, variable_name=variable)
+
             # Initializes the variable in the class data structure to u-
             # se it after as class.variable. Uses FEniCS constant, so it
             # might be just assigned later to spare compilation time
 
             setattr(self, variable, Constant(self.variables[variable][
-            list(self.variables[variable].keys())[0]]))
+            self.time_keys[0]]))
 
     # Defines a function to update the macro quantitites given the cur-
     # rent time value
@@ -79,11 +99,42 @@ class MacroQuantitiesInTime(TimeSteppingClasses):
             # the assign method, since this variables has already been
             # created as a fenics Constant
 
-            getattr(self, variable).assign(variable_dataDict[time_key])
+            getattr(self, variable).assign(Constant(variable_dataDict[
+            time_key]))
 
             # Deletes this key-data pair from the data dictionary
 
             variable_dataDict.pop(time_key)
+
+# Defines a function to test if the time keys are the same comparing the
+# standard with a given set
+
+def test_timeKeysConsistency(standard_timeKeys, compared_timeKeys, 
+variable_name="NoGivenName", time_tolerance=1E-5):
+
+    # Checks if it has the same number of points as the first
+    # one
+
+    if len(compared_timeKeys)!=len(standard_timeKeys):
+
+        raise ValueError("All the macro quantities must have the same "+
+        "number of time points. The first macro quantity had "+str(len(
+        standard_timeKeys))+" time points, whereas quantity "+str(
+        variable_name)+" has "+str(len(compared_timeKeys)+" time points"))
+    
+    # If they have the same number of time points, checks if
+    # they are the same points
+
+    for i in range(len(standard_timeKeys)):
+
+        if (abs(standard_timeKeys[i]-compared_timeKeys[i])>
+        time_tolerance):
+            
+            raise ValueError("The time points must be equal for all ma"+
+            "cro quantities. The "+str(i)+"-th point of the first quan"+
+            "tity is "+str(standard_timeKeys[i])+" whereas the same po"+
+            "int in the "+str(variable_name)+" macro quantity is "+str(
+            compared_timeKeys[i]))
 
 ########################################################################
 #     Creation and pre-evaluation of discontinuous function spaces     #

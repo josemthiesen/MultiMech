@@ -260,12 +260,28 @@ def txt_toList(file_name):
                 # Appends the element to the list using the list of in-
                 # dexes
 
-                #print("\nAdds element to list")
+                """
+                if current_character=="]":
+
+                    print("\nFinalizes sublist in list with indexes_li"+
+                    "st="+str(indexes_list)+" and current_character="+
+                    str(current_character))
+
+                else:
+
+                    print("\nAdds element to list with indexes list="+
+                    str(indexes_list)+" and current_character="+str(
+                    current_character))
+                """
 
                 read_list = recursion_listAppending(read_element, 
                 read_list, indexes_list, -len(indexes_list))
 
-                print("\nUpdated list:", read_list, "\n")
+                """
+                print("\nUpdated list:", read_list, "element_counterSu"+
+                "bList="+str(element_counterSubList)+", indexes_list="+
+                str(indexes_list)+"\n")
+                """
 
                 # Clears the read element
 
@@ -282,11 +298,17 @@ def txt_toList(file_name):
             # dex out of the list of indexes and updates the counter of
             # elements in the sublist to the remaining last index
 
-            if current_character=="]" and len(indexes_list)>1:
+            if current_character=="]" and len(indexes_list)>0:
+
+                element_counterSubList = indexes_list[-1]+0
 
                 indexes_list = indexes_list[0:-1]
 
-                element_counterSubList = indexes_list[-1]
+            """
+            print("\ncharacter="+str(current_character)+" and element_"+
+            "counterSubList="+str(element_counterSubList)+" and indexe"+
+            "s_list="+str(indexes_list)+"\n")
+            """
 
         # If the current character is an opening bracket, it sinalizes a
         # new sublist, hence, updates list of indexes and the counter of
@@ -294,19 +316,27 @@ def txt_toList(file_name):
 
         elif current_character=="[":
 
-            print("\nAdds new sublist")
+            """
+            print("\nAdds new sublist with indexes_list="+str(
+            indexes_list)+" and current_character="+str(
+            current_character))
+            """
 
             # Adds a new empty list to the read list
             
             read_list = recursion_listAppending([], read_list, 
             indexes_list, -len(indexes_list))
 
-            print("\nUpdated list:", read_list, "\n")
-
             # Updates the list of indexes and the counter of elements in
             # the sublist (makes it 0, as a new empty list is added)
 
             indexes_list.append(element_counterSubList)
+
+            """
+            print("\nUpdated list:", read_list, "and the indexes_list="+
+            str(indexes_list)+" and the element_counterSubList="+str(
+            element_counterSubList)+"\n")
+            """
 
             element_counterSubList = 0
 
@@ -378,13 +408,13 @@ def recursion_listWriting(accessed_list, saved_string):
 def recursion_listAppending(added_element, accessed_list, indexes_list, 
 indexes_counter=None):
     
-    print("Added element:", added_element)
+    """print("Added element:", added_element)
 
     print("Accessed list:", accessed_list)
 
     print("Indexes list:", indexes_list)
 
-    print("Indexes counter:", indexes_counter)
+    print("Indexes counter:", indexes_counter)"""
 
     # Verifies if it was not given
 
@@ -573,7 +603,7 @@ def test_nullListBuilder():
 
 def tensor_test():
 
-    t=[[0.0,[[0.0, 0.0, 0.0],[0.0]]]]
+    t=[[0.0,[[0.0, 0.0, 0.0],[0.0, 0.0], [0.0]]], [1.0,[[1.0,2.0],[3.0,4.0]]]]
 
     print("Original t:", t)
 
@@ -585,10 +615,20 @@ def tensor_test():
 
     print("Read t:    ", t)
 
+def dict_tensor():
+
+    list_sample = [[0.0,[0.0,0.0,0.0]],[0.041666666666666664,[3.2514527856755824e-05,0.028971553093453284,-0.000196579173227914]],[0.08333333333333333,[6.48960468681511e-05,0.057919688360002206,-0.0007827088154507426]],[0.125,[9.710502819223095e-05,0.08682111832092808,-0.001756757546712193]],[0.16666666666666666,[0.0001291026796825274,0.11565280011836387,-0.003116022907317753]]]
+
+    print(list_sample, "\n")
+
+    print(list_toDict(list_sample))
+
 #general_test()
 
 #test_indexBuilder()
 
 #test_nullListBuilder()
 
-tensor_test()
+#tensor_test()
+
+#dict_tensor()

@@ -177,7 +177,7 @@ n_fields, context_class):
     
     # Iterates through the number of fields
 
-    for i in range(n_fields):
+    for i in range(len(post_processesUnifield)):
 
         # Transforms the component dictionary into a live dictionary wi-
         # th proper methods and stuff

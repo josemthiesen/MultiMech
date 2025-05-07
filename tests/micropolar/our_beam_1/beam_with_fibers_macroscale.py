@@ -146,6 +146,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     displacement_fileName = ["displacement.xdmf", "microrotation.xdmf"]
 
+    displacement_fileNameSubmesh = ["displacement_submesh.xdmf", "micr"+
+    "orotation_submesh.xdmf"]
+
     homogenized_displacementFileName = ["homogenized_displacement.txt", 
     "homogenized_microrotation.txt"]
 
@@ -156,6 +159,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     "s.xdmf"]
 
     post_processes = []
+
+    post_processesSubmesh = []
 
     # Iterates through the fields (displacement and microrotation)
 
@@ -192,7 +197,11 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
-    post_processesSubmesh = []
+        post_processesSubmesh.append(dict())
+
+        post_processesSubmesh[-1]["SaveField"] = {"directory path":
+        results_pathGraphics, "file name":displacement_fileNameSubmesh[i
+        ]}
 
     ####################################################################
     #                       Material properties                        #
@@ -295,7 +304,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines a set of physical groups to create a submesh
 
-    volume_physGroupsSubmesh = []
+    volume_physGroupsSubmesh = ["RVE matrix", "RVE fiber"]
 
     ####################################################################
     #                          Function space                          #

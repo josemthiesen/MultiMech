@@ -30,11 +30,12 @@ lambda: dict(), 'post_processesSubmeshDict': lambda: dict(),
 "solution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], ('macro_qu'+
 'antitiesClasses'): lambda: []})
 
-def newton_raphsonSingleField(t, t_final, maximum_loadingSteps, solver, 
+def newton_raphsonSingleField(maximum_loadingSteps, solver, 
 solution_field, mesh_dataClass, constitutive_model, post_processesDict=
 None, post_processesSubmeshDict=None, dirichlet_loads=None, 
 neumann_loads=None, solver_parameters=None, solution_name=None, 
-volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
+volume_physGroupsSubmesh=None, macro_quantitiesClasses=None, t=None, 
+t_final=None):
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
@@ -47,16 +48,28 @@ volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
     # Verifies if the classes of macroscale quantities are indeed clas-
     # ses
 
+    time_keys = []
+
     for MacroScaleClass in macro_quantitiesClasses:
 
         if not inspect.isclass(MacroScaleClass):
 
             raise TypeError("The objects in 'macro_quantitiesClasses' "+
             "must be classes")
+        
+        # Gets the time keys for these macro quantities
 
-    # Evaluates the pseudotime step
+        if len(time_keys)==0:
 
-    delta_t = (t_final-t)/(maximum_loadingSteps-1)
+            time_keys = MacroScaleClass.time_keys
+
+        else:
+
+            # Verifies if all classes have the same time keys
+
+            functional_tools.test_timeKeysConsistency(time_keys, 
+            MacroScaleClass.time_keys, variable_name=type(
+            MacroScaleClass).__name__)
 
     # Constructs the class of code-provided information for the post-
     # processes
@@ -79,7 +92,8 @@ volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
     
     # Verifies if the physical groups for the submesh is an integer
 
-    if isinstance(volume_physGroupsSubmesh, int):
+    if (isinstance(volume_physGroupsSubmesh, int) or isinstance(
+    volume_physGroupsSubmesh, str)):
 
         # Transforms into a list
 
@@ -97,7 +111,8 @@ volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
         RVE_meshMapping, parent_meshMapping, solution_submesh, 
         RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
         mesh_dataClass.domain_meshCollection, volume_physGroupsSubmesh, 
-        function_space)
+        function_space, domain_physicalGroupsNameToTag=
+        mesh_dataClass.domain_physicalGroupsNameToTag)
 
         # Constructs the class of code-provided information for the post-
         # processes
@@ -150,9 +165,31 @@ volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
 
     time_counter = 0
 
+    # Checks if the time keys of the macro quantities for multiscale a-
+    # nalysis are empty. If so, creates a range of time points
+
+    if len(time_keys)==0:
+
+        # Verifies if initial time and final time have been supplied
+
+        if t is None:
+
+            raise ValueError("The initial time value for the pseudotim"+
+            "e stepping algorithm was not given, even though no macro "+
+            "quantities with their respective time points were supplie"+
+            "d")
+
+        if t_final is None:
+
+            raise ValueError("The final time value for the pseudotime "+
+            "stepping algorithm was not given, even though no macro qu"+
+            "antities with their respective time points were supplied")
+
+        time_keys = np.linspace(t, t_final, maximum_loadingSteps)
+
     # Iterates through the pseudotime stepping
 
-    while t<(t_final*1.0001):
+    for t in time_keys:
 
         # Prints step information
 
@@ -203,8 +240,6 @@ volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
                 solution_submesh, -1, t))
 
         # Updates the pseudo time variables and the counter
-
-        t += delta_t
         
         time_counter += 1
 
@@ -226,17 +261,6 @@ volume_physGroupsSubmesh=None, macro_quantitiesClasses=None):
 
             MacroScaleClass.update(t)
 
-        # Verifies if the maximum number of laoding steps has been 
-        # reached
-
-        if time_counter>=maximum_loadingSteps:
-
-            print("\nThe maximum number of loading steps,",
-            maximum_loadingSteps, "has just been reached. Stops the si"+
-            "mulation immediatly\n")
-
-            break
-
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of multiple fields
 
@@ -246,26 +270,38 @@ lambda: [], 'neumann_loads': lambda: [], 'solver_parameters': lambda:
 dict(), 'solution_name': lambda: ["solution", "DNS"], ('volume_physGro'+
 'upsSubmesh'): lambda: [], 'macro_quantitiesClasses': lambda: []})
 
-def newton_raphsonMultipleFields(t, t_final, maximum_loadingSteps, 
-solver, solution_field, mixed_element, mesh_dataClass, 
-constitutive_model, post_processesList=None, post_processesSubmeshList=
-None, dirichlet_loads=None, neumann_loads=None, solver_parameters=None, 
-solution_name=None, volume_physGroupsSubmesh=None, 
-macro_quantitiesClasses=None):
+def newton_raphsonMultipleFields(maximum_loadingSteps, solver, 
+solution_field, mixed_element, mesh_dataClass, constitutive_model, 
+post_processesList=None, post_processesSubmeshList=None, dirichlet_loads
+=None, neumann_loads=None, solver_parameters=None, solution_name=None, 
+volume_physGroupsSubmesh=None, macro_quantitiesClasses=None, t=None, 
+t_final=None):
 
-    # Evaluates the pseudotime step
+    # Verifies if the classes of macroscale quantities are indeed ins-
+    # tances of some class
 
-    delta_t = (t_final-t)/(maximum_loadingSteps-1)
-
-    # Verifies if the classes of macroscale quantities are indeed clas-
-    # ses
+    time_keys = []
 
     for MacroScaleClass in macro_quantitiesClasses:
 
-        if not inspect.isclass(MacroScaleClass):
+        if not hasattr(MacroScaleClass, '__class__'):
 
             raise TypeError("The objects in 'macro_quantitiesClasses' "+
             "must be classes")
+        
+        # Gets the time keys for these macro quantities
+
+        if len(time_keys)==0:
+
+            time_keys = MacroScaleClass.time_keys
+
+        else:
+
+            # Verifies if all classes have the same time keys
+
+            functional_tools.test_timeKeysConsistency(time_keys, 
+            MacroScaleClass.time_keys, variable_name=type(
+            MacroScaleClass).__name__)
     
     # Gets the number of fields in the mixed element
 
@@ -308,7 +344,8 @@ macro_quantitiesClasses=None):
     
     # Verifies if the physical groups for the submesh is an integer
 
-    if isinstance(volume_physGroupsSubmesh, int):
+    if (isinstance(volume_physGroupsSubmesh, int) or isinstance(
+    volume_physGroupsSubmesh, str)):
 
         # Transforms into a list
 
@@ -318,11 +355,14 @@ macro_quantitiesClasses=None):
 
     if len(volume_physGroupsSubmesh)>0:
 
+        function_space = solution_field.function_space()
+
         (RVE_submesh, domain_meshFunction, function_spaceSubmesh, 
         RVE_meshMapping, parent_meshMapping, solution_submesh, 
         RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
         mesh_dataClass.domain_meshCollection, volume_physGroupsSubmesh, 
-        solution_field)
+        function_space, domain_physicalGroupsNameToTag=
+        mesh_dataClass.domain_physicalGroupsNameToTag)
 
         # Constructs the class of code-provided information for the post-
         # processes
@@ -349,7 +389,7 @@ macro_quantitiesClasses=None):
 
     post_processingObjects = []
 
-    for i in range(n_fields):
+    for i in range(len(post_processes)):
 
         post_processingObjects.append(dict())
 
@@ -373,19 +413,17 @@ macro_quantitiesClasses=None):
 
     post_processingObjectsSubmesh = []
 
-    if len(post_processesSubmesh)>0:
+    for i in range(len(post_processesSubmesh)):
 
-        for i in range(n_fields):
+        post_processingObjectsSubmesh.append(dict())
 
-            post_processingObjectsSubmesh.append(dict())
+        for post_processName, post_process in post_processesSubmesh[i
+        ].items():
 
-            for post_processName, post_process in post_processesSubmesh[i
-            ].items():
-
-                post_processingObjectsSubmesh[-1][post_processName] = (
-                post_process.initialization_function(
-                post_process.additional_information, 
-                post_process.code_providedInfo, True))
+            post_processingObjectsSubmesh[-1][post_processName] = (
+            post_process.initialization_function(
+            post_process.additional_information, 
+            post_process.code_providedInfo, True))
     
     # Updates the solver parameters
 
@@ -402,9 +440,31 @@ macro_quantitiesClasses=None):
 
     time_counter = 0
 
+    # Checks if the time keys of the macro quantities for multiscale a-
+    # nalysis are empty. If so, creates a range of time points
+
+    if len(time_keys)==0:
+
+        # Verifies if initial time and final time have been supplied
+
+        if t is None:
+
+            raise ValueError("The initial time value for the pseudotim"+
+            "e stepping algorithm was not given, even though no macro "+
+            "quantities with their respective time points were supplie"+
+            "d")
+
+        if t_final is None:
+
+            raise ValueError("The final time value for the pseudotime "+
+            "stepping algorithm was not given, even though no macro qu"+
+            "antities with their respective time points were supplied")
+
+        time_keys = np.linspace(t, t_final, maximum_loadingSteps)
+
     # Iterates through the pseudotime stepping
 
-    while t<(t_final*1.0001):
+    for t in time_keys:
 
         # Prints step information
 
@@ -428,18 +488,16 @@ macro_quantitiesClasses=None):
 
         # Evaluates the post-processes
 
-        if len(post_processes)>0:
-                
-            for i in range(n_fields):
+        for i in range(len(post_processes)):
 
-                # Updates the post processes objects
+            # Updates the post processes objects
 
-                for post_processName, post_process in post_processes[i
-                ].items():
+            for post_processName, post_process in post_processes[i
+            ].items():
 
-                    post_processingObjects[i][post_processName] = (
-                    post_process.update_function(post_processingObjects[
-                    i][post_processName], split_solution, i, t))
+                post_processingObjects[i][post_processName] = (
+                post_process.update_function(post_processingObjects[
+                i][post_processName], split_solution, i, t))
 
         # If a submesh is to be populated with part of the solution
 
@@ -465,7 +523,9 @@ macro_quantitiesClasses=None):
 
                     split_solutionSubmesh[i].rename(*solution_name[i])
 
-                # Updates the post processes objects
+            # Updates the post processes objects
+
+            for i in range(len(post_processesSubmesh)):
 
                 for post_processName, post_process in post_processesSubmesh[
                 i].items():
@@ -476,8 +536,6 @@ macro_quantitiesClasses=None):
                     split_solutionSubmesh, i, t))
 
         # Updates the pseudo time variables and the counter
-
-        t += delta_t
         
         time_counter += 1
 
@@ -498,17 +556,6 @@ macro_quantitiesClasses=None):
         for MacroScaleClass in macro_quantitiesClasses:
 
             MacroScaleClass.update(t)
-
-        # Verifies if the maximum number of laoding steps has been 
-        # reached
-
-        if time_counter>=maximum_loadingSteps:
-
-            print("\nThe maximum number of loading steps,",
-            maximum_loadingSteps, "has just been reached. Stops the si"+
-            "mulation immediatly\n")
-
-            break
 
 ########################################################################
 #                              Utilities                               #

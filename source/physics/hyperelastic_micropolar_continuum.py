@@ -164,10 +164,11 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     # Iterates through the pseudotime stepping algortihm 
 
-    newton_raphson_tools.newton_raphsonMultipleFields(t, t_final, 
+    newton_raphson_tools.newton_raphsonMultipleFields(
     maximum_loadingSteps, solver, solution_new, mixed_element, 
     mesh_dataClass, constitutive_model, post_processesList=
     post_processes, post_processesSubmeshList=post_processesSubmesh, 
     dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
     solver_parameters=solver_parameters, volume_physGroupsSubmesh=
-    volume_physGroupsSubmesh, solution_name=solution_name)
+    volume_physGroupsSubmesh, solution_name=solution_name, t=t, t_final=
+    t_final)

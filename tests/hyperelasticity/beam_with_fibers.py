@@ -32,7 +32,7 @@ displacement_fileName = "displacement.xdmf"
 
 post_processes = dict()
 
-post_processes["save field"] = {"directory path":results_path, 
+post_processes["SaveField"] = {"directory path":results_path, 
 "file name":displacement_fileName}
 
 ########################################################################

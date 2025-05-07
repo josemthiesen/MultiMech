@@ -6,6 +6,8 @@ import meshio
 
 import source.tool_box.programming_tools as programming_tools
 
+import source.tool_box.variational_tools as variational_tools
+
 # Defines a class for the mesh data
 
 class MeshData:
@@ -358,7 +360,31 @@ False):
 # Defines a function to generate a submesh using MeshView and creates
 
 def create_submesh(domain_meshCollection, volume_physGroupsTags, 
-parent_functionSpace):
+parent_functionSpace, domain_physicalGroupsNameToTag=None):
+    
+    # Verifies if the volume physical groups are a list of strings
+
+    for i in range(len(volume_physGroupsTags)):
+
+        if isinstance(volume_physGroupsTags[i], str):
+
+            # Converts the string to integer tag
+
+            try:
+
+                volume_physGroupsTags[i] = domain_physicalGroupsNameToTag[
+                volume_physGroupsTags[i]]
+
+            except TypeError:
+
+                raise TypeError("The dictionary of volumetric physical"+
+                " groups to integer tags has not been provided")
+            
+            except KeyError:
+
+                raise KeyError("The '"+str(volume_physGroupsTags[i])+
+                "' is not a valid tag for a volumetric physical group."+
+                " The valid tags are: "+str(domain_physicalGroupsNameToTag.keys()))
 
     # Gets the mesh, the polynomial degree, and the shape function
 

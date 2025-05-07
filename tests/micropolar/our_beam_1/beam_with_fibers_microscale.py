@@ -59,8 +59,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     parameters_sets = [[0.002, 0.002, RVE_width*n_RVEsZ*2.0, (RVE_width*
     n_RVEsZ*2.0), 5.0], [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0], [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0]]
+    n_RVEsZ*2.0), 5.0]]#, [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
+    #n_RVEsZ*2.0), 5.0]]
 
     # Iterates through the simulations
 
@@ -256,10 +256,10 @@ RVE_localizationZ=3, flag_newMesh=True):
 
     constitutive_model = dict()
 
-    constitutive_model["RVE matrix"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    constitutive_model["Matrix"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
     material_propertiesMatrix)
 
-    constitutive_model["RVE fiber"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    constitutive_model["Fiber"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
     material_propertiesFiber)
 
     ####################################################################

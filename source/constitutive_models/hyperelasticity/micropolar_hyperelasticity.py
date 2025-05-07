@@ -143,9 +143,9 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
     def second_piolaStress(self, fields_list):
 
-        # Retrieves the fields
+        # Retrieves the two first fields
 
-        u, phi = fields_list
+        u, phi, *_ = fields_list
 
         # Evaluates the Cauchy stress and the couple stress
 
@@ -169,7 +169,7 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Retrieves the fields
 
-        u, phi = fields_list
+        u, phi, *_  = fields_list
 
         # Evaluates the Cauchy stress and the couple stress
 
@@ -193,7 +193,7 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Retrieves the fields
 
-        u, phi = fields_list
+        u, phi, *_  = fields_list
 
         # Evaluates the Cauchy stress and the couple stress
 
@@ -219,7 +219,7 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Retrieves the fields
 
-        u, phi = fields_list
+        u, phi, *_  = fields_list
 
         # Evaluates the deformation gradient
 
@@ -277,7 +277,7 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Retrieves the fields
 
-        u, phi = fields_list
+        u, phi, *_  = fields_list
 
         # Evaluates the deformation gradient
 
