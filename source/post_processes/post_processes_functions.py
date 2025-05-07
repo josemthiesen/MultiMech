@@ -30,16 +30,27 @@ def initialize_fieldSaving(data, direct_codeData, submesh_flag):
     # Gets the name of the file with the path to it
 
     file_name = file_tools.verify_path(parent_path, file_name)
+    
+    # Assembles the output. This post-process does not have a variable
+    # that can be shared with a submesh
+
+    class OutputObject:
+
+        def __init__(self, file):
+            
+            self.result = file
 
     # Initializes the file
 
     file = XDMFFile(file_name)
 
-    return file 
+    output_object = OutputObject(file)
+
+    return output_object
 
 # Defines a function to update the file with the field
 
-def update_fieldSaving(file, field, field_number, time):
+def update_fieldSaving(output_object, field, field_number, time):
 
     # If the problem has a single field
 
@@ -47,9 +58,9 @@ def update_fieldSaving(file, field, field_number, time):
 
         # Writes the field to the file
 
-        file.write(field, time)
+        output_object.result.write(field, time)
 
-        return file
+        return output_object
     
     # If the problem has multiple fields
 
@@ -57,9 +68,9 @@ def update_fieldSaving(file, field, field_number, time):
 
         # Writes the field to the file
 
-        file.write(field[field_number], time)
+        output_object.result.write(field[field_number], time)
 
-        return file
+        return output_object
 
 ########################################################################
 #                          Cauchy stress field                         #
@@ -112,14 +123,17 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
     file = XDMFFile(file_name)
 
-    # Assembles the file and the function space into a class
+    # Assembles the file and the function space into a class. This post-
+    # process does have a variable that can be shared with a submesh, 
+    # and it is the stress field
 
     class OutputObject:
 
         def __init__(self, file, W, constitutive_model, dx, 
-        physical_groupsList, physical_groupsNamesToTags):
+        physical_groupsList, physical_groupsNamesToTags, 
+        parent_toChildMeshResult):
             
-            self.file = file 
+            self.result = file 
 
             self.W = W 
 
@@ -130,9 +144,14 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
             self.physical_groupsList = physical_groupsList 
 
             self.physical_groupsNamesToTags = physical_groupsNamesToTags
+            
+            # Defines a sharable result between a parent mesh and a sub-
+            # mesh
+
+            self.parent_toChildMeshResult = parent_toChildMeshResult
 
     output_object = OutputObject(file, W, constitutive_model, dx, 
-    physical_groupsList, physical_groupsNamesToTags)
+    physical_groupsList, physical_groupsNamesToTags, 0.0)
 
     return output_object
 
@@ -187,9 +206,13 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
         output_object.physical_groupsList, 
         output_object.physical_groupsNamesToTags)
 
+        # Saves the Cauchy field into the sharable result with a submesh
+
+        output_object.parent_toChildMeshResult = cauchy_stressFunction
+
         # Writes the field to the file
 
-        output_object.file.write(cauchy_stressFunction, time)
+        output_object.result.write(cauchy_stressFunction, time)
 
     else:
 
@@ -202,9 +225,13 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
 
         cauchy_stressFunction = project(cauchy_stress, output_object.W)
 
+        # Saves the Cauchy field into the sharable result with a submesh
+
+        output_object.parent_toChildMeshResult = cauchy_stressFunction
+
         # Writes the field to the file
 
-        output_object.file.write(cauchy_stressFunction, time)
+        output_object.result.write(cauchy_stressFunction, time)
 
     # Returns the class
 
@@ -262,14 +289,17 @@ submesh_flag):
 
     file = XDMFFile(file_name)
 
-    # Assembles the file and the function space into a class
+    # Assembles the file and the function space into a class. This post-
+    # process does have a variable that can be shared with a submesh, 
+    # and it is the couple stress field
 
     class OutputObject:
 
         def __init__(self, file, W, constitutive_model, dx, 
-        physical_groupsList, physical_groupsNamesToTags):
+        physical_groupsList, physical_groupsNamesToTags,
+        parent_toChildMeshResult):
             
-            self.file = file 
+            self.result = file 
 
             self.W = W 
 
@@ -280,9 +310,14 @@ submesh_flag):
             self.physical_groupsList = physical_groupsList 
 
             self.physical_groupsNamesToTags = physical_groupsNamesToTags
+            
+            # Defines a sharable result between a parent mesh and a sub-
+            # mesh
+
+            self.parent_toChildMeshResult = parent_toChildMeshResult
 
     output_object = OutputObject(file, W, constitutive_model, dx, 
-    physical_groupsList, physical_groupsNamesToTags)
+    physical_groupsList, physical_groupsNamesToTags, 0.0)
 
     return output_object
 
@@ -341,9 +376,14 @@ time):
         output_object.physical_groupsList, 
         output_object.physical_groupsNamesToTags)
 
+        # Saves the couple Cauchy stress field into a variable sharable
+        # with a submesh
+
+        output_object.parent_toChildMeshResult = cauchy_stressFunction
+
         # Writes the field to the file
 
-        output_object.file.write(cauchy_stressFunction, time)
+        output_object.result.write(cauchy_stressFunction, time)
 
     else:
 
@@ -357,9 +397,14 @@ time):
         cauchy_stressFunction = project(couple_cauchyStress, 
         output_object.W)
 
+        # Saves the couple Cauchy stress field into a variable sharable
+        # with a submesh
+
+        output_object.parent_toChildMeshResult = cauchy_stressFunction
+
         # Writes the field to the file
 
-        output_object.file.write(cauchy_stressFunction, time)
+        output_object.result.write(cauchy_stressFunction, time)
 
     # Returns the class
 
@@ -454,14 +499,16 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
     file_name = file_tools.verify_path(parent_path, file_name)
 
-    # Assembles the output
+    # Assembles the output. This post-process does not have a variable
+    # that can be shared with a submesh
+
 
     class OutputObject:
 
         def __init__(self, homogenized_fieldList, inverse_volume, dx, 
         subdomain, file_name):
             
-            self.homogenized_fieldList = homogenized_fieldList
+            self.result = homogenized_fieldList
 
             self.inverse_volume = inverse_volume
 
@@ -487,10 +534,10 @@ def update_fieldHomogenization(output_object, field, field_number, time):
         # Homogenizes the field and updates the list of homogenized field
         # along time
 
-        output_object.homogenized_fieldList = homogenization_tools.homogenize_genericField(
-        field, output_object.homogenized_fieldList, time, 
-        output_object.inverse_volume, output_object.dx, 
-        output_object.subdomain, output_object.file_name)
+        output_object.result = homogenization_tools.homogenize_genericField(
+        field, output_object.result, time, output_object.inverse_volume, 
+        output_object.dx, output_object.subdomain, 
+        output_object.file_name)
 
         return output_object
 
@@ -501,8 +548,8 @@ def update_fieldHomogenization(output_object, field, field_number, time):
         # Homogenizes the field and updates the list of homogenized field
         # along time
 
-        output_object.homogenized_fieldList = homogenization_tools.homogenize_genericField(
-        field[field_number], output_object.homogenized_fieldList, time, 
+        output_object.result = homogenization_tools.homogenize_genericField(
+        field[field_number], output_object.result, time, 
         output_object.inverse_volume, output_object.dx, 
         output_object.subdomain, output_object.file_name)
 

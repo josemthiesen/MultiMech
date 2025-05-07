@@ -174,6 +174,11 @@ def post_processingSelectionSingleField(post_processes, context_class):
 def post_processingSelectionMultipleFields(post_processesUnifield,
 context_class):
     
+    # Initializes a list of lists, each sublist has a pair of field num-
+    # ber and process name
+
+    post_processesNamesList = []
+    
     # Iterates through the number of fields
 
     for i in range(len(post_processesUnifield)):
@@ -199,10 +204,22 @@ context_class):
         post_processesUnifield[i] = post_processingSelectionSingleField(
         post_processesUnifield[i][1], context_class)
 
+        # Gets the names of the processes for this field
+
+        processes_names = list(post_processesUnifield[i].keys())
+
         # Adds the number of the field as key
 
         post_processesUnifield[i]["field number"] = field_number
 
+        # Adds the pairs of field number and process names
+
+        post_processesNamesList.append([i])
+
+        for name in processes_names:
+
+            post_processesNamesList[-1].append([field_number, name])
+
     # Returns the new live list of dictionaries
 
-    return post_processesUnifield
+    return post_processesUnifield, post_processesNamesList

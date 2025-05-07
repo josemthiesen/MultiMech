@@ -151,21 +151,21 @@ RVE_localizationZ=3, flag_newMesh=True):
 
     for i in range(2):
 
-        post_processes.append(dict())
+        post_processes.append([i, dict()])
 
-        post_processes[-1]["SaveField"] = {"directory path":
+        post_processes[-1][-1]["SaveField"] = {"directory path":
         results_pathGraphics, "file name":displacement_fileName[i]}
 
         # Put "" in the subdomain to integrate over the entire domain
 
-        post_processes[-1]["HomogenizeField"] = {"directory path":
+        post_processes[-1][-1]["HomogenizeField"] = {"directory path":
         results_pathText, "file name":homogenized_displacementFileName[i
         ], "subdomain":""}
 
         # Put "" in the subdomain to integrate over the entire domain
 
-        post_processes[-1]["HomogenizeFieldsGradient"] = {"directory p"+
-        "ath":results_pathText, "file name":
+        post_processes[-1][-1]["HomogenizeFieldsGradient"] = {"directo"+
+        "ry path":results_pathText, "file name":
         homogenized_gradDisplacementFileName[i], "subdomain":""}
 
         # Adds the stress field to the displacement field even though
@@ -174,12 +174,12 @@ RVE_localizationZ=3, flag_newMesh=True):
 
         if i==0:
 
-            post_processes[-1]["SaveStressField"] = {"directory path":
-            results_pathGraphics, "file name": stress_fieldFileName[0], 
-            "polynomial degree": 1}
+            post_processes[-1][-1]["SaveStressField"] = {"directory pa"+
+            "th": results_pathGraphics, "file name": 
+            stress_fieldFileName[0], "polynomial degree": 1}
 
-            post_processes[-1]["SaveCoupleStressField"] = {"directory "+
-            "path": results_pathGraphics, "file name": 
+            post_processes[-1][-1]["SaveCoupleStressField"] = {"direct"+
+            "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
     ####################################################################

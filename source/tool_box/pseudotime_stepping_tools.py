@@ -346,11 +346,11 @@ t_final=None):
 
     # Transforms the list of dictionaries of post-processing methods 
     # instructions into a list of live-wire dictionaries with the proper 
-    # methods and needed information. Two dictionaries are created: one
-    # for the post-processing methods that work on a single field; the
-    # methods that work on multiple fields at once
+    # methods and needed information. A dictionary is created for the 
+    # post-processing methods that work on a single field
     
-    post_processes = post_processing_tools.post_processingSelectionMultipleFields(
+    (post_processes, post_processesNamesList
+    ) = post_processing_tools.post_processingSelectionMultipleFields(
     post_processesList, context_class) 
     
     # Initializes the list of submesh post processes. It is a list, be-
@@ -389,7 +389,7 @@ t_final=None):
 
         # Initializes the post process for the submesh if there's any
 
-        post_processesSubmesh = post_processing_tools.post_processingSelectionMultipleFields(
+        post_processesSubmesh, *_ = post_processing_tools.post_processingSelectionMultipleFields(
         post_processesSubmeshList, context_classRVE) 
     
     # Initializes a dictionary of post processes objects, files for e-
@@ -555,10 +555,63 @@ t_final=None):
                     
                     if post_processName!="field number":
 
-                        post_processingObjectsSubmesh[i][post_processName
-                        ] = post_process.update_function(
-                        post_processingObjectsSubmesh[i][post_processName], 
-                        split_solutionSubmesh, field_number, t)
+                        # Verifies if the pair of this post-process of
+                        # this particular field has already been evalua-
+                        # ted in the parent mesh
+
+                        shared_result = False
+
+                        pair_fieldName = [field_number, post_processName]
+
+                        # Verifies if and where this pair is in the list
+                        # of pairs field number and names of the parent 
+                        # mesh
+
+                        process_index = None 
+
+                        for j in range(len(post_processesNamesList)):
+
+                            if pair_fieldName in post_processesNamesList[
+                            j]:
+
+                                # Gets the index
+
+                                process_index = j+0
+
+                        if not (process_index is None):
+
+                            # A process to be transitioned from a parent
+                            # mesh to a submesh must have the variable
+                            # 'parent_toChildMeshResult' in its output
+                            # class
+
+                            if hasattr(post_processingObjects[
+                            process_index][post_processName], 'parent_'+
+                            'toChildMeshResult'):
+
+                                # Access the result variable of the post-
+                                # process class to directly allocate the 
+                                # result from the parent mesh
+
+                                post_processingObjectsSubmesh[i][post_processName
+                                ].parent_toChildMeshResult = mesh_tools.field_parentToSubmesh(
+                                RVE_submesh, solution_submesh, solution_field, 
+                                RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
+
+                                # Updates the flag to inform this process
+                                # has been taken from the parent mesh
+
+                                shared_result = True
+
+                        # If it hasn't been evaluated in the parent mesh,
+                        # evaluates it in the submesh
+
+                        if not shared_result:
+
+                            post_processingObjectsSubmesh[i][post_processName
+                            ] = post_process.update_function(
+                            post_processingObjectsSubmesh[i][post_processName], 
+                            split_solutionSubmesh, field_number, t)
 
         # Updates the pseudo time variables and the counter
         
