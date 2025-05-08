@@ -50,7 +50,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsY = 1
 
-    n_RVEsZ = 5
+    n_RVEsZ = 11
 
     # Defines a list of lists, each list is a set of material parameters
     # - micropolar number of the matrix, micropolar number of the fiber,
@@ -142,6 +142,9 @@ RVE_localizationZ=3, flag_newMesh=True):
     "gradient_microscale.txt", "homogenized_microrotation_grad_microsc"+
     "ale.txt"]
 
+    homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
+    "xt", "homogenized_couple_first_piola_microscale.txt"]
+
     stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "couple_c"+
     "auchy_stress_microscale.xdmf"]
 
@@ -181,6 +184,14 @@ RVE_localizationZ=3, flag_newMesh=True):
             post_processes[-1][-1]["SaveCoupleStressField"] = {"direct"+
             "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
+
+            post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
+            "ry path": results_pathText, "file name": 
+            homogenized_piolaFileName[0], "subdomain":""}
+
+            post_processes[-1][-1]["HomogenizeCoupleFirstPiola"] = {"d"+
+            "irectory path": results_pathText, "file name": 
+            homogenized_piolaFileName[1], "subdomain":""}
 
     ####################################################################
     #                       Material properties                        #

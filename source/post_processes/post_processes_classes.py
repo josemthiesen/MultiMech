@@ -140,3 +140,37 @@ class HomogenizeFieldsGradient(PostProcessMethod):
         post_functions.update_gradientFieldHomogenization, ["directory"+
         " path", "file name", "subdomain"], [context.dx, 
         context.physical_groupsList, context.domain_physGroupsNamesToTags])
+
+# Sets a class for the method to homogenize the first Piola-Kirchhoff
+# stress tensor
+
+class HomogenizeFirstPiola(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_firstPiolaHomogenization, 
+        post_functions.update_firstPiolaHomogenization, ["directory pa"+
+        "th", "file name", "subdomain"], [context.dx, 
+        context.physical_groupsList, 
+        context.domain_physGroupsNamesToTags, context.constitutive_model])
+
+# Sets a class for the method to homogenize the couple first Piola-
+# Kirchhoff stress tensor
+
+class HomogenizeCoupleFirstPiola(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_coupleFirstPiolaHomogenization, 
+        post_functions.update_coupleFirstPiolaHomogenization, ["direct"+
+        "ory path", "file name", "subdomain"], [context.dx, 
+        context.physical_groupsList, 
+        context.domain_physGroupsNamesToTags, context.constitutive_model])

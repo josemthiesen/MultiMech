@@ -6,6 +6,8 @@ import numpy as np
 
 import source.tool_box.file_handling_tools as file_tools
 
+import source.tool_box.variational_tools as variational_tools
+
 # Defines a function to homogenize a generic field
 
 def homogenize_genericField(field, homogenized_fieldList, time, 
@@ -103,43 +105,205 @@ inverse_volume, dx, subdomain, file_name):
     return homogenized_fieldList
 
 ########################################################################
+#                        Stress homogenization                         #
 ########################################################################
 
-def get_micro_cell_volume(dx):
-    RVE_volume = assemble(1*dx(3)) + assemble(1*dx(4))
-    return RVE_volume
+# Defines a function to homogenize the first Piola-Kirchhoff stress ten-
+# sor
 
-def get_homogenized(variable, dx):
-    # Calculate the volume of the Representative Volume Element (RVE)
-    RVE_volume = get_micro_cell_volume(dx)
+def homogenize_firstPiola(field, constitutive_model, 
+homogenized_firstPiolaList, time, inverse_volume, dx, subdomain, 
+file_name, physical_groupsList, physical_groupsNamesToTags):
+    
+    # Initializes the homogenized tensor
 
-    # Initialize the homogenized deformation gradient tensor
-    Homogenized_variable = np.zeros(3) 
+    homogenized_tensor = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 
+    0.0]]
 
-    for m in range(3): 
-        # Compute homogenized components
-        Homogenized_variable[m] = (
-            (1 / RVE_volume) * assemble(variable[m] * dx(3)) + 
-            (1 / RVE_volume) * assemble(variable[m] * dx(4))
-        )
+    tensor_indexes = [[0,0], [0,1], [0,2], [1,0], [1,1], [1,2], [2,0], [
+    2,1], [2,2]]
+    
+    # Verifies if the domain is homogeneous. If the constitutive model 
+    # is a dictionary, the domain in heterogeneous
 
-    return Homogenized_variable 
+    if isinstance(constitutive_model, dict):
 
-def get_homogenized_gradient(grad_variable, dx):
-    # Calculate the volume of the Representative Volume Element (RVE)
-    RVE_volume = get_micro_cell_volume(dx)
+        # If the domain is heterogeneous, the stress field must be pro-
+        # jected for each subdomain
 
-    # Initialize the homogenized deformation gradient tensor
-    Homogenized_gradient = np.zeros((3, 3)) 
+        for subdomain, local_constitutiveModel in constitutive_model.items():
 
-    # Loop through tensor components
-    for m in range(3): 
-        for n in range(3):
-            # Compute homogenized components
-            Homogenized_gradient[m, n] = (
-                (1 / RVE_volume) * assemble(grad_variable[m, n] * dx(3)) + 
-                (1 / RVE_volume) * assemble(grad_variable[m, n] * dx(4))
-            )
+            # Gets the first Piola-Kirchhoff stress field
 
-    return Homogenized_gradient 
+            first_piolaStress = local_constitutiveModel.first_piolaStress(
+            field).P
 
+            # Verifies if more than one physical group is given for the
+            # same constitutive model
+
+            if isinstance(subdomain, tuple):
+
+                # Iterates though the elements of the tuple
+
+                for sub in subdomain:
+
+                    # Checks if the domain is a string
+
+                    if isinstance(sub, str):
+
+                        sub = variational_tools.verify_physicalGroups(
+                        sub, physical_groupsList, 
+                        physical_groupsNamesToTags=
+                        physical_groupsNamesToTags)
+
+                    # Adds the contribution of this domain
+
+                    for index in tensor_indexes:
+
+                        homogenized_tensor[index[0]][index[1]] += (
+                        inverse_volume*assemble(first_piolaStress[*index
+                        ]*dx(sub)))
+
+            else:
+
+                # Checks if the domain is a string
+
+                if isinstance(subdomain, str):
+
+                    subdomain = variational_tools.verify_physicalGroups(
+                    subdomain, physical_groupsList, 
+                    physical_groupsNamesToTags= 
+                    physical_groupsNamesToTags)
+
+                # Adds the contribution of this domain
+
+                for index in tensor_indexes:
+
+                    homogenized_tensor[index[0]][index[1]] += (
+                    inverse_volume*assemble(first_piolaStress[*index]*
+                    dx(subdomain)))
+
+    else:
+
+        # Gets the first Piola-Kirchhoff stress field
+
+        first_piolaStress = constitutive_model.first_piolaStress(
+        field).P
+
+        # Adds the contribution of this domain
+
+        for index in tensor_indexes:
+
+            homogenized_tensor[index[0]][index[1]] += (inverse_volume*
+            assemble(first_piolaStress[*index]*dx))
+
+    # Adds the homogenized tensor to the list
+
+    homogenized_firstPiolaList.append([time, homogenized_tensor])
+
+    # Saves the homogenized field to a txt file
+
+    file_tools.list_toTxt(homogenized_firstPiolaList, file_name, 
+    add_extension=False)
+
+    return homogenized_firstPiolaList
+
+# Defines a function to homogenize the couple first Piola-Kirchhoff 
+# stress tensor
+
+def homogenize_coupleFirstPiola(field, constitutive_model, 
+homogenized_firstPiolaList, time, inverse_volume, dx, subdomain, 
+file_name, physical_groupsList, physical_groupsNamesToTags):
+    
+    # Initializes the homogenized tensor
+
+    homogenized_tensor = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 
+    0.0]]
+
+    tensor_indexes = [[0,0], [0,1], [0,2], [1,0], [1,1], [1,2], [2,0], [
+    2,1], [2,2]]
+    
+    # Verifies if the domain is homogeneous. If the constitutive model 
+    # is a dictionary, the domain in heterogeneous
+
+    if isinstance(constitutive_model, dict):
+
+        # If the domain is heterogeneous, the stress field must be pro-
+        # jected for each subdomain
+
+        for subdomain, local_constitutiveModel in constitutive_model.items():
+
+            # Gets the first Piola-Kirchhoff stress field
+
+            first_piolaStress = local_constitutiveModel.first_piolaStress(
+            field).P_couple
+
+            # Verifies if more than one physical group is given for the
+            # same constitutive model
+
+            if isinstance(subdomain, tuple):
+
+                # Iterates though the elements of the tuple
+
+                for sub in subdomain:
+
+                    # Checks if the domain is a string
+
+                    if isinstance(sub, str):
+
+                        sub = variational_tools.verify_physicalGroups(
+                        sub, physical_groupsList, 
+                        physical_groupsNamesToTags=
+                        physical_groupsNamesToTags)
+
+                    # Adds the contribution of this domain
+
+                    for index in tensor_indexes:
+
+                        homogenized_tensor[index[0]][index[1]] += (
+                        inverse_volume*assemble(first_piolaStress[*index
+                        ]*dx(sub)))
+
+            else:
+
+                # Checks if the domain is a string
+
+                if isinstance(subdomain, str):
+
+                    subdomain = variational_tools.verify_physicalGroups(
+                    subdomain, physical_groupsList, 
+                    physical_groupsNamesToTags= 
+                    physical_groupsNamesToTags)
+
+                # Adds the contribution of this domain
+
+                for index in tensor_indexes:
+
+                    homogenized_tensor[index[0]][index[1]] += (
+                    inverse_volume*assemble(first_piolaStress[*index]*
+                    dx(subdomain)))
+
+    else:
+
+        # Gets the first Piola-Kirchhoff stress field
+
+        first_piolaStress = constitutive_model.first_piolaStress(
+        field).P_couple
+
+        # Adds the contribution of this domain
+
+        for index in tensor_indexes:
+
+            homogenized_tensor[index[0]][index[1]] += (inverse_volume*
+            assemble(first_piolaStress[*index]*dx))
+
+    # Adds the homogenized tensor to the list
+
+    homogenized_firstPiolaList.append([time, homogenized_tensor])
+
+    # Saves the homogenized field to a txt file
+
+    file_tools.list_toTxt(homogenized_firstPiolaList, file_name, 
+    add_extension=False)
+
+    return homogenized_firstPiolaList

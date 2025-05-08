@@ -48,16 +48,16 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsX = 1
 
-    n_RVEsY = 1
+    n_RVEsY = 7
 
-    n_RVEsZ = 5
+    n_RVEsZ = 11
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
 
     RVE_localizationX = np.ceil(0.5*n_RVEsX)
 
-    RVE_localizationY = np.ceil(0.5*n_RVEsY)
+    RVE_localizationY = n_RVEsY#np.ceil(0.5*n_RVEsY)
 
     RVE_localizationZ = np.ceil(0.5*n_RVEsZ)
 
@@ -155,8 +155,13 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
     "gradient.txt", "homogenized_microrotation_grad.txt"]
 
+    homogenized_piolaFileName = ["homogenized_first_piola.txt", "homog"+
+    "enized_couple_first_piola.txt"]
+
     stress_fieldFileName = ["cauchy_stress.xdmf", "couple_cauchy_stres"+
     "s.xdmf"]
+
+    stress_fieldFileNameSubmesh = ["cauchy_stress_submesh.xdmf"]
 
     post_processes = []
 
@@ -165,6 +170,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     # Iterates through the fields (displacement and microrotation)
 
     for i in range(2):
+
+        # Adds a pair of field number following the variational conven-
+        # tion and the dictionary for post processes
 
         post_processes.append([i, dict()])
 
@@ -175,13 +183,23 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
         post_processes[-1][-1]["HomogenizeField"] = {"directory path":
         results_pathText, "file name":homogenized_displacementFileName[i
-        ], "subdomain":""}
+        ], "subdomain": ["RVE matrix", "RVE fiber"]}
 
         # Put "" in the subdomain to integrate over the entire domain
 
         post_processes[-1][-1]["HomogenizeFieldsGradient"] = {"directo"+
         "ry path":results_pathText, "file name":
-        homogenized_gradDisplacementFileName[i], "subdomain":""}
+        homogenized_gradDisplacementFileName[i], "subdomain":["RVE mat"+
+        "rix", "RVE fiber"]}
+
+        post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directory p"+
+        "ath": results_pathText, "file name": homogenized_piolaFileName[
+        0], "subdomain":["RVE matrix", "RVE fiber"]}
+
+        post_processes[-1][-1]["HomogenizeCoupleFirstPiola"] = {"direc"+
+        "tory path": results_pathText, "file name": 
+        homogenized_piolaFileName[1], "subdomain":["RVE matrix", "RVE "+
+        "fiber"]}
 
         # Adds the stress field to the displacement field even though
         # it can be evaluated with any field, since it takes all fields
@@ -197,11 +215,20 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
+        # Adds a pair of field number following the variational conven-
+        # tion and the dictionary for post processes
+
         post_processesSubmesh.append([i, dict()])
 
         post_processesSubmesh[-1][-1]["SaveField"] = {"directory path":
         results_pathGraphics, "file name":displacement_fileNameSubmesh[i
         ]}
+
+        if i==0:
+
+            post_processesSubmesh[-1][-1]["SaveStressField"] = {"direc"+
+            "tory path": results_pathGraphics, "file name": 
+            stress_fieldFileNameSubmesh[0], "polynomial degree": 1}
 
     ####################################################################
     #                       Material properties                        #
@@ -354,7 +381,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Sets the maximum number of steps of loading
 
-    maximum_loadingSteps = 25
+    maximum_loadingSteps = 5
 
     ####################################################################
     #                        Boundary conditions                       #

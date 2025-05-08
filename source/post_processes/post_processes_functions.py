@@ -157,7 +157,21 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
 # Defines a function to update the Cauchy stress field
 
-def update_cauchyStressSaving(output_object, field, field_number, time):
+def update_cauchyStressSaving(output_object, field, field_number, time, 
+flag_parentMeshReuse=False):
+    
+    # If the flag to reuse parent mesh information is true, just save 
+    # the information given in the output object
+
+    if flag_parentMeshReuse:
+
+        output_object.parent_toChildMeshResult.rename("Cauchy stress", 
+        "stress")
+
+        output_object.result.write(output_object.parent_toChildMeshResult, 
+        time)
+
+        return output_object
 
     # Verifies if the domain is homogeneous
 
@@ -204,7 +218,8 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
         cauchy_stressFunction = variational_tools.project_piecewiseField(
         integration_pairs, output_object.dx, output_object.W, 
         output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags)
+        output_object.physical_groupsNamesToTags, solution_names=["Cau"+
+        "chy stress", "stress"])
 
         # Saves the Cauchy field into the sharable result with a submesh
 
@@ -224,6 +239,8 @@ def update_cauchyStressSaving(output_object, field, field_number, time):
         # Projects the cauchy stress into a function
 
         cauchy_stressFunction = project(cauchy_stress, output_object.W)
+
+        cauchy_stressFunction.rename("Cauchy stress", "stress")
 
         # Saves the Cauchy field into the sharable result with a submesh
 
@@ -324,7 +341,20 @@ submesh_flag):
 # Defines a function to update the couple Cauchy stress field
 
 def update_coupleCauchyStressSaving(output_object, field, field_number, 
-time):
+time, flag_parentMeshReuse=False):
+    
+    # If the flag to reuse parent mesh information is true, just save 
+    # the information given in the output object
+
+    if flag_parentMeshReuse:
+
+        output_object.parent_toChildMeshResult.rename("Couple Cauchy s"+
+        "tress", "stress")
+
+        output_object.result.write(output_object.parent_toChildMeshResult, 
+        time)
+
+        return output_object
 
     # Verifies if the domain is homogeneous. If the constitutive model 
     # is a dictionary, the domain in heterogeneous
@@ -374,7 +404,8 @@ time):
         cauchy_stressFunction = variational_tools.project_piecewiseField(
         integration_pairs, output_object.dx, output_object.W, 
         output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags)
+        output_object.physical_groupsNamesToTags, solution_names=["Cou"+
+        "ple Cauchy stress", "stress"])
 
         # Saves the couple Cauchy stress field into a variable sharable
         # with a submesh
@@ -396,6 +427,8 @@ time):
 
         cauchy_stressFunction = project(couple_cauchyStress, 
         output_object.W)
+
+        cauchy_stressFunction.rename("Couple Cauchy stress", "stress")
 
         # Saves the couple Cauchy stress field into a variable sharable
         # with a submesh
@@ -457,6 +490,18 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
     if isinstance(subdomain, list):
 
+        # Checks for any elements being strings
+
+        for i in range(len(subdomain)):
+            
+            if isinstance(subdomain[i], str):
+
+                subdomain[i] = variational_tools.verify_physicalGroups(
+                subdomain[i], physical_groupsList, 
+                physical_groupsNamesToTags=physical_groupsNamesToTags)
+
+        # Converts to tuple
+
         subdomain = tuple(subdomain)
 
     if isinstance(subdomain, int):
@@ -467,15 +512,7 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
         for sub in subdomain:
 
-            if isinstance(sub, str):
-
-                volume += assemble(1*dx(variational_tools.verify_physicalGroups(
-                sub, physical_groupsList, physical_groupsNamesToTags=
-                physical_groupsNamesToTags)))
-
-            else:
-
-                volume += assemble(1*dx(sub))
+            volume += assemble(1*dx(sub))
 
     # Otherwise, integrates over the whole domain to get the volume
 
@@ -487,9 +524,11 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
         else:
 
-            volume = assemble(1*dx(variational_tools.verify_physicalGroups(
+            subdomain = variational_tools.verify_physicalGroups(
             subdomain, physical_groupsList, physical_groupsNamesToTags=
-            physical_groupsNamesToTags)))
+            physical_groupsNamesToTags)
+
+            volume = assemble(1*dx(subdomain))
 
     # Initializes the homogenized field list
 
@@ -592,5 +631,164 @@ def update_gradientFieldHomogenization(output_object, field, field_number, time)
 
     output_object = update_fieldHomogenization(output_object, 
     grad_field, -1, time)
+
+    return output_object
+
+# Defines a function to initialize the homogenized value of the first 
+# Piola-Kirchhof
+
+def initialize_firstPiolaHomogenization(data, direct_codeData, 
+submesh_flag):
+
+    # Gets the directory and the name of the file
+
+    parent_path = data[0]
+
+    file_name = data[1]
+
+    # Gets the subdomain to integrate
+
+    subdomain = data[2]
+
+    # Gets the integration measure
+
+    dx = direct_codeData[0]
+
+    physical_groupsList = direct_codeData[1] 
+    
+    physical_groupsNamesToTags = direct_codeData[2]
+
+    constitutive_model = direct_codeData[3]
+
+    # Evaluates the volume of the domain
+
+    volume = 0.0
+
+    # If the solution comes from a submesh, there can be no domain
+
+    if submesh_flag:
+
+        if (isinstance(subdomain, int) or isinstance(subdomain, tuple)
+        or isinstance(subdomain, list)):
+            
+            raise ValueError("This solution comes from a submesh and t"+
+            "he subdomain "+str(subdomain)+" is solicited. Subdomains "+
+            "cannot be used in fields from submeshes, for theses meshe"+
+            "s do not have physical groups.")
+
+    # If a physical group of the mesh is given or a tuple of physical 
+    # groups
+
+    if isinstance(subdomain, list):
+
+        subdomain = tuple(subdomain)
+
+    if isinstance(subdomain, int):
+
+        volume = assemble(1*dx(subdomain))
+
+    elif isinstance(subdomain, tuple):
+
+        for sub in subdomain:
+
+            if isinstance(sub, str):
+
+                volume += assemble(1*dx(variational_tools.verify_physicalGroups(
+                sub, physical_groupsList, physical_groupsNamesToTags=
+                physical_groupsNamesToTags)))
+
+            else:
+
+                volume += assemble(1*dx(sub))
+
+    # Otherwise, integrates over the whole domain to get the volume
+
+    elif isinstance(subdomain, str):
+
+        if len(subdomain)==0:
+
+            volume = assemble(1*dx)
+
+        else:
+
+            volume = assemble(1*dx(variational_tools.verify_physicalGroups(
+            subdomain, physical_groupsList, physical_groupsNamesToTags=
+            physical_groupsNamesToTags)))
+
+    # Initializes the homogenized field list
+
+    homogenized_firstPiolaList = []
+
+    # Gets the name of the file with the path to it
+
+    file_name = file_tools.verify_path(parent_path, file_name)
+
+    # Assembles the output. This post-process does not have a variable
+    # that can be shared with a submesh
+
+    class OutputObject:
+
+        def __init__(self, homogenized_firstPiolaList, inverse_volume, dx, 
+        subdomain, file_name, constitutive_model, physical_groupsList,
+        physical_groupsNamesToTags):
+            
+            self.result = homogenized_firstPiolaList
+
+            self.inverse_volume = inverse_volume
+
+            self.dx = dx 
+
+            self.subdomain = subdomain 
+
+            self.file_name = file_name
+
+            self.constitutive_model = constitutive_model
+
+            self.physical_groupsList = physical_groupsList
+    
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+
+    output_object = OutputObject(homogenized_firstPiolaList, (1.0/volume
+    ), dx, subdomain, file_name, constitutive_model, physical_groupsList,
+    physical_groupsNamesToTags)
+
+    return output_object
+
+# Defines a function to update the homogenization of the first Piola-
+# Kirchhof
+
+def update_firstPiolaHomogenization(output_object, field, field_number, 
+time):
+
+    output_object.result = homogenization_tools.homogenize_firstPiola(
+    field, output_object.constitutive_model, output_object.result, time, 
+    output_object.inverse_volume, output_object.dx, 
+    output_object.subdomain,output_object.file_name, 
+    output_object.physical_groupsList, 
+    output_object.physical_groupsNamesToTags)
+
+    return output_object
+
+# Defines a function to initialize the homogenized value of the first 
+# couple Piola-Kirchhof
+
+def initialize_coupleFirstPiolaHomogenization(data, direct_codeData, 
+submesh_flag):
+    
+    return initialize_firstPiolaHomogenization(data, direct_codeData, 
+    submesh_flag)
+
+# Defines a function to update the homogenization of the couple first 
+# Piola-Kirchhof
+
+def update_coupleFirstPiolaHomogenization(output_object, field, 
+field_number, time):
+
+    output_object.result = homogenization_tools.homogenize_coupleFirstPiola(
+    field, output_object.constitutive_model, output_object.result, time, 
+    output_object.inverse_volume, output_object.dx, 
+    output_object.subdomain,output_object.file_name, 
+    output_object.physical_groupsList, 
+    output_object.physical_groupsNamesToTags)
 
     return output_object

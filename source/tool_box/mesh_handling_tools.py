@@ -535,8 +535,60 @@ parent_functionSpace, domain_physicalGroupsNameToTag=None):
 # Defines a function to update the field parameters vector of a submesh 
 # given the corresponding vector at the parent mesh
 
-def field_parentToSubmesh(submesh, field_submesh, field_parentMesh, 
-sub_toParentCellMap, sub_meshMapping, parent_meshMapping):
+def field_parentToSubmesh(submesh, field_parentMesh, sub_toParentCellMap, 
+sub_meshMapping=None, parent_meshMapping=None, field_submesh=None):
+    
+    # If the field of the submesh is not explicitely given, creates it
+    # as a copy of the parent field jsut with a different mesh
+
+    if field_submesh is None:
+
+        field_submesh = Function(FunctionSpace(submesh, 
+        field_parentMesh.ufl_element()))
+
+    # If the mesh mappings have not been provided
+
+    if (sub_meshMapping is None) or (parent_meshMapping is None):
+
+        # Gets the parent field function space and its shape function
+
+        submesh_functionSpace = field_submesh.function_space()
+
+        parent_functionSpace = field_parentMesh.function_space()
+
+        shape_function = parent_functionSpace.ufl_element().family()
+
+        # Initializes the DOF mappings for the RVE and for the original 
+        # mesh
+
+        sub_meshMapping = []
+
+        parent_meshMapping = []
+
+        # Verifies whether there is only on field
+
+        if shape_function!='Mixed':
+
+            sub_meshMapping.append(submesh_functionSpace.dofmap())
+
+            parent_meshMapping.append(parent_functionSpace.dofmap())
+
+        # If there are multiple fields
+
+        else:
+
+            # Iterates through the number of fields
+
+            for i in range(parent_functionSpace.ufl_element(
+            ).num_sub_elements()):
+
+                # Adds the submesh mapping and the parent mesh mapping
+
+                sub_meshMapping.append(submesh_functionSpace.sub(i
+                ).dofmap())
+
+                parent_meshMapping.append(parent_functionSpace.sub(i
+                ).dofmap())
 
     # Iterates through the elements of the submesh
 

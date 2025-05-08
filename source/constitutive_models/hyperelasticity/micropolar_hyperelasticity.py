@@ -6,6 +6,8 @@
 
 from abc import ABC, abstractmethod
 
+from collections import namedtuple
+
 from dolfin import *
 
 import ufl_legacy as ufl
@@ -97,6 +99,17 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         self.dpsi_dkt = diff(pre_psi, k_transposed)
 
+        # Sets the named tuples for the stress tensors
+
+        self.tuple_firstPiola = namedtuple("FirstPiola", ["P", "P_coup"+
+        "le"])
+
+        self.tuple_secondPiola = namedtuple("SecondPiola", ["S", "S_co"+
+        "uple"])
+
+        self.tuple_kirchhoff = namedtuple("Kirchhoff", ["tau", "tau_co"+
+        "uple"])
+
     # Defines a function to evaluate the Helmholtz free energy density
 
     def strain_energy(self, V_bar, k_curvatureSpatial):
@@ -160,7 +173,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         S_couple = constitutive_tools.S_fromCauchy(sigma_couple, u)
 
-        return S, S_couple
+        # Stores the tensors inside the named tuple
+
+        result = self.tuple_secondPiola(S, S_couple)
+
+        return result
 
     # Defines a function to evaluate the first Piola-Kirchhoff stress 
     # and its couple from the Cauchy stress
@@ -184,7 +201,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         P_couple = constitutive_tools.P_fromCauchy(sigma_couple, u)
 
-        return P, P_couple
+        # Stores the tensors inside the named tuple
+
+        result = self.tuple_firstPiola(P, P_couple)
+
+        return result
 
     # Defines a function to evaluate the Kirchhoff stress and its couple 
     # from the Cauchy stress
@@ -207,7 +228,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         tau_couple = constitutive_tools.tau_fromCauchy(sigma_couple, u)
 
-        return tau, tau_couple
+        # Stores the tensors inside the named tuple
+
+        result = self.tuple_kirchhoff(tau, tau_couple)
+
+        return result
     
     # Defines a function to evaluate the Cauchy stress tensor using the 
     # derivative of the Helmholtz potential with respect to the V_bar 

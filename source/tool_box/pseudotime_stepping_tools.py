@@ -191,9 +191,31 @@ t_final=None):
 
     for t in time_keys:
 
+        # Updates the pseudo time variables and the counter
+        
+        time_counter += 1
+
         # Prints step information
 
-        print_stepInfo(time_counter+1, t)
+        print_stepInfo(time_counter, t)
+
+        # Updates the Dirichlet boundary conditions 
+
+        for dirichlet_load in dirichlet_loads:
+
+            dirichlet_load.t = t
+
+        # Updates the Neumann boundary conditions 
+
+        for neumann_load in neumann_loads:
+
+            neumann_load.t = t
+
+        # Updates the classes of macroscale quantities
+
+        for MacroScaleClass in macro_quantitiesClasses:
+
+            MacroScaleClass.update(t)
 
         # Solves the nonlinear variational problem 
 
@@ -220,8 +242,9 @@ t_final=None):
         post_processesSubmesh.keys()))>0):
 
             solution_submesh = mesh_tools.field_parentToSubmesh(
-            RVE_submesh, solution_submesh, solution_field, 
-            RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
+            RVE_submesh, solution_field, RVE_toParentCellMap, 
+            sub_meshMapping=RVE_meshMapping, parent_meshMapping=
+            parent_meshMapping, field_submesh=solution_submesh)
 
             if len(solution_name)>0:
 
@@ -238,28 +261,6 @@ t_final=None):
                 post_process.update_function(
                 post_processingObjectsSubmesh[post_processName], 
                 solution_submesh, -1, t))
-
-        # Updates the pseudo time variables and the counter
-        
-        time_counter += 1
-
-        # Updates the Dirichlet boundary conditions 
-
-        for dirichlet_load in dirichlet_loads:
-
-            dirichlet_load.t = t
-
-        # Updates the Neumann boundary conditions 
-
-        for neumann_load in neumann_loads:
-
-            neumann_load.t = t
-
-        # Updates the classes of macroscale quantities
-
-        for MacroScaleClass in macro_quantitiesClasses:
-
-            MacroScaleClass.update(t)
 
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of multiple fields
@@ -478,9 +479,31 @@ t_final=None):
 
     for t in time_keys:
 
+        # Updates the pseudo time variables and the counter
+        
+        time_counter += 1
+
         # Prints step information
 
-        print_stepInfo(time_counter+1, t)
+        print_stepInfo(time_counter, t)
+
+        # Updates the Dirichlet boundary conditions 
+
+        for dirichlet_load in dirichlet_loads:
+
+            dirichlet_load.t = t
+
+        # Updates the Neumann boundary conditions 
+
+        for neumann_load in neumann_loads:
+
+            neumann_load.t = t
+
+        # Updates the classes of macroscale quantities
+
+        for MacroScaleClass in macro_quantitiesClasses:
+
+            MacroScaleClass.update(t)
 
         # Solves the nonlinear variational problem 
 
@@ -524,8 +547,9 @@ t_final=None):
         )>0):
 
             solution_submesh = mesh_tools.field_parentToSubmesh(
-            RVE_submesh, solution_submesh, solution_field, 
-            RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
+            RVE_submesh, solution_field, RVE_toParentCellMap, 
+            sub_meshMapping=RVE_meshMapping, parent_meshMapping=
+            parent_meshMapping, field_submesh=solution_submesh)
 
             # Splits the solution
 
@@ -595,8 +619,20 @@ t_final=None):
 
                                 post_processingObjectsSubmesh[i][post_processName
                                 ].parent_toChildMeshResult = mesh_tools.field_parentToSubmesh(
-                                RVE_submesh, solution_submesh, solution_field, 
-                                RVE_toParentCellMap, RVE_meshMapping, parent_meshMapping)
+                                RVE_submesh, post_processingObjects[
+                                process_index][post_processName
+                                ].parent_toChildMeshResult, 
+                                RVE_toParentCellMap)
+
+                                # Updates the process to save whatever 
+                                # information was transfered
+
+                                post_processingObjectsSubmesh[i][
+                                post_processName] = post_process.update_function(
+                                post_processingObjectsSubmesh[i][
+                                post_processName], split_solutionSubmesh, 
+                                field_number, t, flag_parentMeshReuse=
+                                True)
 
                                 # Updates the flag to inform this process
                                 # has been taken from the parent mesh
@@ -612,28 +648,6 @@ t_final=None):
                             ] = post_process.update_function(
                             post_processingObjectsSubmesh[i][post_processName], 
                             split_solutionSubmesh, field_number, t)
-
-        # Updates the pseudo time variables and the counter
-        
-        time_counter += 1
-
-        # Updates the Dirichlet boundary conditions 
-
-        for dirichlet_load in dirichlet_loads:
-
-            dirichlet_load.t = t
-
-        # Updates the Neumann boundary conditions 
-
-        for neumann_load in neumann_loads:
-
-            neumann_load.t = t
-
-        # Updates the classes of macroscale quantities
-
-        for MacroScaleClass in macro_quantitiesClasses:
-
-            MacroScaleClass.update(t)
 
 ########################################################################
 #                              Utilities                               #
