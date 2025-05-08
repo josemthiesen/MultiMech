@@ -272,11 +272,11 @@ dict(), 'solution_name': lambda: ["solution", "DNS"], ('volume_physGro'+
 'upsSubmesh'): lambda: [], 'macro_quantitiesClasses': lambda: []})
 
 def newton_raphsonMultipleFields(maximum_loadingSteps, solver, 
-solution_field, mixed_element, mesh_dataClass, constitutive_model, 
-post_processesList=None, post_processesSubmeshList=None, dirichlet_loads
-=None, neumann_loads=None, solver_parameters=None, solution_name=None, 
-volume_physGroupsSubmesh=None, macro_quantitiesClasses=None, t=None, 
-t_final=None):
+solution_field, fields_names, mixed_element, mesh_dataClass, 
+constitutive_model, post_processesList=None, post_processesSubmeshList=
+None, dirichlet_loads=None, neumann_loads=None, solver_parameters=None, 
+solution_name=None, volume_physGroupsSubmesh=None, 
+macro_quantitiesClasses=None, t=None, t_final=None):
 
     # Verifies if the classes of macroscale quantities are indeed ins-
     # tances of some class
@@ -352,7 +352,7 @@ t_final=None):
     
     (post_processes, post_processesNamesList
     ) = post_processing_tools.post_processingSelectionMultipleFields(
-    post_processesList, context_class) 
+    post_processesList, context_class, fields_names) 
     
     # Initializes the list of submesh post processes. It is a list, be-
     # cause each field will ocupy a component
@@ -391,7 +391,7 @@ t_final=None):
         # Initializes the post process for the submesh if there's any
 
         post_processesSubmesh, *_ = post_processing_tools.post_processingSelectionMultipleFields(
-        post_processesSubmeshList, context_classRVE) 
+        post_processesSubmeshList, context_classRVE, fields_names) 
     
     # Initializes a dictionary of post processes objects, files for e-
     # xample, for each field

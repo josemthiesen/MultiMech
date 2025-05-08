@@ -167,6 +167,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     post_processesSubmesh = []
 
+    fields_names = ["displacement", "microrotation"]
+
     # Iterates through the fields (displacement and microrotation)
 
     for i in range(2):
@@ -174,7 +176,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes
 
-        post_processes.append([i, dict()])
+        post_processes.append([fields_names[i], dict()])
 
         post_processes[-1][-1]["SaveField"] = {"directory path":
         results_pathGraphics, "file name":displacement_fileName[i]}
@@ -218,7 +220,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes
 
-        post_processesSubmesh.append([i, dict()])
+        post_processesSubmesh.append([fields_names[i], dict()])
 
         post_processesSubmesh[-1][-1]["SaveField"] = {"directory path":
         results_pathGraphics, "file name":displacement_fileNameSubmesh[i

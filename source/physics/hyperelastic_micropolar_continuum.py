@@ -63,6 +63,12 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
     mixed_element)
 
+    # Sets the names for each field that will be used to retrive and 
+    # sort post-processes into a dictionary. The names are the keys and
+    # the values are the indexes in the monolithic function space
+
+    fields_names = {"displacement":0, "microrotation":1}
+
     ####################################################################
     #                        Boundary conditions                       #
     ####################################################################
@@ -165,10 +171,10 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # Iterates through the pseudotime stepping algortihm 
 
     newton_raphson_tools.newton_raphsonMultipleFields(
-    maximum_loadingSteps, solver, solution_new, mixed_element, 
-    mesh_dataClass, constitutive_model, post_processesList=
-    post_processes, post_processesSubmeshList=post_processesSubmesh, 
-    dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
-    solver_parameters=solver_parameters, volume_physGroupsSubmesh=
-    volume_physGroupsSubmesh, solution_name=solution_name, t=t, t_final=
-    t_final)
+    maximum_loadingSteps, solver, solution_new, fields_names,
+    mixed_element, mesh_dataClass, constitutive_model, 
+    post_processesList=post_processes, post_processesSubmeshList=
+    post_processesSubmesh, dirichlet_loads=dirichlet_loads, 
+    neumann_loads=neumann_loads, solver_parameters=solver_parameters, 
+    volume_physGroupsSubmesh=volume_physGroupsSubmesh, solution_name=
+    solution_name, t=t, t_final=t_final)

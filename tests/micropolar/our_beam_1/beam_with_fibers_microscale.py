@@ -132,8 +132,10 @@ RVE_localizationZ=3, flag_newMesh=True):
     results_pathText = (os.getcwd()+"//tests//micropolar//our_beam_1//"+
     "results//text//"+sufix)
 
-    displacement_fileName = ["displacement_microscale.xdmf", "microrot"+
-    "ation_microscale.xdmf"]
+    saving_fileNames = ["displacement_microscale.xdmf", "microrotation"+
+    "_microscale.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
+    "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
+    "ation.xdmf"]
 
     homogenized_displacementFileName = ["homogenized_displacement_micr"+
     "oscale.txt", "homogenized_microrotation_microscale.txt"]
@@ -150,26 +152,35 @@ RVE_localizationZ=3, flag_newMesh=True):
 
     post_processes = []
 
+    fields_names = ["displacement", "microrotation", "displacement lag"+
+    "range multiplier", "displacement gradient lagrange multiplier", 
+    "microrotation lagrange multiplier", "microrotation gradient lagra"+
+    "nge multiplier"]
+
     # Iterates through the fields (displacement and microrotation)
 
-    for i in range(2):
+    for i in range(6):
 
-        post_processes.append([i, dict()])
+        post_processes.append([fields_names[i], dict()])
 
         post_processes[-1][-1]["SaveField"] = {"directory path":
-        results_pathGraphics, "file name":displacement_fileName[i]}
+        results_pathGraphics, "file name":saving_fileNames[i]}
 
-        # Put "" in the subdomain to integrate over the entire domain
+        if i==0 or i==1:
 
-        post_processes[-1][-1]["HomogenizeField"] = {"directory path":
-        results_pathText, "file name":homogenized_displacementFileName[i
-        ], "subdomain":""}
+            # Put "" in the subdomain to integrate over the entire do-
+            # main
 
-        # Put "" in the subdomain to integrate over the entire domain
+            post_processes[-1][-1]["HomogenizeField"] = {"directory pa"+
+            "th": results_pathText, "file name":
+            homogenized_displacementFileName[i], "subdomain":""}
 
-        post_processes[-1][-1]["HomogenizeFieldsGradient"] = {"directo"+
-        "ry path":results_pathText, "file name":
-        homogenized_gradDisplacementFileName[i], "subdomain":""}
+            # Put "" in the subdomain to integrate over the entire do-
+            # main
+
+            post_processes[-1][-1]["HomogenizeFieldsGradient"] = {"dir"+
+            "ectory path":results_pathText, "file name":
+            homogenized_gradDisplacementFileName[i], "subdomain":""}
 
         # Adds the stress field to the displacement field even though
         # it can be evaluated with any field, since it takes all fields
@@ -378,7 +389,6 @@ RVE_localizationZ=3, flag_newMesh=True):
     maximum_loadingSteps, t_final, post_processes, file_directory+"//"+
     mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
     polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
-    polynomial_degreeMicrorotation, t=t, solution_name=[["displacement", 
-    "DNS"], ["microrotation", "DNS"]], verbose=verbose)
+    polynomial_degreeMicrorotation, t=t, verbose=verbose)
 
 case1_varyingMicropolarNumber(flag_newMesh=True)

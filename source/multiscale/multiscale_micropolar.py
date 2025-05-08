@@ -85,6 +85,15 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
     mixed_element)
 
+    # Sets the names for each field that will be used to retrive and 
+    # sort post-processes into a dictionary. The names are the keys and
+    # the values are the indexes in the monolithic function space
+
+    fields_names = {"displacement":0, "microrotation":1, "displacement"+
+    " lagrange multiplier": 2, "displacement gradient lagrange multipl"+
+    "ier": 3, "microrotation lagrange multiplier": 4, "microrotation g"+
+    "radient lagrange multiplier": 5}
+
     ####################################################################
     #                         Macro quantities                         #
     ####################################################################
@@ -199,8 +208,15 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
 
     # Iterates through the pseudotime stepping algortihm 
 
+    if len(solution_name)==0:
+
+        for field_name in fields_names:
+
+            solution_name.append([field_name, "Microscale"])
+
     newton_raphson_tools.newton_raphsonMultipleFields(
-    maximum_loadingSteps, solver, solution_new, mixed_element, 
-    mesh_dataClass, constitutive_model, post_processesList=
-    post_processes, solver_parameters=solver_parameters, solution_name=
-    solution_name, macro_quantitiesClasses=macro_quantitiesClasses)
+    maximum_loadingSteps, solver, solution_new, fields_names, 
+    mixed_element, mesh_dataClass, constitutive_model, 
+    post_processesList=post_processes, solver_parameters=
+    solver_parameters, solution_name=solution_name, 
+    macro_quantitiesClasses=macro_quantitiesClasses)

@@ -169,10 +169,11 @@ def post_processingSelectionSingleField(post_processes, context_class):
 # onaries to work with processes that receive only one field as input, 
 # where each component correspond to a field; the keys are the names of 
 # the processes, and the values are dictionaries of additional informa-
-# tion
+# tion. A dictionary of fields names as keys and their respective index
+# in the solution must be provided, too
 
 def post_processingSelectionMultipleFields(post_processesUnifield,
-context_class):
+context_class, fields_names):
     
     # Initializes a list of lists, each sublist has a pair of field num-
     # ber and process name
@@ -183,20 +184,44 @@ context_class):
 
     for i in range(len(post_processesUnifield)):
 
-        # gets the number of the field to which this post process be-
+        # Gets the number of the field to which this post process be-
         # longs
 
         try:
 
-            field_number = copy.deepcopy(post_processesUnifield[i][0])
+            field_number = fields_names[copy.deepcopy(
+            post_processesUnifield[i][0])]
 
-        except:
+        except IndexError:
 
-            raise KeyError("The post-processes list for multiple field"+
-            " physics must be a list of lists, i.e. each process is a "+
-            "sublist with the first component being the number of the "+
-            "field that is used for this particular post-process and t"+
-            "he second value is the dictionary of the process")
+            raise IndexError("The post-processes list for multiple fie"+
+            "ld physics must be a list of lists, i.e. each process is "+
+            "a sublist with the first component being the number or th"+
+            "e name of the field that is used for this particular post"+
+            "-process and the second value is the dictionary of the pr"+
+            "ocess")
+        
+        except KeyError:
+
+            if isinstance(post_processesUnifield[i][0], int):
+
+                field_number = copy.deepcopy(post_processesUnifield[i][
+                0])
+        
+            else:
+
+                valid_names = ""
+
+                valid_set = list(fields_names.keys())
+
+                for valid_name in valid_set:
+
+                    valid_names += "'"+valid_name+"', "
+
+                raise KeyError("'"+str(copy.deepcopy(
+                post_processesUnifield[i][0]))+"' is not a valid name "+
+                "for a field in the setting of post-processes in this "+
+                "problem. Check out the valid names: "+valid_names)
 
         # Transforms the component dictionary into a live dictionary wi-
         # th proper methods and stuff
