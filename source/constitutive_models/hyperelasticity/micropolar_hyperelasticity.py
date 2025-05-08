@@ -134,14 +134,16 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         psi_NH = 0.5*self.mu*(I1-3.0)
 
+        ln_J = ufl.ln(J)
+
         # Bauer
 
-        #psi_vol = ((0.25*self.lmbda*((J**2)-1))-(0.5*self.lmbda*(ufl.ln(J)))
-        #-self.mu*ufl.ln(J))
+        #psi_vol = ((0.25*self.lmbda*((J**2)-1))-(0.5*self.lmbda*(ln_J))
+        #-self.mu*ln_J)
 
         # Ramezani
 
-        psi_vol = -(self.mu*ufl.ln(J))+((self.lmbda*0.5)*((ufl.ln(J))**2))
+        psi_vol = -(self.mu*ln_J)+((self.lmbda*0.5)*((ln_J)**2))
 
         psi_hat = 0.25*self.kappa*(I1-I2)
 

@@ -84,7 +84,9 @@ class Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the jacobian-related part
 
-        psi_2 = -(self.mu*ufl.ln(J))+((self.lmbda*0.5)*((ufl.ln(J))**2))
+        ln_J = ufl.ln(J)
+
+        psi_2 = -(self.mu*ln_J)+((self.lmbda*0.5)*((ln_J)**2))
 
         return psi_1+psi_2
     

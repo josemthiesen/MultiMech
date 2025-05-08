@@ -156,8 +156,10 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
 
         # Evaluates the volumetric energy
 
-        energy_volumetric = ((self.k*((((J**2)-1)*0.5)-ufl.ln(J)))-(2*
-        self.c*ufl.ln(J)))
+        ln_J = ufl.ln(J)
+
+        energy_volumetric = ((self.k*((((J**2)-1)*0.5)-ln_J))-(2*self.c*
+        ln_J))
 
         return (energy_matrix+energy_fiber1+energy_fiber2+
         energy_volumetric)
