@@ -115,7 +115,50 @@ inverse_volume, dx, subdomain, file_name):
 
 def homogenize_stressTensor(field, constitutive_model, stress_name,
 stress_method, homogenized_firstPiolaList, time, inverse_volume, dx, 
-subdomain, file_name, physical_groupsList, physical_groupsNamesToTags):
+homogenization_subdomain, file_name, physical_groupsList, 
+physical_groupsNamesToTags):
+    
+    # Converts the homogenization subdomain to the physical groups tags
+
+    converted_homogenizationSubdomain = []
+
+    if homogenization_subdomain=="":
+
+        converted_homogenizationSubdomain = [""]
+
+    elif isinstance(homogenization_subdomain, tuple):
+
+        # Iterates though the elements of the tuple
+
+        for sub in homogenization_subdomain:
+
+            # Checks if the domain is a string
+
+            if isinstance(sub, str):
+
+                converted_homogenizationSubdomain.append(
+                variational_tools.verify_physicalGroups(sub, 
+                physical_groupsList, physical_groupsNamesToTags=
+                physical_groupsNamesToTags))
+
+            else:
+
+                converted_homogenizationSubdomain.append(sub)
+
+    else:
+
+        # Checks if the domain is a string
+
+        if isinstance(homogenization_subdomain, str):
+
+            converted_homogenizationSubdomain.append(variational_tools.verify_physicalGroups(
+            homogenization_subdomain, physical_groupsList, 
+            physical_groupsNamesToTags=physical_groupsNamesToTags))
+
+        else:
+
+            converted_homogenizationSubdomain.append(
+            homogenization_subdomain)
     
     # Initializes the homogenized tensor
 
@@ -133,7 +176,7 @@ subdomain, file_name, physical_groupsList, physical_groupsNamesToTags):
         # If the domain is heterogeneous, the stress field must be pro-
         # jected for each subdomain
 
-        for subdomain, local_constitutiveModel in constitutive_model.items():
+        for local_subdomain, local_constitutiveModel in constitutive_model.items():
 
             # Gets the stress tensor field
 
@@ -141,14 +184,14 @@ subdomain, file_name, physical_groupsList, physical_groupsNamesToTags):
             getattr(local_constitutiveModel, stress_method)(field), 
             stress_name)
 
-            # Verifies if more than one physical group is given for the
-            # same constitutive model
+            # Verifies if more than one physical group is given for 
+            # the same constitutive model
 
-            if isinstance(subdomain, tuple):
+            if isinstance(local_subdomain, tuple):
 
                 # Iterates though the elements of the tuple
 
-                for sub in subdomain:
+                for sub in local_subdomain:
 
                     # Checks if the domain is a string
 
@@ -159,32 +202,40 @@ subdomain, file_name, physical_groupsList, physical_groupsNamesToTags):
                         physical_groupsNamesToTags=
                         physical_groupsNamesToTags)
 
-                    # Adds the contribution of this domain
+                    # Adds the contribution of this domain if it is one 
+                    # of the subdomains to be used in he homogenization
 
-                    for index in tensor_indexes:
+                    if (sub in converted_homogenizationSubdomain) or (
+                    converted_homogenizationSubdomain==[""]):
 
-                        homogenized_tensor[index[0]][index[1]] += (
-                        inverse_volume*assemble(stress_field[*index
-                        ]*dx(sub)))
+                        for index in tensor_indexes:
+
+                            homogenized_tensor[index[0]][index[1]] += (
+                            inverse_volume*assemble(stress_field[*index
+                            ]*dx(sub)))
 
             else:
 
                 # Checks if the domain is a string
 
-                if isinstance(subdomain, str):
+                if isinstance(local_subdomain, str):
 
-                    subdomain = variational_tools.verify_physicalGroups(
-                    subdomain, physical_groupsList, 
+                    local_subdomain = variational_tools.verify_physicalGroups(
+                    local_subdomain, physical_groupsList, 
                     physical_groupsNamesToTags= 
                     physical_groupsNamesToTags)
 
-                # Adds the contribution of this domain
+                # Adds the contribution of this domain if it is one 
+                # of the subdomains to be used in he homogenization
 
-                for index in tensor_indexes:
+                if ((local_subdomain in converted_homogenizationSubdomain
+                ) or (converted_homogenizationSubdomain==[""])):
 
-                    homogenized_tensor[index[0]][index[1]] += (
-                    inverse_volume*assemble(stress_field[*index]*
-                    dx(subdomain)))
+                    for index in tensor_indexes:
+
+                        homogenized_tensor[index[0]][index[1]] += (
+                        inverse_volume*assemble(stress_field[*index]*
+                        dx(local_subdomain)))
 
     else:
 
@@ -196,10 +247,22 @@ subdomain, file_name, physical_groupsList, physical_groupsNamesToTags):
 
         # Adds the contribution of this domain
 
-        for index in tensor_indexes:
+        if converted_homogenizationSubdomain==[""]:
 
-            homogenized_tensor[index[0]][index[1]] += (inverse_volume*
-            assemble(stress_field[*index]*dx))
+            for index in tensor_indexes:
+
+                homogenized_tensor[index[0]][index[1]] += (
+                inverse_volume*assemble(stress_field[*index]*dx))
+
+        else:
+
+            for domain in converted_homogenizationSubdomain:
+
+                for index in tensor_indexes:
+
+                    homogenized_tensor[index[0]][index[1]] += (
+                    inverse_volume*assemble(stress_field[*index]*dx(
+                    domain)))
 
     # Adds the homogenized tensor to the list
 

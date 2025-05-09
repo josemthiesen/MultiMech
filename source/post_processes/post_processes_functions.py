@@ -53,6 +53,8 @@ def initialize_fieldSaving(data, direct_codeData, submesh_flag):
 # Defines a function to update the file with the field
 
 def update_fieldSaving(output_object, field, field_number, time):
+    
+    print("Updates the saving of the "+str(field_number)+" field\n")
 
     # If the problem has a single field
 
@@ -162,6 +164,8 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 def update_cauchyStressSaving(output_object, field, field_number, time, 
 flag_parentMeshReuse=False):
     
+    print("Updates the saving of the Cauchy stress field\n")
+    
     return functional_tools.save_stressField(output_object, field, time, 
     flag_parentMeshReuse, ["Cauchy stress", "stress"], "cauchy", "cauc"+
     "hy_stress")
@@ -254,6 +258,8 @@ submesh_flag):
 
 def update_coupleCauchyStressSaving(output_object, field, field_number, 
 time, flag_parentMeshReuse=False):
+    
+    print("Updates the saving of the couple Cauchy stress field\n")
 
     return functional_tools.save_stressField(output_object, field, time, 
     flag_parentMeshReuse, ["Couple Cauchy stress", "stress"], "couple_"+
@@ -349,6 +355,9 @@ submesh_flag):
 def update_firstPiolaStressSaving(output_object, field, field_number, 
 time, flag_parentMeshReuse=False):
     
+    print("Updates the saving of the first Piola-Kirchhoff stress fiel"+
+    "d\n")
+    
     return functional_tools.save_stressField(output_object, field, time, 
     flag_parentMeshReuse, ["First Piola-Kirchhoff stress", "stress"], 
     "first_piola_kirchhoff", "first_piolaStress")
@@ -443,6 +452,9 @@ submesh_flag):
 
 def update_coupleFirstPiolaStressSaving(output_object, field, 
 field_number, time, flag_parentMeshReuse=False):
+    
+    print("Updates the saving of the couple first Piola-Kirchhoff stre"+
+    "ss field\n")
     
     return functional_tools.save_stressField(output_object, field, time, 
     flag_parentMeshReuse, ["Couple first Piola-Kirchhoff stress", "str"+
@@ -570,6 +582,9 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 # Defines a function to update the homogenized field
 
 def update_fieldHomogenization(output_object, field, field_number, time):
+    
+    print("Updates the homogenization of the "+str(field_number)+" fie"+
+    "ld\n")
 
     # If the problem has a single field
 
@@ -613,7 +628,11 @@ submesh_flag):
 # Defines a function to update the homogenization of the gradient of a 
 # field
 
-def update_gradientFieldHomogenization(output_object, field, field_number, time):
+def update_gradientFieldHomogenization(output_object, field, 
+field_number, time):
+    
+    print("Updates the homogenization of the gradient of the "+str(
+    field_number)+" field\n")
 
     # Gets the gradient of the field
 
@@ -764,6 +783,9 @@ submesh_flag):
 
 def update_firstPiolaHomogenization(output_object, field, field_number, 
 time):
+    
+    print("Updates the homogenization of the first Piola-Kirchhoff str"+
+    "ess field\n")
 
     output_object.result = homogenization_tools.homogenize_stressTensor(
     field, output_object.constitutive_model, "first_piola_kirchhoff", 
@@ -789,6 +811,9 @@ submesh_flag):
 
 def update_coupleFirstPiolaHomogenization(output_object, field, 
 field_number, time):
+    
+    print("Updates the homogenization of the couple first Piola-Kirchh"+
+    "off stress field\n")
 
     output_object.result = homogenization_tools.homogenize_stressTensor(
     field, output_object.constitutive_model, "couple_first_piola_kirch"+
