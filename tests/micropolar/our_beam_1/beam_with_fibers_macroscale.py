@@ -4,6 +4,8 @@ import os
 
 import sys
 
+import traceback
+
 import numpy as np
 
 from dolfin import *
@@ -133,6 +135,13 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     parameters_sets = [test11, test12, test13, test21, test22, test23, 
     test31, test32, test33]
 
+    # Sets a list of names for each set of parameters, which will yield
+    # different simulations
+
+    simulations_names = ["simulation_11", "simulation_12", "simulation"+
+    "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
+    "ion_31", "simulation_32", "simulation_33"]
+
     # Saves the parameters set
 
     base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
@@ -163,11 +172,22 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
             parameters_sets[i][14], n_RVEsX=n_RVEsX, n_RVEsY=n_RVEsY, 
             n_RVEsZ=n_RVEsZ, RVE_localizationX=RVE_localizationX, 
             RVE_localizationY=RVE_localizationY, RVE_localizationZ=
-            RVE_localizationZ, flag_newMesh=flag_mesh)
+            RVE_localizationZ, flag_newMesh=flag_mesh, subfolder_name=
+            simulations_names[i])
 
-        except:
+        # Shows the exception and keeps going
 
-            print("\n\nSimulation did not converge\n\n")
+        except Exception as error_message:
+
+            print("\n\nSimulation did not converge")
+
+            print("Error Message:", str(error_message))
+
+            print("Full Traceback:\n")
+
+            traceback.print_exc()
+
+            print("\n\n")
 
 # Defines a function to try different parameters
 
@@ -176,35 +196,29 @@ N_micropolarMatrix, N_micropolarFiber, characteristic_lengthMatrix,
 characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
-1, RVE_localizationZ=3, flag_newMesh=True):
-    
-    # Sets a sufix to denote the material parameters
+1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation"):
 
-    sufix = ""
+    # Sets the data of the simulation in a txt file
 
-    if flag_bending:
+    file_tools.list_toTxt(["E_matrix:", E_matrix, "E_fiber:", E_fiber, 
+    "nu_matrix:", nu_matrix, "nu_fiber:", nu_fiber, "N_micropolarMatri"+
+    "x:", N_micropolarMatrix, "N_micropolarFiber:", N_micropolarFiber, 
+    "characteristic_lengthMatrix:", characteristic_lengthMatrix, "char"+
+    "acteristic_lengthFiber:", characteristic_lengthFiber, "flag_bendi"+
+    "ng:", flag_bending, "load_factor:", load_factor, "gamma_matrix:", 
+    gamma_matrix, "gamma_fiber:", gamma_fiber, "RVE_width:", RVE_width, 
+    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "parame"+
+    "ters", parent_path=base_path+"//graphics//"+subfolder_name)
 
-        sufix += ("bending_matrix_lb_"+float_toString(
-        characteristic_lengthMatrix)+"_fiber_lb_"+float_toString(
-        characteristic_lengthFiber)+"_")
-
-    else:
-
-        sufix += ("torsion_matrix_lt_"+float_toString(
-        characteristic_lengthMatrix)+"_fiber_lt_"+float_toString(
-        characteristic_lengthFiber)+"_")
-
-    sufix += ("matrix_gamma_"+float_toString(gamma_matrix)+"_fiber_gam"+
-    "ma_"+float_toString(gamma_fiber)+"_")
-
-    sufix += ("matrix_N_"+float_toString(N_micropolarMatrix)+"_fiber_N"+
-    "_"+float_toString(N_micropolarFiber))
-
-    ####################################################################
-    ####################################################################
-    ##                    User defined parameters                     ##
-    ####################################################################
-    ####################################################################
+    file_tools.list_toTxt(["E_matrix:", E_matrix, "E_fiber:", E_fiber, 
+    "nu_matrix:", nu_matrix, "nu_fiber:", nu_fiber, "N_micropolarMatri"+
+    "x:", N_micropolarMatrix, "N_micropolarFiber:", N_micropolarFiber, 
+    "characteristic_lengthMatrix:", characteristic_lengthMatrix, "char"+
+    "acteristic_lengthFiber:", characteristic_lengthFiber, "flag_bendi"+
+    "ng:", flag_bending, "load_factor:", load_factor, "gamma_matrix:", 
+    gamma_matrix, "gamma_fiber:", gamma_fiber, "RVE_width:", RVE_width, 
+    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "parame"+
+    "ters", parent_path=base_path+"//text//"+subfolder_name)
 
     ####################################################################
     #                        Simulation results                        #
@@ -212,9 +226,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines the path to the results directory 
 
-    results_pathGraphics = base_path+"//graphics//"+sufix
+    results_pathGraphics = base_path+"//graphics//"+subfolder_name
 
-    results_pathText = base_path+"//text//"+sufix
+    results_pathText = base_path+"//text//"+subfolder_name
 
     displacement_fileName = ["displacement.xdmf", "microrotation.xdmf"]
 

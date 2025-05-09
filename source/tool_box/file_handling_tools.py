@@ -158,7 +158,8 @@ def verify_path(parent_path, file_name):
 
 # Defines a function to write a list into a txt file
 
-def list_toTxt(saved_list, file_name, add_extension=True):
+def list_toTxt(saved_list, file_name, add_extension=True, parent_path=
+None):
 
     # Converts the list syntax into a string using a recursion loop 
     # through the list elements
@@ -170,6 +171,12 @@ def list_toTxt(saved_list, file_name, add_extension=True):
     # Takes out the last comma
 
     saved_string = saved_string[0:-1]
+
+    # Adds the parent path if it is given
+
+    if not (parent_path is None):
+
+        file_name = verify_path(parent_path, file_name)
 
     # Saves the string into a txt file
 
@@ -392,6 +399,12 @@ def recursion_listWriting(accessed_list, saved_string):
         # Otherwise, returns the value, as the stopping criterion of the
         # recursion is precisely when the element is no longer another 
         # list
+
+        elif isinstance(accessed_element, str):
+
+            # Updates the string
+
+            saved_string += "'"+str(accessed_element)+"',"
 
         else:
 
