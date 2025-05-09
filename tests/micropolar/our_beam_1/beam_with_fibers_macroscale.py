@@ -98,7 +98,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
     gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
 
-    parameters_sets = [test3]
+    parameters_sets = [test1, test2, test3]
 
     # Saves the parameters set
 
@@ -121,13 +121,20 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         # Calls the simulation for bending
 
-        beam_case_1(base_path, *parameters_sets[i][0:10], gamma_matrix=
-        parameters_sets[i][10], gamma_fiber=parameters_sets[i][11], 
-        RVE_width=parameters_sets[i][12], RVE_length=parameters_sets[i][
-        13], fiber_radius=parameters_sets[i][14], n_RVEsX=n_RVEsX, 
-        n_RVEsY=n_RVEsY, n_RVEsZ=n_RVEsZ, RVE_localizationX=
-        RVE_localizationX, RVE_localizationY=RVE_localizationY, 
-        RVE_localizationZ=RVE_localizationZ, flag_newMesh=flag_mesh)
+        try:
+
+            beam_case_1(base_path, *parameters_sets[i][0:10], 
+            gamma_matrix=parameters_sets[i][10], gamma_fiber=
+            parameters_sets[i][11], RVE_width=parameters_sets[i][12], 
+            RVE_length=parameters_sets[i][13], fiber_radius=
+            parameters_sets[i][14], n_RVEsX=n_RVEsX, n_RVEsY=n_RVEsY, 
+            n_RVEsZ=n_RVEsZ, RVE_localizationX=RVE_localizationX, 
+            RVE_localizationY=RVE_localizationY, RVE_localizationZ=
+            RVE_localizationZ, flag_newMesh=flag_mesh)
+
+        except:
+
+            print("\n\nSimulation did not converge\n\n")
 
 # Defines a function to try different parameters
 
