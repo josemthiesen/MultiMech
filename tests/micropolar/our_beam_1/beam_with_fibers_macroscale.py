@@ -89,7 +89,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     E_fiber = 100E6
 
     test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 500.0, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 300.0, 
     gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
     
     test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
