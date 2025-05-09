@@ -14,6 +14,8 @@ import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as 
 
 import source.multiscale.multiscale_micropolar as variational_framework
 
+import source.tool_box.file_handling_tools as file_tools
+
 from source.tool_box.file_handling_tools import float_toString
 
 sys.path.insert(1, '/home/matheus-janczkowski/Github')
@@ -24,43 +26,29 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 def case1_varyingMicropolarNumber(flag_newMesh=False):
 
-    # Sets the Young modulus and the Poisson ration from psi to MPa
+    # Reads the parameters set
 
-    E_matrix = 100E6
+    base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
 
-    nu_matrix = 0.4
+    parameters_sets = file_tools.txt_toList(base_path+"//parameters_se"+
+    "ts")
 
-    E_fiber = 1000E6
-
-    nu_fiber = 0.4
-
-    # Defines the RVE overall parameters
-
-    RVE_width = 1.0
-
-    RVE_length = 1.0
-
-    # Defines the fiber radius
-
-    fiber_radius = 0.25
-
-    # Defines the number of RVEs at each direction
-
-    n_RVEsX = 1
-
-    n_RVEsY = 1
-
-    n_RVEsZ = 11
-
-    # Defines a list of lists, each list is a set of material parameters
-    # - micropolar number of the matrix, micropolar number of the fiber,
-    # characteristic length of the matrix, characteristic length of the
-    # fiber, and load factor
-
-    parameters_sets = [[0.002, 0.002, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0]]#, [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    #n_RVEsZ*2.0), 5.0]]#, [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    #n_RVEsZ*2.0), 5.0]]
+    # Defines a list of lists, each list is a set of material parameters:
+    # 0.  Young modulus of the matrix
+    # 1.  Young modulus of the fiber
+    # 2.  Poisson ratio of the matrix
+    # 3.  Poisson ratio of the fiber
+    # 4.  micropolar number of the matrix
+    # 5.  micropolar number of the fiber
+    # 6.  characteristic length of the matrix
+    # 7.  characteristic length of the fiber
+    # 8.  flag for bending
+    # 9.  load factor
+    # 10. gamma of the matrix
+    # 11. gamma of the fiber
+    # 12. RVE width
+    # 13. RVE length
+    # 14. radius of the fiber
 
     # Iterates through the simulations
 
@@ -75,22 +63,21 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
             flag_mesh = True
 
-        # Calls the simulation for bending
+        # Calls the simulation for bending 
 
-        beam_case_1(E_matrix, E_fiber, nu_matrix, nu_fiber, 
-        parameters_sets[i][0], parameters_sets[i][1], parameters_sets[i
-        ][2], parameters_sets[i][3], True, gamma_matrix=0.0, gamma_fiber
-        =0.0, RVE_width=RVE_width, RVE_length=RVE_length, fiber_radius=
-        fiber_radius, flag_newMesh=flag_mesh)
+        beam_case_1(base_path, *parameters_sets[i][0:10], gamma_matrix=
+        parameters_sets[i][10], gamma_fiber=parameters_sets[i][11], 
+        RVE_width=parameters_sets[i][12], RVE_length=parameters_sets[i][
+        13], fiber_radius=parameters_sets[i][14], flag_newMesh=flag_mesh)
 
 # Defines a function to try different parameters
 
-def beam_case_1(E_matrix, E_fiber, nu_matrix, nu_fiber, 
+def beam_case_1(base_path, E_matrix, E_fiber, nu_matrix, nu_fiber, 
 N_micropolarMatrix, N_micropolarFiber, characteristic_lengthMatrix, 
-characteristic_lengthFiber, flag_bending, gamma_matrix=0.0, gamma_fiber=
-0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, n_RVEsX=1, 
-n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=1, 
-RVE_localizationZ=3, flag_newMesh=True):
+characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
+gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
+n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
+1, RVE_localizationZ=3, flag_newMesh=True):
     
     # Sets a sufix to denote the material parameters
 
@@ -126,11 +113,9 @@ RVE_localizationZ=3, flag_newMesh=True):
 
     # Defines the path to the results directory 
 
-    results_pathGraphics = (os.getcwd()+"//tests//micropolar//our_beam"+
-    "_1//results//graphics//"+sufix)
+    results_pathGraphics = base_path+"//graphics//"+sufix
 
-    results_pathText = (os.getcwd()+"//tests//micropolar//our_beam_1//"+
-    "results//text//"+sufix)
+    results_pathText = base_path+"//text//"+sufix
 
     saving_fileNames = ["displacement_microscale.xdmf", "microrotation"+
     "_microscale.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
@@ -148,7 +133,8 @@ RVE_localizationZ=3, flag_newMesh=True):
     "xt", "homogenized_couple_first_piola_microscale.txt"]
 
     stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "couple_c"+
-    "auchy_stress_microscale.xdmf"]
+    "auchy_stress_microscale.xdmf", "first_piola_stress_microscale.xdmf",
+    "couple_first_piola_stress_microscale.xdmf"]
 
     post_processes = []
 
@@ -188,13 +174,21 @@ RVE_localizationZ=3, flag_newMesh=True):
 
         if i==0:
 
-            post_processes[-1][-1]["SaveStressField"] = {"directory pa"+
-            "th": results_pathGraphics, "file name": 
+            post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
+            "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[0], "polynomial degree": 1}
 
-            post_processes[-1][-1]["SaveCoupleStressField"] = {"direct"+
-            "ory path": results_pathGraphics, "file name": 
+            post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
+            "directory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
+
+            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
+            "rectory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[2], "polynomial degree": 1}
+
+            post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
+            "directory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[3], "polynomial degree": 1}
 
             post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
             "ry path": results_pathText, "file name": 

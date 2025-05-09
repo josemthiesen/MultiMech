@@ -9,6 +9,10 @@ import source.tool_box.file_handling_tools as file_tools
 
 import source.tool_box.numerical_tools as numerical_tools
 
+import source.tool_box.variational_tools as variational_tools
+
+import source.tool_box.programming_tools as programming_tools
+
 ########################################################################
 #                        Time stepping classes                         #
 ########################################################################
@@ -135,6 +139,109 @@ variable_name="NoGivenName", time_tolerance=1E-5):
             "tity is "+str(standard_timeKeys[i])+" whereas the same po"+
             "int in the "+str(variable_name)+" macro quantity is "+str(
             compared_timeKeys[i]))
+        
+########################################################################
+#                       Saving of stress measures                      #
+########################################################################
+
+# Defines a function to get, project and save a stress field
+
+def save_stressField(output_object, field, time, flag_parentMeshReuse,
+stress_solutionPlotNames, stress_name, stress_method):
+
+    # If the flag to reuse parent mesh information is true, just save 
+    # the information given in the output object
+
+    if flag_parentMeshReuse:
+
+        output_object.parent_toChildMeshResult.rename(
+        *stress_solutionPlotNames)
+
+        output_object.result.write(
+        output_object.parent_toChildMeshResult, time)
+
+        return output_object
+
+    # Verifies if the domain is homogeneous
+
+    if isinstance(output_object.constitutive_model, dict):
+
+        # Initializes a list of pairs of constitutive models and inte-
+        # gration domain
+
+        integration_pairs = []
+
+        # If the domain is heterogeneous, the stress field must be pro-
+        # jected for each subdomain
+
+        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
+
+            # Gets the stress field
+
+            stress_field = programming_tools.get_result(getattr(
+            local_constitutiveModel, stress_method)(field), stress_name)
+
+            # Verifies if more than one physical group is given for the
+            # same constitutive model
+
+            if isinstance(subdomain, tuple):
+
+                # Iterates though the elements of the tuple
+
+                for sub in subdomain:
+
+                    # Adds this pair of constitutive model and integra-
+                    # tion domain to the list of such pairs
+
+                    integration_pairs.append([stress_field, sub])
+
+            else:
+
+                # Adds this pair of constitutive model and integration
+                # domain to the list of such pairs
+
+                integration_pairs.append([stress_field, subdomain])
+
+        # Projects this piecewise continuous field of stress into a FE 
+        # space
+
+        stress_fieldFunction = variational_tools.project_piecewiseField(
+        integration_pairs, output_object.dx, output_object.W, 
+        output_object.physical_groupsList, 
+        output_object.physical_groupsNamesToTags, solution_names=
+        stress_solutionPlotNames)
+
+        # Saves the field into the sharable result with a submesh
+
+        output_object.parent_toChildMeshResult = stress_fieldFunction
+
+        # Writes the field to the file
+
+        output_object.result.write(stress_fieldFunction, time)
+
+    else:
+
+        # Gets the stress field
+
+        stress_field = programming_tools.get_result(getattr(
+        output_object.constitutive_model, stress_method)(field), 
+        stress_name)
+
+        # Projects the stress into a function
+
+        stress_fieldFunction = project(stress_field, output_object.W)
+
+        stress_fieldFunction.rename(*stress_solutionPlotNames)
+
+        # Saves the field into the sharable result with a submesh
+
+        output_object.parent_toChildMeshResult = stress_fieldFunction
+
+        # Writes the field to the file
+
+        output_object.result.write(stress_fieldFunction, time)
+
+    return output_object
 
 ########################################################################
 #     Creation and pre-evaluation of discontinuous function spaces     #

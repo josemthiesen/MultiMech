@@ -51,8 +51,9 @@ constitutive_modelDictionary, mesh_dataClass):
             # Initializes objects for the stresses at the reference 
             # configuration
 
-            first_piola = constitutive_model.first_piolaStress(
-            trial_function)
+            first_piola = programming_tools.get_result(
+            constitutive_model.first_piolaStress(trial_function), "fir"+
+            "st_piola_kirchhoff")
 
             # If the physical group is indeed a list of tags, i.e. mul-
             # tiple regions are integrated using the same constitutive
@@ -96,8 +97,9 @@ constitutive_modelDictionary, mesh_dataClass):
         # Initializes objects for the stresses at the reference configu-
         # ration
 
-        first_piola = constitutive_modelDictionary.first_piolaStress(
-        trial_function)
+        first_piola = programming_tools.get_result(
+        constitutive_model.first_piolaStress(trial_function), "first_p"+
+        "iola_kirchhoff")
 
         # Constructs the variational forms for the inner work
 
@@ -157,11 +159,19 @@ constitutive_modelDictionary, mesh_dataClass):
             # Initializes objects for the stresses at the reference 
             # configuration
 
-            first_piola, couple_firstPiola = constitutive_model.first_piolaStress(
-            [displacement_trialFunction, microrotation_trialFunction])
+            result = constitutive_model.first_piolaStress([
+            displacement_trialFunction, microrotation_trialFunction])
 
-            kirchhoff, couple_kirchhoff = constitutive_model.kirchhoff_stress(
-            [displacement_trialFunction, microrotation_trialFunction])
+            first_piola = programming_tools.get_result(result, "first_"+
+            "piola_kirchhoff")
+
+            couple_firstPiola = programming_tools.get_result(result, 
+            "couple_first_piola_kirchhoff")
+
+            kirchhoff = programming_tools.get_result(
+            constitutive_model.kirchhoff_stress([
+            displacement_trialFunction, microrotation_trialFunction]),
+            "kirchhoff")
 
             # If the physical group is indeed a list of tags, i.e. mul-
             # tiple regions are integrated using the same constitutive
@@ -215,11 +225,18 @@ constitutive_modelDictionary, mesh_dataClass):
         # Initializes objects for the stresses at the reference configu-
         # ration
 
-        first_piola, couple_firstPiola = constitutive_modelDictionary.first_piolaStress(
-        [displacement_trialFunction, microrotation_trialFunction])
+        result = constitutive_model.first_piolaStress([
+        displacement_trialFunction, microrotation_trialFunction])
 
-        kirchhoff, couple_kirchhoff = constitutive_modelDictionary.kirchhoff_stress(
-        [displacement_trialFunction, microrotation_trialFunction])
+        first_piola = programming_tools.get_result(result, "first_piol"+
+        "a_kirchhoff")
+
+        couple_firstPiola = programming_tools.get_result(result, "coup"+
+        "le_first_piola_kirchhoff")
+
+        kirchhoff = programming_tools.get_result(
+        constitutive_model.kirchhoff_stress([displacement_trialFunction, 
+        microrotation_trialFunction]), "kirchhoff")
 
         # Constructs the variational forms for the inner work of the
         # first Piola-Kirchhoff stress

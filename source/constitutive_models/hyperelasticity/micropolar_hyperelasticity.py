@@ -6,8 +6,6 @@
 
 from abc import ABC, abstractmethod
 
-from collections import namedtuple
-
 from dolfin import *
 
 import ufl_legacy as ufl
@@ -99,17 +97,6 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         self.dpsi_dkt = diff(pre_psi, k_transposed)
 
-        # Sets the named tuples for the stress tensors
-
-        self.tuple_firstPiola = namedtuple("FirstPiola", ["P", "P_coup"+
-        "le"])
-
-        self.tuple_secondPiola = namedtuple("SecondPiola", ["S", "S_co"+
-        "uple"])
-
-        self.tuple_kirchhoff = namedtuple("Kirchhoff", ["tau", "tau_co"+
-        "uple"])
-
     # Defines a function to evaluate the Helmholtz free energy density
 
     def strain_energy(self, V_bar, k_curvatureSpatial):
@@ -164,9 +151,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma = self.cauchy_stress(fields_list)
+        result_cauchy = self.cauchy_stress(fields_list)
 
-        sigma_couple = self.couple_cauchyStress(fields_list)
+        sigma = result_cauchy["cauchy"]
+
+        sigma_couple = result_cauchy["couple_cauchy"]
 
         # Evaluates the second Piola-Kirchhoff stress tensors using the
         # pull back operation
@@ -175,9 +164,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         S_couple = constitutive_tools.S_fromCauchy(sigma_couple, u)
 
-        # Stores the tensors inside the named tuple
+        # Stores the tensors inside the a dictionary so the variational
+        # form and the post-processes can distinguish between them
 
-        result = self.tuple_secondPiola(S, S_couple)
+        result = {"second_piola_kirchhoff":S, "couple_second_piola_kir"+
+        "chhoff": S_couple}
 
         return result
 
@@ -192,9 +183,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma = self.cauchy_stress(fields_list)
+        result_cauchy = self.cauchy_stress(fields_list)
 
-        sigma_couple = self.couple_cauchyStress(fields_list)
+        sigma = result_cauchy["cauchy"]
+
+        sigma_couple = result_cauchy["couple_cauchy"]
 
         # Evaluates the first Piola-Kirchhoff stress tensors using the
         # Piola transformation
@@ -203,9 +196,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         P_couple = constitutive_tools.P_fromCauchy(sigma_couple, u)
 
-        # Stores the tensors inside the named tuple
+        # Stores the tensors inside the a dictionary so the variational
+        # form and the post-processes can distinguish between them
 
-        result = self.tuple_firstPiola(P, P_couple)
+        result = {"first_piola_kirchhoff":P, "couple_first_piola_kirch"+
+        "hoff": P_couple}
 
         return result
 
@@ -220,9 +215,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         # Evaluates the Cauchy stress and the couple stress
 
-        sigma = self.cauchy_stress(fields_list)
+        result_cauchy = self.cauchy_stress(fields_list)
 
-        sigma_couple = self.couple_cauchyStress(fields_list)
+        sigma = result_cauchy["cauchy"]
+
+        sigma_couple = result_cauchy["couple_cauchy"]
 
         # Multiplies by the jacobian to get the Kirchhoff stresses
 
@@ -230,17 +227,18 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         tau_couple = constitutive_tools.tau_fromCauchy(sigma_couple, u)
 
-        # Stores the tensors inside the named tuple
+        # Stores the tensors inside the a dictionary so the variational
+        # form and the post-processes can distinguish between them
 
-        result = self.tuple_kirchhoff(tau, tau_couple)
+        result = {"kirchhoff":tau, "couple_kirchhoff": tau_couple}
 
         return result
     
-    # Defines a function to evaluate the Cauchy stress tensor using the 
-    # derivative of the Helmholtz potential with respect to the V_bar 
-    # tensor. This function receives the deformation gradient, the rota-
-    # tion tensor of the microrotation field, and the curvature tensor 
-    # in the referential configuration
+    # Defines a function to evaluate the Cauchy stress tensor and its 
+    # couple tensor using the derivative of the Helmholtz potential with 
+    # respect to the V_bar tensor. This function receives the deforma-
+    # tion gradient, the rotation tensor of the microrotation field, and 
+    # the curvature tensor in the referential configuration
     
     def cauchy_stress(self, fields_list):
 
@@ -271,76 +269,25 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         k_curvatureSpatial = R_bar*K_curvatureReferential*R_bar.T
 
-        """# Transforms the tensors into variables to differentiate the e-
-        # nergy potential
+        # Evaluates the derivative replacing the already precompiled de-
+        # rivative
 
-        k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
+        evaluate_diffSigma = ufl.replace(self.dpsi_dVt, {Identity(3): 
+        V_bar.T})
 
-        V_barTransposed = variable(V_bar.T)
-
-        psi_total = self.strain_energy(V_barTransposed.T, 
-        k_curvatureSpatialTransposed.T)
-
-        sigma = V_bar*diff(psi_total, V_barTransposed)"""
+        sigma = V_bar*evaluate_diffSigma
 
         # Evaluates the derivative replacing the already precompiled de-
         # rivative
 
-        evaluate_diff = ufl.replace(self.dpsi_dVt, {Identity(3): V_bar.T})
+        evaluate_diffCouple = ufl.replace(self.dpsi_dkt, {Identity(3): 
+        k_curvatureSpatial.T})
 
-        sigma = V_bar*evaluate_diff
+        sigma_couple = V_bar*evaluate_diffCouple
 
-        # Returns them
+        # Stores the tensors inside the a dictionary so the variational
+        # form and the post-processes can distinguish between them
 
-        return sigma
-    
-    # Defines a function to evaluate the couple Cauchy stress tensor u-
-    # sing the derivative of the Helmholtz potential with respect to the
-    # V_bar tensor. This function receives the deformation gradient, the 
-    # rotation tensor of the microrotation field, and the curvature ten-
-    # sor in the referential configuration
-    
-    def couple_cauchyStress(self, fields_list):
+        result = {"cauchy":sigma, "couple_cauchy": sigma_couple}
 
-        # Retrieves the fields
-
-        u, phi, *_  = fields_list
-
-        # Evaluates the deformation gradient
-
-        I = Identity(3)
-
-        F = grad(u)+I 
-
-        # Evaluates the rotation tensor using phi
-
-        R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
-
-        # Evaluates the curvature tensor in the referential configuration
-
-        K_curvatureReferential = constitutive_tools.micropolar_curvatureTensor(
-        phi)
-
-        # Evaluates the micropolar stretch and the jacobian
-    
-        V_bar = F*(R_bar.T)
-
-        # Evaluates the push-forward of the curvature tensor
-
-        k_curvatureSpatial = R_bar*K_curvatureReferential*R_bar.T
-
-        # Transforms the tensors into variables to differentiate the e-
-        # nergy potential
-
-        k_curvatureSpatialTransposed = variable(k_curvatureSpatial.T)
-
-        V_barTransposed = variable(V_bar.T)
-
-        psi_total = self.strain_energy(V_barTransposed.T, 
-        k_curvatureSpatialTransposed.T)
-
-        sigma_couple = V_bar*diff(psi_total,k_curvatureSpatialTransposed)
-
-        # Returns them
-
-        return sigma_couple
+        return result

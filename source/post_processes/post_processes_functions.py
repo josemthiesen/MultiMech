@@ -9,6 +9,8 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.homogenization_tools as homogenization_tools
 
+import source.tool_box.functional_tools as functional_tools
+
 ########################################################################
 #                      Post-processing tools list                      #
 ########################################################################
@@ -160,99 +162,9 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 def update_cauchyStressSaving(output_object, field, field_number, time, 
 flag_parentMeshReuse=False):
     
-    # If the flag to reuse parent mesh information is true, just save 
-    # the information given in the output object
-
-    if flag_parentMeshReuse:
-
-        output_object.parent_toChildMeshResult.rename("Cauchy stress", 
-        "stress")
-
-        output_object.result.write(output_object.parent_toChildMeshResult, 
-        time)
-
-        return output_object
-
-    # Verifies if the domain is homogeneous
-
-    if isinstance(output_object.constitutive_model, dict):
-
-        # Initializes a list of pairs of constitutive models and inte-
-        # gration domain
-
-        integration_pairs = []
-
-        # If the domain is heterogeneous, the stress field must be pro-
-        # jected for each subdomain
-
-        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
-
-            # Gets the Cauchy stress field
-
-            cauchy_stress = local_constitutiveModel.cauchy_stress(field)
-
-            # Verifies if more than one physical group is given for the
-            # same constitutive model
-
-            if isinstance(subdomain, tuple):
-
-                # Iterates though the elements of the tuple
-
-                for sub in subdomain:
-
-                    # Adds this pair of constitutive model and integra-
-                    # tion domain to the list of such pairs
-
-                    integration_pairs.append([cauchy_stress, sub])
-
-            else:
-
-                # Adds this pair of constitutive model and integration
-                # domain to the list of such pairs
-
-                integration_pairs.append([cauchy_stress, subdomain])
-
-        # Projects this piecewise continuous field of stress into a FE 
-        # space
-
-        cauchy_stressFunction = variational_tools.project_piecewiseField(
-        integration_pairs, output_object.dx, output_object.W, 
-        output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags, solution_names=["Cau"+
-        "chy stress", "stress"])
-
-        # Saves the Cauchy field into the sharable result with a submesh
-
-        output_object.parent_toChildMeshResult = cauchy_stressFunction
-
-        # Writes the field to the file
-
-        output_object.result.write(cauchy_stressFunction, time)
-
-    else:
-
-        # Gets the Cauchy stress field
-
-        cauchy_stress = output_object.constitutive_model.cauchy_stress(
-        field)
-
-        # Projects the cauchy stress into a function
-
-        cauchy_stressFunction = project(cauchy_stress, output_object.W)
-
-        cauchy_stressFunction.rename("Cauchy stress", "stress")
-
-        # Saves the Cauchy field into the sharable result with a submesh
-
-        output_object.parent_toChildMeshResult = cauchy_stressFunction
-
-        # Writes the field to the file
-
-        output_object.result.write(cauchy_stressFunction, time)
-
-    # Returns the class
-
-    return output_object
+    return functional_tools.save_stressField(output_object, field, time, 
+    flag_parentMeshReuse, ["Cauchy stress", "stress"], "cauchy", "cauc"+
+    "hy_stress")
 
 ########################################################################
 #                      Couple Cauchy stress field                      #
@@ -342,106 +254,199 @@ submesh_flag):
 
 def update_coupleCauchyStressSaving(output_object, field, field_number, 
 time, flag_parentMeshReuse=False):
+
+    return functional_tools.save_stressField(output_object, field, time, 
+    flag_parentMeshReuse, ["Couple Cauchy stress", "stress"], "couple_"+
+    "cauchy", "cauchy_stress")
+
+########################################################################
+#                  First Piola-Kirchhoff stress field                  #
+########################################################################
+
+# Defines a function to initialize the first Piola-Kirchhoff stress 
+# field file
+
+def initialize_firstPiolaStressSaving(data, direct_codeData, 
+submesh_flag):
+
+    # Gets the directory and the name of the file
+
+    parent_path = data[0]
+
+    file_name = data[1]
+
+    # Gets the polynomial degree of the interpolation function
+
+    polynomial_degree = data[2]
+
+    # Gets the mesh, the constitutive model, and the volume integrator
+    # from the data directly provided by the code
+
+    mesh = direct_codeData[0]
+
+    constitutive_model = direct_codeData[1]
+
+    dx = direct_codeData[2]
+
+    physical_groupsList = direct_codeData[3] 
     
-    # If the flag to reuse parent mesh information is true, just save 
-    # the information given in the output object
+    physical_groupsNamesToTags = direct_codeData[4]
 
-    if flag_parentMeshReuse:
+    # Creates the function space for the stress as a tensor
 
-        output_object.parent_toChildMeshResult.rename("Couple Cauchy s"+
-        "tress", "stress")
+    W = 0.0
 
-        output_object.result.write(output_object.parent_toChildMeshResult, 
-        time)
+    if polynomial_degree==0:
 
-        return output_object
-
-    # Verifies if the domain is homogeneous. If the constitutive model 
-    # is a dictionary, the domain in heterogeneous
-
-    if isinstance(output_object.constitutive_model, dict):
-
-        # Initializes a list of pairs of constitutive models and inte-
-        # gration domain
-
-        integration_pairs = []
-
-        # If the domain is heterogeneous, the stress field must be pro-
-        # jected for each subdomain
-
-        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
-
-            # Gets the Cauchy stress field
-
-            couple_cauchyStress = local_constitutiveModel.couple_cauchyStress(
-            field)
-
-            # Verifies if more than one physical group is given for the
-            # same constitutive model
-
-            if isinstance(subdomain, tuple):
-
-                # Iterates though the elements of the tuple
-
-                for sub in subdomain:
-
-                    # Adds this pair of constitutive model and integra-
-                    # tion domain to the list of such pairs
-
-                    integration_pairs.append([couple_cauchyStress, sub])
-
-            else:
-
-                # Adds this pair of constitutive model and integration 
-                # domain to the list of such pairs
-
-                integration_pairs.append([couple_cauchyStress, subdomain
-                ])
-
-        # Projects this piecewise continuous field of stress into a FE 
-        # space
-
-        cauchy_stressFunction = variational_tools.project_piecewiseField(
-        integration_pairs, output_object.dx, output_object.W, 
-        output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags, solution_names=["Cou"+
-        "ple Cauchy stress", "stress"])
-
-        # Saves the couple Cauchy stress field into a variable sharable
-        # with a submesh
-
-        output_object.parent_toChildMeshResult = cauchy_stressFunction
-
-        # Writes the field to the file
-
-        output_object.result.write(cauchy_stressFunction, time)
+        W = TensorFunctionSpace(mesh, "DG", 0)
 
     else:
 
-        # Gets the Cauchy stress field
+        W = TensorFunctionSpace(mesh, "CG", polynomial_degree)
 
-        couple_cauchyStress = output_object.constitutive_model.couple_cauchyStress(
-        field)
+    # Gets the name of the file with the path to it
 
-        # Projects the cauchy stress into a function
+    file_name = file_tools.verify_path(parent_path, file_name)
 
-        cauchy_stressFunction = project(couple_cauchyStress, 
-        output_object.W)
+    # Initializes the file
 
-        cauchy_stressFunction.rename("Couple Cauchy stress", "stress")
+    file = XDMFFile(file_name)
 
-        # Saves the couple Cauchy stress field into a variable sharable
-        # with a submesh
+    # Assembles the file and the function space into a class. This post-
+    # process does have a variable that can be shared with a submesh, 
+    # and it is the stress field
 
-        output_object.parent_toChildMeshResult = cauchy_stressFunction
+    class OutputObject:
 
-        # Writes the field to the file
+        def __init__(self, file, W, constitutive_model, dx, 
+        physical_groupsList, physical_groupsNamesToTags, 
+        parent_toChildMeshResult):
+            
+            self.result = file 
 
-        output_object.result.write(cauchy_stressFunction, time)
+            self.W = W 
 
-    # Returns the class
+            self.constitutive_model = constitutive_model
+
+            self.dx = dx 
+
+            self.physical_groupsList = physical_groupsList 
+
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+            
+            # Defines a sharable result between a parent mesh and a sub-
+            # mesh
+
+            self.parent_toChildMeshResult = parent_toChildMeshResult
+
+    output_object = OutputObject(file, W, constitutive_model, dx, 
+    physical_groupsList, physical_groupsNamesToTags, 0.0)
 
     return output_object
+
+# Defines a function to update the first Piola-Kirchhoff stress field
+
+def update_firstPiolaStressSaving(output_object, field, field_number, 
+time, flag_parentMeshReuse=False):
+    
+    return functional_tools.save_stressField(output_object, field, time, 
+    flag_parentMeshReuse, ["First Piola-Kirchhoff stress", "stress"], 
+    "first_piola_kirchhoff", "first_piolaStress")
+
+########################################################################
+#              Couple first Piola-Kirchhoff stress field               #
+########################################################################
+
+# Defines a function to initialize the couple first Piola-Kirchhoff 
+# stress field file
+
+def initialize_coupleFirstPiolaStressSaving(data, direct_codeData, 
+submesh_flag):
+
+    # Gets the directory and the name of the file
+
+    parent_path = data[0]
+
+    file_name = data[1]
+
+    # Gets the polynomial degree of the interpolation function
+
+    polynomial_degree = data[2]
+
+    # Gets the mesh, the constitutive model, and the volume integrator
+    # from the data directly provided by the code
+
+    mesh = direct_codeData[0]
+
+    constitutive_model = direct_codeData[1]
+
+    dx = direct_codeData[2]
+
+    physical_groupsList = direct_codeData[3] 
+    
+    physical_groupsNamesToTags = direct_codeData[4]
+
+    # Creates the function space for the stress as a tensor
+
+    W = 0.0
+
+    if polynomial_degree==0:
+
+        W = TensorFunctionSpace(mesh, "DG", 0)
+
+    else:
+
+        W = TensorFunctionSpace(mesh, "CG", polynomial_degree)
+
+    # Gets the name of the file with the path to it
+
+    file_name = file_tools.verify_path(parent_path, file_name)
+
+    # Initializes the file
+
+    file = XDMFFile(file_name)
+
+    # Assembles the file and the function space into a class. This post-
+    # process does have a variable that can be shared with a submesh, 
+    # and it is the stress field
+
+    class OutputObject:
+
+        def __init__(self, file, W, constitutive_model, dx, 
+        physical_groupsList, physical_groupsNamesToTags, 
+        parent_toChildMeshResult):
+            
+            self.result = file 
+
+            self.W = W 
+
+            self.constitutive_model = constitutive_model
+
+            self.dx = dx 
+
+            self.physical_groupsList = physical_groupsList 
+
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+            
+            # Defines a sharable result between a parent mesh and a sub-
+            # mesh
+
+            self.parent_toChildMeshResult = parent_toChildMeshResult
+
+    output_object = OutputObject(file, W, constitutive_model, dx, 
+    physical_groupsList, physical_groupsNamesToTags, 0.0)
+
+    return output_object
+
+# Defines a function to update the couple first Piola-Kirchhoff stress 
+# field
+
+def update_coupleFirstPiolaStressSaving(output_object, field, 
+field_number, time, flag_parentMeshReuse=False):
+    
+    return functional_tools.save_stressField(output_object, field, time, 
+    flag_parentMeshReuse, ["Couple first Piola-Kirchhoff stress", "str"+
+    "ess"], "couple_first_piola_kirchhoff", "first_piolaStress")
 
 ########################################################################
 #                            Homogenization                            #
@@ -760,8 +765,9 @@ submesh_flag):
 def update_firstPiolaHomogenization(output_object, field, field_number, 
 time):
 
-    output_object.result = homogenization_tools.homogenize_firstPiola(
-    field, output_object.constitutive_model, output_object.result, time, 
+    output_object.result = homogenization_tools.homogenize_stressTensor(
+    field, output_object.constitutive_model, "first_piola_kirchhoff", 
+    "first_piolaStress", output_object.result, time, 
     output_object.inverse_volume, output_object.dx, 
     output_object.subdomain,output_object.file_name, 
     output_object.physical_groupsList, 
@@ -784,8 +790,9 @@ submesh_flag):
 def update_coupleFirstPiolaHomogenization(output_object, field, 
 field_number, time):
 
-    output_object.result = homogenization_tools.homogenize_coupleFirstPiola(
-    field, output_object.constitutive_model, output_object.result, time, 
+    output_object.result = homogenization_tools.homogenize_stressTensor(
+    field, output_object.constitutive_model, "couple_first_piola_kirch"+
+    "hoff", "first_piolaStress", output_object.result, time, 
     output_object.inverse_volume, output_object.dx, 
     output_object.subdomain,output_object.file_name, 
     output_object.physical_groupsList, 

@@ -79,9 +79,9 @@ class SaveField(PostProcessMethod):
         post_functions.update_fieldSaving, ["directory path", 
         "file name"], [])
 
-# Sets a class for the method to save the stress field
+# Sets a class for the method to save the Cauchy stress field
 
-class SaveStressField(PostProcessMethod):
+class SaveCauchyStressField(PostProcessMethod):
 
     def __init__(self, context: PostProcessContext):
 
@@ -95,9 +95,9 @@ class SaveStressField(PostProcessMethod):
         context.constitutive_model, context.dx, 
         context.physical_groupsList, context.domain_physGroupsNamesToTags])
 
-# Sets a class for the method to save the couple stress field
+# Sets a class for the method to save the couple Cauchy stress field
 
-class SaveCoupleStressField(PostProcessMethod):
+class SaveCoupleCauchyStressField(PostProcessMethod):
 
     def __init__(self, context: PostProcessContext):
 
@@ -108,6 +108,40 @@ class SaveCoupleStressField(PostProcessMethod):
         super().__init__(post_functions.initialize_coupleCauchyStressSaving, 
         post_functions.update_coupleCauchyStressSaving, ["directory pa"+
         "th", "file name", "polynomial degree"], [context.mesh, 
+        context.constitutive_model, context.dx, 
+        context.physical_groupsList, context.domain_physGroupsNamesToTags])
+
+# Sets a class for the method to save the first Piola-Kirchhoff stress 
+# field
+
+class SaveFirstPiolaStressField(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_firstPiolaStressSaving, 
+        post_functions.update_firstPiolaStressSaving, ["directory path", 
+        "file name", "polynomial degree"], [context.mesh, 
+        context.constitutive_model, context.dx, 
+        context.physical_groupsList, context.domain_physGroupsNamesToTags])
+
+# Sets a class for the method to save the couple first Piola-Kirchhoff
+# stress field
+
+class SaveCoupleFirstPiolaStressField(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_coupleFirstPiolaStressSaving, 
+        post_functions.update_coupleFirstPiolaStressSaving, ["director"+
+        "y path", "file name", "polynomial degree"], [context.mesh, 
         context.constitutive_model, context.dx, 
         context.physical_groupsList, context.domain_physGroupsNamesToTags])
 

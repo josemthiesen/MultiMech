@@ -2,7 +2,64 @@
 
 import functools
 
-from typing import NamedTuple
+########################################################################
+#                         Return-handling tools                        #
+########################################################################
+
+# Defines a function to get a particular variable from the result of a 
+# function
+
+def get_result(whole_result, variable_name):
+
+    # Verifies whether the whole result is a dictionary
+
+    if isinstance(whole_result, dict):
+
+        # Tries to read the variable name as a key
+
+        try:
+
+            return whole_result[variable_name]
+        
+        except:
+
+            raise KeyError("The name '"+str(variable_name)+"' is not a"+
+            " key of the result dictionary of this function. Do you me"+
+            "an one of the following possible keys? "+str(set(
+            whole_result.keys()))[1:-1])
+        
+    # Verifies if it is a tuple
+
+    if isinstance(whole_result, tuple):
+
+        # Verifies if it is a named tuple
+        
+        if hasattr(whole_result, '_fields'):
+        
+            try:
+
+                return getattr(whole_result, variable_name)
+            
+            except:
+
+                raise AttributeError("The named tuple returned by the "+
+                "function does not have a variable named "+str(
+                variable_name)+". This named tuple has the following a"+
+                "ttributes:\n"+str(whole_result._fields)[1:-1])
+            
+        # If it is not a named tuple, raise an exception
+
+        else:
+
+            raise TypeError("The result of the function is a tuple but"+
+            " it is not a named tuple. Thus, the variable name '"+str(
+            variable_name)+"' cannot be used")
+        
+    # Simply gives the result
+        
+    else:
+
+        return whole_result
 
 ########################################################################
 #                         Memory-handling tools                        #

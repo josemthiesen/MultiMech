@@ -238,24 +238,34 @@ def txt_toList(file_name):
 
                 # Converts the element
 
-                try:
+                if read_element=="True":
 
-                    # Tries to convert it to an integer
+                    read_element = True 
 
-                    read_element = int(read_element)
+                elif read_element=="False":
 
-                except:
+                    read_element = False
 
-                    # Tries to convert it to a float
+                else:
 
                     try:
 
-                        read_element = float(read_element)
+                        # Tries to convert it to an integer
+
+                        read_element = int(read_element)
 
                     except:
 
-                        print("Could not convert", read_element, "to a"+
-                        " number\n")
+                        # Tries to convert it to a float
+
+                        try:
+
+                            read_element = float(read_element)
+
+                        except:
+
+                            print("Could not convert", read_element, 
+                            "to a number\n")
 
                 # Appends the element to the list using the list of in-
                 # dexes

@@ -14,6 +14,8 @@ import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as 
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
+import source.tool_box.file_handling_tools as file_tools
+
 from source.tool_box.file_handling_tools import float_toString
 
 sys.path.insert(1, '/home/matheus-janczkowski/Github')
@@ -30,9 +32,15 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     nu_matrix = 0.4
 
-    E_fiber = 1000E6
+    E_fiber = 100E6
 
     nu_fiber = 0.4
+
+    flag_bending = True
+
+    gamma_matrix = 0.0
+
+    gamma_fiber = 0.0
 
     # Defines the RVE overall parameters
 
@@ -61,15 +69,42 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     RVE_localizationZ = np.ceil(0.5*n_RVEsZ)
 
-    # Defines a list of lists, each list is a set of material parameters
-    # - micropolar number of the matrix, micropolar number of the fiber,
-    # characteristic length of the matrix, characteristic length of the
-    # fiber, and load factor
+    # Defines a list of lists, each list is a set of material parameters:
+    # 0.  Young modulus of the matrix
+    # 1.  Young modulus of the fiber
+    # 2.  Poisson ratio of the matrix
+    # 3.  Poisson ratio of the fiber
+    # 4.  micropolar number of the matrix
+    # 5.  micropolar number of the fiber
+    # 6.  characteristic length of the matrix
+    # 7.  characteristic length of the fiber
+    # 8.  flag for bending
+    # 9.  load factor
+    # 10. gamma of the matrix
+    # 11. gamma of the fiber
+    # 12. RVE width
+    # 13. RVE length
+    # 14. radius of the fiber
 
-    parameters_sets = [[0.002, 0.002, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    n_RVEsZ*2.0), 5.0]]#, [0.02, 0.02, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    #n_RVEsZ*2.0), 5.0], [0.2, 0.2, RVE_width*n_RVEsZ*2.0, (RVE_width*
-    #n_RVEsZ*2.0), 5.0]]
+    test1 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+    
+    test2 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+    
+    test3 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
+    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+
+    parameters_sets = [test3]
+
+    # Saves the parameters set
+
+    base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
+
+    file_tools.list_toTxt(parameters_sets, base_path+"//parameters_sets")
 
     # Iterates through the simulations
 
@@ -86,18 +121,17 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         # Calls the simulation for bending
 
-        beam_case_1(E_matrix, E_fiber, nu_matrix, nu_fiber, 
-        parameters_sets[i][0], parameters_sets[i][1], parameters_sets[i
-        ][2], parameters_sets[i][3], True, parameters_sets[i][4], 
-        gamma_matrix=0.0, gamma_fiber=0.0, RVE_width=RVE_width, 
-        RVE_length=RVE_length, fiber_radius=fiber_radius, n_RVEsX=
-        n_RVEsX, n_RVEsY=n_RVEsY, n_RVEsZ=n_RVEsZ, RVE_localizationX=
+        beam_case_1(base_path, *parameters_sets[i][0:10], gamma_matrix=
+        parameters_sets[i][10], gamma_fiber=parameters_sets[i][11], 
+        RVE_width=parameters_sets[i][12], RVE_length=parameters_sets[i][
+        13], fiber_radius=parameters_sets[i][14], n_RVEsX=n_RVEsX, 
+        n_RVEsY=n_RVEsY, n_RVEsZ=n_RVEsZ, RVE_localizationX=
         RVE_localizationX, RVE_localizationY=RVE_localizationY, 
         RVE_localizationZ=RVE_localizationZ, flag_newMesh=flag_mesh)
 
 # Defines a function to try different parameters
 
-def beam_case_1(E_matrix, E_fiber, nu_matrix, nu_fiber, 
+def beam_case_1(base_path, E_matrix, E_fiber, nu_matrix, nu_fiber, 
 N_micropolarMatrix, N_micropolarFiber, characteristic_lengthMatrix, 
 characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
@@ -138,11 +172,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines the path to the results directory 
 
-    results_pathGraphics = (os.getcwd()+"//tests//micropolar//our_beam"+
-    "_1//results//graphics//"+sufix)
+    results_pathGraphics = base_path+"//graphics//"+sufix
 
-    results_pathText = (os.getcwd()+"//tests//micropolar//our_beam_1//"+
-    "results//text//"+sufix)
+    results_pathText = base_path+"//text//"+sufix
 
     displacement_fileName = ["displacement.xdmf", "microrotation.xdmf"]
 
@@ -159,9 +191,12 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     "enized_couple_first_piola.txt"]
 
     stress_fieldFileName = ["cauchy_stress.xdmf", "couple_cauchy_stres"+
-    "s.xdmf"]
+    "s.xdmf", "first_piola_stress.xdmf", "couple_first_piola_stress.xd"+
+    "mf"]
 
-    stress_fieldFileNameSubmesh = ["cauchy_stress_submesh.xdmf"]
+    stress_fieldFileNameSubmesh = ["cauchy_stress_submesh.xdmf", "coup"+
+    "le_cauchy_stress_submesh.xdmf", "first_piola_stress_submesh.xdmf", 
+    "couple_first_piola_stress_submesh.xdmf"]
 
     post_processes = []
 
@@ -194,28 +229,37 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
         homogenized_gradDisplacementFileName[i], "subdomain":["RVE mat"+
         "rix", "RVE fiber"]}
 
-        post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directory p"+
-        "ath": results_pathText, "file name": homogenized_piolaFileName[
-        0], "subdomain":["RVE matrix", "RVE fiber"]}
-
-        post_processes[-1][-1]["HomogenizeCoupleFirstPiola"] = {"direc"+
-        "tory path": results_pathText, "file name": 
-        homogenized_piolaFileName[1], "subdomain":["RVE matrix", "RVE "+
-        "fiber"]}
-
         # Adds the stress field to the displacement field even though
         # it can be evaluated with any field, since it takes all fields
         # simultaneously
 
         if i==0:
 
-            post_processes[-1][-1]["SaveStressField"] = {"directory pa"+
-            "th": results_pathGraphics, "file name": 
+            post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
+            "ry path": results_pathText, "file name": 
+            homogenized_piolaFileName[0], "subdomain":["RVE matrix", 
+            "RVE fiber"]}
+
+            post_processes[-1][-1]["HomogenizeCoupleFirstPiola"] = {"d"+
+            "irectory path": results_pathText, "file name": 
+            homogenized_piolaFileName[1], "subdomain":["RVE matrix", 
+            "RVE fiber"]}
+
+            post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
+            "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[0], "polynomial degree": 1}
 
-            post_processes[-1][-1]["SaveCoupleStressField"] = {"direct"+
-            "ory path": results_pathGraphics, "file name": 
+            post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
+            "directory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
+
+            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
+            "rectory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[2], "polynomial degree": 1}
+
+            post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
+            "directory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[3], "polynomial degree": 1}
 
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes
@@ -228,9 +272,22 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
         if i==0:
 
-            post_processesSubmesh[-1][-1]["SaveStressField"] = {"direc"+
-            "tory path": results_pathGraphics, "file name": 
+            post_processesSubmesh[-1][-1]["SaveCauchyStressField"] = {
+            "directory path": results_pathGraphics, "file name": 
             stress_fieldFileNameSubmesh[0], "polynomial degree": 1}
+
+            post_processesSubmesh[-1][-1]["SaveCoupleCauchyStressField"
+            ] = {"directory path": results_pathGraphics, "file name": 
+            stress_fieldFileNameSubmesh[1], "polynomial degree": 1}
+
+            post_processesSubmesh[-1][-1]["SaveFirstPiolaStressField"]={
+            "directory path": results_pathGraphics, "file name": 
+            stress_fieldFileNameSubmesh[2], "polynomial degree": 1}
+
+            post_processesSubmesh[-1][-1]["SaveCoupleFirstPiolaStressF"+
+            "ield"] = {"directory path": results_pathGraphics, "file n"+
+            "ame": stress_fieldFileNameSubmesh[3], "polynomial degree": 
+            1}
 
     ####################################################################
     #                       Material properties                        #

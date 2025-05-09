@@ -168,7 +168,13 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     #                 Solution and pseudotime stepping                 #
     ####################################################################
 
-    # Iterates through the pseudotime stepping algortihm 
+    # Iterates through the pseudotime stepping algorithm 
+
+    if len(solution_name)==0:
+
+        for field_name in fields_names:
+
+            solution_name.append([field_name, "DNS"])
 
     newton_raphson_tools.newton_raphsonMultipleFields(
     maximum_loadingSteps, solver, solution_new, fields_names,
