@@ -32,7 +32,7 @@ results_path = os.getcwd()+"//tests//hyperelasticity//results"
 
 displacement_fileName = "displacement.xdmf"
 
-stress_fileName = "cauchy_stress.xdmf"
+stress_fileName = ["cauchy_stress.xdmf", "cauchy_stress_submesh.xdmf"]
 
 homogenized_displacementFileName = "homogenized_displacement.txt"
 
@@ -46,8 +46,8 @@ post_processes = dict()
 post_processes["SaveField"] = {"directory path":results_path, 
 "file name":displacement_fileName}
 
-post_processes["SaveStressField"] = {"directory path":results_path,
-"file name":stress_fileName, "polynomial degree":1}
+post_processes["SaveCauchyStressField"] = {"directory path":results_path,
+"file name":stress_fileName[0], "polynomial degree":1}
 
 # Put "" in the subdomain to integrate over the entire domain
 
@@ -69,6 +69,9 @@ post_processesSubmesh = dict()
 
 post_processesSubmesh["HomogenizeField"] = {"directory path":
 results_path, "file name":homogenized_dispRVEFileName, "subdomain":""}
+
+post_processesSubmesh["SaveCauchyStressField"] = {"directory path":
+results_path, "file name": stress_fileName[1], "polynomial degree":1}
 
 ########################################################################
 #                         Material properties                          #

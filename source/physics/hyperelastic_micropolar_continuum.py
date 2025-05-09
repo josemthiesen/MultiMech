@@ -69,6 +69,10 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     fields_names = {"displacement":0, "microrotation":1}
 
+    if verbose:
+
+        print("Finishes creating the function spaces\n")
+
     ####################################################################
     #                        Boundary conditions                       #
     ####################################################################

@@ -190,17 +190,41 @@ stress_solutionPlotNames, stress_name, stress_method):
 
                 for sub in subdomain:
 
-                    # Adds this pair of constitutive model and integra-
-                    # tion domain to the list of such pairs
+                    # Converts the subdomain to an integer tag
 
-                    integration_pairs.append([stress_field, sub])
+                    sub = variational_tools.verify_physicalGroups(sub, 
+                    output_object.physical_groupsList, 
+                    output_object.physical_groupsNamesToTags,
+                    throw_error=False)
+
+                    # Checks if this subdomain is in the domain physical
+                    # groups 
+
+                    if sub in output_object.physical_groupsList:
+
+                        # Adds this pair of constitutive model and inte-
+                        # gration domain to the list of such pairs
+
+                        integration_pairs.append([stress_field, sub])
 
             else:
 
-                # Adds this pair of constitutive model and integration
-                # domain to the list of such pairs
+                # Converts the subdomain to an integer tag
 
-                integration_pairs.append([stress_field, subdomain])
+                subdomain = variational_tools.verify_physicalGroups(
+                subdomain, output_object.physical_groupsList, 
+                output_object.physical_groupsNamesToTags, throw_error=
+                False)
+
+                # Checks if this subdomain is in the domain physical
+                # groups 
+
+                if subdomain in output_object.physical_groupsList:
+
+                    # Adds this pair of constitutive model and integra-
+                    # tion domain to the list of such pairs
+
+                    integration_pairs.append([stress_field, subdomain])
 
         # Projects this piecewise continuous field of stress into a FE 
         # space

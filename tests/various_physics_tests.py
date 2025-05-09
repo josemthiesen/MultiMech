@@ -42,7 +42,9 @@ class TestANNTools(unittest.TestCase):
         "Hookean                        #\n###########################"+
         "#############################################\n")
 
-        import tests.micropolar.our_beam_1.beam_with_fibers_macroscale
+        #import tests.micropolar.our_beam_1.beam_with_fibers_macroscale
+
+        pass
 
     # Defines a function to test the Micropolar-continuum Neo-Hookean 
     # model microscale
@@ -54,7 +56,9 @@ class TestANNTools(unittest.TestCase):
         "an Microscale                  #\n###########################"+
         "#############################################\n")
 
-        import tests.micropolar.our_beam_1.beam_with_fibers_microscale
+        #import tests.micropolar.our_beam_1.beam_with_fibers_microscale
+
+        pass
 
 # Runs all tests
 

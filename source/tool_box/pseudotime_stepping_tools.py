@@ -264,13 +264,59 @@ t_final=None):
 
             for post_processName, post_process in post_processesSubmesh.items():
 
-                # Sets the field number as -1, for this problem has a 
-                # single field only. It must be -1 in this case
+                # Verifies if this post-process has been evaluated in 
+                # parent mesh
 
-                post_processingObjectsSubmesh[post_processName] = (
-                post_process.update_function(
-                post_processingObjectsSubmesh[post_processName], 
-                solution_submesh, -1, t))
+                shared_result = False
+
+                if post_processName in post_processes.keys():
+
+                    # A process to be transitioned from a parent mesh to
+                    # a submesh must have the variable 
+                    # 'parent_toChildMeshResult' in its output class
+
+                    if hasattr(post_processingObjects[post_processName], 
+                    'parent_toChildMeshResult'):
+
+                        # Access the result variable of the post-process 
+                        # class to directly allocate the result from the 
+                        # parent mesh
+
+                        post_processingObjectsSubmesh[post_processName
+                        ].parent_toChildMeshResult = mesh_tools.field_parentToSubmesh(
+                        RVE_submesh, post_processingObjects[
+                        post_processName].parent_toChildMeshResult, 
+                        RVE_toParentCellMap)
+
+                        # Updates the process to save whatever informa-
+                        # tion was transfered. Sets the field number as 
+                        # -1, for this problem has a single field only. 
+                        # It must be -1 in this case
+
+                        post_processingObjectsSubmesh[post_processName
+                        ] = post_process.update_function(
+                        post_processingObjectsSubmesh[post_processName], 
+                        solution_submesh, -1, t, flag_parentMeshReuse=
+                        True)
+
+                        # Updates the flag to inform this process has
+                        # been taken from the parent mesh
+
+                        shared_result = True
+
+                # If this post process has not been found on the parent
+                # mesh or it is not a sharable process, evaluates it in
+                # the submesh
+
+                if not shared_result:
+
+                    # Sets the field number as -1, for this problem has a 
+                    # single field only. It must be -1 in this case
+
+                    post_processingObjectsSubmesh[post_processName] = (
+                    post_process.update_function(
+                    post_processingObjectsSubmesh[post_processName], 
+                    solution_submesh, -1, t))
 
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of multiple fields
@@ -635,7 +681,8 @@ macro_quantitiesClasses=None, t=None, t_final=None):
                                 # process class to directly allocate the 
                                 # result from the parent mesh
 
-                                post_processingObjectsSubmesh[i][post_processName
+                                post_processingObjectsSubmesh[i][
+                                post_processName
                                 ].parent_toChildMeshResult = mesh_tools.field_parentToSubmesh(
                                 RVE_submesh, post_processingObjects[
                                 process_index][post_processName
@@ -662,10 +709,11 @@ macro_quantitiesClasses=None, t=None, t_final=None):
 
                         if not shared_result:
 
-                            post_processingObjectsSubmesh[i][post_processName
-                            ] = post_process.update_function(
-                            post_processingObjectsSubmesh[i][post_processName], 
-                            split_solutionSubmesh, field_number, t)
+                            post_processingObjectsSubmesh[i][
+                            post_processName] = post_process.update_function(
+                            post_processingObjectsSubmesh[i][
+                            post_processName], split_solutionSubmesh, 
+                            field_number, t)
 
 ########################################################################
 #                              Utilities                               #

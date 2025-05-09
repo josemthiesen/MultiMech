@@ -98,8 +98,8 @@ constitutive_modelDictionary, mesh_dataClass):
         # ration
 
         first_piola = programming_tools.get_result(
-        constitutive_model.first_piolaStress(trial_function), "first_p"+
-        "iola_kirchhoff")
+        constitutive_modelDictionary.first_piolaStress(trial_function), 
+        "first_piola_kirchhoff")
 
         # Constructs the variational forms for the inner work
 
@@ -331,7 +331,7 @@ def traction_work(traction_dictionary, field_variation, mesh_dataClass):
 'esToTags'): lambda: dict()})
 
 def verify_physicalGroups(physical_group, physical_groupsList, 
-physical_groupsNamesToTags=None):
+physical_groupsNamesToTags=None, throw_error=True):
             
     # If the key of the dictionary is a string, it is the physical
     # group's name. Hence, converts it to its corresponding number tag
@@ -349,11 +349,17 @@ physical_groupsNamesToTags=None):
 
         except:
 
-            raise KeyError("The physical group name '"+physical_group+
-            "' was used in a variational form, but it does not exist i"+
-            "n the dictionary of physical groups' names to tags. This "+
-            "dictionary has the following keys and values: "+str(
-            physical_groupsNamesToTags))
+            if throw_error:
+
+                raise KeyError("The physical group name '"+physical_group
+                +"' was used in a variational form, but it does not ex"+
+                "ist in the dictionary of physical groups' names to ta"+
+                "gs. This dictionary has the following keys and values"+
+                ": "+str(physical_groupsNamesToTags))
+
+            else:
+
+                return physical_group
 
     # Tuples can be used as physical groups to integrate over multiple 
     # physical groups simultaneously
@@ -418,7 +424,7 @@ physical_groupsNamesToTags=None):
             
     else:
 
-        if not (physical_group in physical_groupsList):
+        if (not (physical_group in physical_groupsList)) and throw_error:
 
             raise NameError("The physical group tag "+str(physical_group
             )+" was used to build the hyperelastic internal work, but "+
@@ -437,7 +443,7 @@ physical_groupsNamesToTags=None):
 lambda: ["field", "field"]})
 
 def project_piecewiseField(field_list, dx, V, physical_groupsList,
-physical_groupsNamesToTags, solution_names=None):
+physical_groupsNamesToTags, solution_names=None, verbose=True):
     
     # Creates the projected field
 
@@ -461,6 +467,10 @@ physical_groupsNamesToTags, solution_names=None):
     # cal group tag
 
     for projected_function, subdomain in field_list:
+
+        if verbose:
+
+            print("Projects over the subdomain "+str(subdomain))
 
         # Checks the subdomain for strings
 

@@ -89,7 +89,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     E_fiber = 100E6
 
     test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 500.0, 
     gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
     
     test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
@@ -207,8 +207,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     "acteristic_lengthFiber:", characteristic_lengthFiber, "flag_bendi"+
     "ng:", flag_bending, "load_factor:", load_factor, "gamma_matrix:", 
     gamma_matrix, "gamma_fiber:", gamma_fiber, "RVE_width:", RVE_width, 
-    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "parame"+
-    "ters", parent_path=base_path+"//graphics//"+subfolder_name)
+    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "00_par"+
+    "ameters", parent_path=base_path+"//graphics//"+subfolder_name)
 
     file_tools.list_toTxt(["E_matrix:", E_matrix, "E_fiber:", E_fiber, 
     "nu_matrix:", nu_matrix, "nu_fiber:", nu_fiber, "N_micropolarMatri"+
@@ -217,8 +217,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     "acteristic_lengthFiber:", characteristic_lengthFiber, "flag_bendi"+
     "ng:", flag_bending, "load_factor:", load_factor, "gamma_matrix:", 
     gamma_matrix, "gamma_fiber:", gamma_fiber, "RVE_width:", RVE_width, 
-    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "parame"+
-    "ters", parent_path=base_path+"//text//"+subfolder_name)
+    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "00_par"+
+    "ameters", parent_path=base_path+"//text//"+subfolder_name)
 
     ####################################################################
     #                        Simulation results                        #
@@ -299,7 +299,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             homogenized_piolaFileName[1], "subdomain":["RVE matrix", 
             "RVE fiber"]}
 
-            post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
+            """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
             "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[0], "polynomial degree": 1}
 
@@ -307,7 +307,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
-            """post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
+            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
             "rectory path": results_pathGraphics, "file name": 
             stress_fieldFileName[2], "polynomial degree": 1}
 
@@ -505,11 +505,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     maximum_load = ((0.5*load_factor*E_matrix*((RVE_length*(RVE_width**3
     ))/12))/((n_RVEsZ*RVE_width)**3))
 
-    maximum_load1 = 0.84E4
+    #maximum_load1 = 0.84E4
 
-    maximum_load = 1E5
-
-    print(maximum_load1/maximum_load)
+    #maximum_load = 1E5
 
     load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
     maximum_load=maximum_load, degree=2)
@@ -573,4 +571,4 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
     post_processesSubmesh, verbose=verbose)
 
-case1_varyingMicropolarNumber(flag_newMesh=True)
+case1_varyingMicropolarNumber(flag_newMesh=False)

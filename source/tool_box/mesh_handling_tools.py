@@ -450,7 +450,7 @@ domain_physicalGroupsNameToTag=None):
     # Creates a new mesh function with physical groups for the submesh
 
     submesh_meshFunction = MeshFunction("size_t", sub_mesh, 
-    sub_mesh.topology().dim, 0)
+    sub_mesh.topology().dim(), 0)
 
     # Iterates over the elements in the cell mapping of the submesh to 
     # the parent mesh to retrieve elements physical groups
@@ -541,6 +541,17 @@ domain_physicalGroupsNameToTag=None):
 
     dx_submesh = Measure("dx", domain=sub_mesh, subdomain_data=
     submesh_meshFunction)
+
+    submesh_physicalGroups = set(dx_submesh.subdomain_data().array())
+
+    physical_groupsList = ""
+
+    for physical_group in submesh_physicalGroups:
+
+        physical_groupsList += str(physical_group)+"\n"
+
+    print("The submesh has the following physical groups:\n"+
+    physical_groupsList)
 
     # Returns the submesh, the updated cell markers, and the DOF mappings
 
