@@ -28,11 +28,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets the Young modulus and the Poisson ration from psi to MPa
 
-    E_matrix = 100E6
-
     nu_matrix = 0.4
-
-    E_fiber = 100E6
 
     nu_fiber = 0.4
 
@@ -58,7 +54,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsY = 7
 
-    n_RVEsZ = 35
+    n_RVEsZ = 25
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
@@ -86,19 +82,56 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     # 13. RVE length
     # 14. radius of the fiber
 
-    test1 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
+    E_matrix = 100E6
+
+    E_fiber = 100E6
+
+    test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
     RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
     gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
     
-    test2 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
+    test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
     RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
     gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
     
-    test3 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
     *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
     gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
 
-    parameters_sets = [test1, test2, test3]
+    E_matrix = 100E6
+
+    E_fiber = 1000E6
+
+    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+    
+    test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+    
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
+    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+
+    E_matrix = 100E6
+
+    E_fiber = 10000E6
+
+    test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+    
+    test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+    
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
+    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
+    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius]
+
+    parameters_sets = [test11, test12, test13, test21, test22, test23, 
+    test31, test32, test33]
 
     # Saves the parameters set
 
