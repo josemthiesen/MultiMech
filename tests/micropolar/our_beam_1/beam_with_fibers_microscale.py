@@ -182,13 +182,13 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
-            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
+            """post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
             "rectory path": results_pathGraphics, "file name": 
             stress_fieldFileName[2], "polynomial degree": 1}
 
             post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
             "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[3], "polynomial degree": 1}
+            stress_fieldFileName[3], "polynomial degree": 1}"""
 
             post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
             "ry path": results_pathText, "file name": 

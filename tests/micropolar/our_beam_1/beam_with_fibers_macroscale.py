@@ -58,7 +58,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsY = 7
 
-    n_RVEsZ = 11
+    n_RVEsZ = 35
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
@@ -253,13 +253,13 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
-            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
+            """post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
             "rectory path": results_pathGraphics, "file name": 
             stress_fieldFileName[2], "polynomial degree": 1}
 
             post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
             "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[3], "polynomial degree": 1}
+            stress_fieldFileName[3], "polynomial degree": 1}"""
 
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes

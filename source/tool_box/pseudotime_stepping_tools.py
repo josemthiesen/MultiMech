@@ -4,6 +4,8 @@ from dolfin import *
 
 import numpy as np
 
+import time
+
 import inspect
 
 import source.tool_box.mesh_handling_tools as mesh_tools
@@ -219,7 +221,14 @@ t_final=None):
 
         # Solves the nonlinear variational problem 
 
+        start_time = time.time()
+
         solver.solve()
+
+        end_time = time.time()
+
+        print("The solution of this pseudotime took "+str(end_time-
+        start_time)+" seconds\n\n")
 
         if len(solution_name)>0:
 
@@ -507,7 +516,14 @@ macro_quantitiesClasses=None, t=None, t_final=None):
 
         # Solves the nonlinear variational problem 
 
+        start_time = time.time()
+
         solver.solve()
+
+        end_time = time.time()
+
+        print("The solution of this pseudotime took "+str(end_time-
+        start_time)+" seconds\n\n")
 
         # Splits the solution
 
