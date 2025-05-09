@@ -359,8 +359,9 @@ False):
 
 # Defines a function to generate a submesh using MeshView and creates
 
-def create_submesh(domain_meshCollection, volume_physGroupsTags, 
-parent_functionSpace, domain_physicalGroupsNameToTag=None):
+def create_submesh(domain_meshCollection, domain_meshFunction,
+volume_physGroupsTags, parent_functionSpace, 
+domain_physicalGroupsNameToTag=None):
     
     # Verifies if the volume physical groups are a list of strings
 
@@ -446,6 +447,20 @@ parent_functionSpace, domain_physicalGroupsNameToTag=None):
     sub_toParentCellMap = sub_mesh.topology().mapping()[mesh.id()
     ].cell_map()
 
+    # Creates a new mesh function with physical groups for the submesh
+
+    submesh_meshFunction = MeshFunction("size_t", sub_mesh, 
+    sub_mesh.topology().dim, 0)
+
+    # Iterates over the elements in the cell mapping of the submesh to 
+    # the parent mesh to retrieve elements physical groups
+
+    for submesh_cellIndex, parent_cellIndex in enumerate(
+    sub_toParentCellMap):
+
+        submesh_meshFunction[submesh_cellIndex] = domain_meshFunction[
+        parent_cellIndex]
+
     # Creates the function spaces
 
     submesh_functionSpace = 0
@@ -524,11 +539,12 @@ parent_functionSpace, domain_physicalGroupsNameToTag=None):
             
     # Sets the integration differential in the submesh
 
-    dx_submesh = Measure("dx", domain=sub_mesh)
+    dx_submesh = Measure("dx", domain=sub_mesh, subdomain_data=
+    submesh_meshFunction)
 
     # Returns the submesh, the updated cell markers, and the DOF mappings
 
-    return (sub_mesh, submesh_cellMarkers, submesh_functionSpace, 
+    return (sub_mesh, submesh_meshFunction, submesh_functionSpace, 
     sub_meshMapping, parent_meshMapping, submesh_function, 
     sub_toParentCellMap, dx_submesh)
 

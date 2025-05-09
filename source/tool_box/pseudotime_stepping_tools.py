@@ -112,7 +112,8 @@ t_final=None):
         (RVE_submesh, domain_meshFunction, function_spaceSubmesh,
         RVE_meshMapping, parent_meshMapping, solution_submesh, 
         RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
-        mesh_dataClass.domain_meshCollection, volume_physGroupsSubmesh, 
+        mesh_dataClass.domain_meshCollection, 
+        mesh_dataClass.domain_meshFunction, volume_physGroupsSubmesh, 
         function_space, domain_physicalGroupsNameToTag=
         mesh_dataClass.domain_physicalGroupsNameToTag)
 
@@ -386,7 +387,8 @@ macro_quantitiesClasses=None, t=None, t_final=None):
         (RVE_submesh, domain_meshFunction, function_spaceSubmesh, 
         RVE_meshMapping, parent_meshMapping, solution_submesh, 
         RVE_toParentCellMap, dx_submesh) = mesh_tools.create_submesh(
-        mesh_dataClass.domain_meshCollection, volume_physGroupsSubmesh, 
+        mesh_dataClass.domain_meshCollection, 
+        mesh_dataClass.domain_meshFunction, volume_physGroupsSubmesh, 
         function_space, domain_physicalGroupsNameToTag=
         mesh_dataClass.domain_physicalGroupsNameToTag)
 
