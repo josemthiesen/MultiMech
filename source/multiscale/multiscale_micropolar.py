@@ -12,6 +12,8 @@ import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
 import source.tool_box.programming_tools as programming_tools
 
+import source.tool_box.multiscale_boundary_conditions_tools as multiscale_BCsTools
+
 # Defines a function to model a hyperelastic problem with a displacement
 # and a microrotation fields only in the microscale. It uses the macro
 # quantities read from txt files
@@ -37,10 +39,28 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     verbose)
 
     ####################################################################
+    #                         Macro quantities                         #
+    ####################################################################
+
+    # Creates a dictionary with the names of the macro variables (name
+    # them as python variables, i.e. no spaces nor non-ASCII characters)
+    # as keys and the txt file name
+
+    macro_quantitiesDict = dict()
+
+    macro_quantitiesDict["macro_displacement"] = macro_displacementName
+
+    macro_quantitiesDict["macro_gradDisplacement"] = macro_gradDisplacementName
+
+    macro_quantitiesDict["macro_rotation"] = macro_microrotationName
+
+    macro_quantitiesDict["macro_gradMicrorotation"] =  macro_gradMicrorotationName
+
+    ####################################################################
     #                          Function space                          #
     ####################################################################
 
-    # Constructs elements for the displacement and for the microrotation
+    """# Constructs elements for the displacement and for the microrotation
     # fields
 
     displacement_element = VectorElement("CG", 
@@ -94,29 +114,31 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     "ier": 3, "microrotation lagrange multiplier": 4, "microrotation g"+
     "radient lagrange multiplier": 5}
 
-    ####################################################################
-    #                         Macro quantities                         #
-    ####################################################################
-
-    # Creates a dictionary with the names of the macro variables (name
-    # them as python variables, i.e. no spaces nor non-ASCII characters)
-    # as keys and the txt file name
-
-    macro_quantitiesDict = dict()
-
-    macro_quantitiesDict["macro_displacement"] = macro_displacementName
-
-    macro_quantitiesDict["macro_gradDisplacement"] = macro_gradDisplacementName
-
-    macro_quantitiesDict["macro_rotation"] = macro_microrotationName
-
-    macro_quantitiesDict["macro_gradMicrorotation"] =  macro_gradMicrorotationName
-
     # Initializes the class of macro quantities. Put this class into a
     # list because you could have multiple classes
 
     macro_quantitiesClasses = [functional_tools.MacroQuantitiesInTime(
-    macro_quantitiesDict)]
+    macro_quantitiesDict)]"""
+
+    bilinear_form = 0.0
+    
+    linear_form = 0.0
+
+    elements_dictionary = {"displacement": VectorElement("CG", 
+    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeDisplacement), "m"+
+    "icrorotation": VectorElement("CG", mesh_dataClass.mesh.ufl_cell(), 
+    polynomial_degreeMicrorotation)}
+
+    multiscale_BCsDict = dict()
+
+    multiscale_BCsDict["displacement"] = {"MinimallyConstrainedFirstOr"+
+    "derBC":}
+
+    (bilinear_form, linear_form, boundary_conditions, 
+    macro_quantitiesClasses, fields_namesDict, solution_fields, 
+    variation_fields) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
+    multiscale_BCsDict, elements_dictionary, mesh_dataClass, 
+    bilinear_form, linear_form)
 
     ####################################################################
     #                         Variational forms                        #

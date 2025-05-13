@@ -2,6 +2,8 @@
 
 import functools
 
+import inspect
+
 ########################################################################
 #                         Return-handling tools                        #
 ########################################################################
@@ -147,3 +149,147 @@ def optional_argumentsInitializer(default_argumentsDictionary):
         return wrapper
     
     return decorator
+
+########################################################################
+#                Classes from file automatic retriever                 #
+########################################################################
+
+# Defines a function to get the classes of a python module (
+# searched_file) which are subclasses of a parent class. The 
+# reserved_classes is a list of classes that shall not be given as a 
+# process for actual evaluation, they can be parent classes for example
+
+@optional_argumentsInitializer({'reserved_classes': lambda: []})
+
+def get_allProcesses(searched_file, parent_class, reserved_classes=None):
+
+    # Initializes a dictionary of classes for the classes found in a fi-
+    # le
+
+    methods_classesDict = dict()
+
+    # Checks for the classes in the module using inspect library
+
+    for class_name, class_object in inspect.getmembers(searched_file,
+    inspect.isclass):
+        
+        # Checks if the class is a subclass of the PostProcessMethod pa-
+        # rent class
+
+        if (issubclass(class_object, parent_class) and (not (class_object
+        ) in reserved_classes)):
+            
+            # Appends this subclass
+
+            methods_classesDict[class_name] = class_object
+
+    # Returns the lis of classes
+
+    return methods_classesDict
+
+# Defines a function to initializes the needed methods' classes
+
+@optional_argumentsInitializer({'reserved_classes': lambda: []})
+
+def dispatch_processes(methods_names, searched_file, parent_class, 
+class_input=None, reserved_classes=None):
+
+    # Assures methods_names is a list
+
+    if not (isinstance(methods_names, list) or isinstance(methods_names, 
+    tuple)):
+
+        methods_names = [methods_names]
+
+    # Initializes a dictionary of classes that will be used in the post-
+    # processes
+
+    methods_classes = dict()
+
+    # Gets the methods classes of this file as a dictionary, the keys a-
+    # re the names of the classes whereas the values are the classes ob-
+    # jects
+
+    methods_classesDict = get_allProcesses(searched_file, parent_class,
+    reserved_classes=reserved_classes)
+
+    available_methodsNames = list(methods_classesDict.keys())
+
+    # Iterates through the methods names
+
+    if class_input is None:
+
+        for method_name in methods_names:
+
+            # If the name is in the list of available methods, updates 
+            # the dictionary of classes
+
+            if method_name in available_methodsNames:
+
+                methods_classes[method_name] = methods_classesDict[
+                method_name]()
+
+            else:
+
+                available_list = "\n"
+
+                for name in available_methodsNames:
+
+                    available_list += "'"+name+"'\n"
+
+                raise NameError("'"+str(method_name)+"' is not an avai"+
+                "lable class method. Find one in the list:"+
+                available_list)
+
+    elif isinstance(class_input, tuple):
+
+        for method_name in methods_names:
+
+            # If the name is in the list of available methods, updates 
+            # the dictionary of classes
+
+            if method_name in available_methodsNames:
+
+                methods_classes[method_name] = methods_classesDict[
+                method_name](*class_input)
+
+            else:
+
+                available_list = "\n"
+
+                for name in available_methodsNames:
+
+                    available_list += "'"+name+"'\n"
+
+                raise NameError("'"+str(method_name)+"' is not an avai"+
+                "lable class method. Find one in the list:"+
+                available_list)
+
+    else:
+
+        for method_name in methods_names:
+
+            # If the name is in the list of available methods, updates 
+            # the dictionary of classes
+
+            if method_name in available_methodsNames:
+
+                methods_classes[method_name] = methods_classesDict[
+                method_name](class_input)
+
+            else:
+
+                available_list = "\n"
+
+                for name in available_methodsNames:
+
+                    available_list += "'"+name+"'\n"
+
+                raise NameError("'"+str(method_name)+"' is not an avai"+
+                "lable class method. Find one in the list:"+
+                available_list)
+        
+    # Returns the dictionary of classes that will be used given the na-
+    # mes and the available classes
+
+    return methods_classes

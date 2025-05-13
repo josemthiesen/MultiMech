@@ -3,88 +3,9 @@
 
 import copy
 
-import inspect
-
 import source.post_processes.post_processes_classes as post_classes
 
-########################################################################
-#             Post-processes' classes automatic retriever              #
-########################################################################
-
-# Defines a function to get the classes of the post_classes module
-
-def get_allProcesses():
-
-    # Initializes a dictionary of classes for the post-process methods
-
-    methods_classesDict = dict()
-
-    # Checks for the classes in the post_classes module using inspect 
-    # library
-
-    for class_name, class_object in inspect.getmembers(post_classes,
-    inspect.isclass):
-        
-        # Checks if the class is a subclass of the PostProcessMethod pa-
-        # rent class
-
-        if (issubclass(class_object, post_classes.PostProcessMethod) and (
-        class_object is not post_classes.PostProcessMethod) and (
-        class_object is not post_classes.PostProcessContext)):
-            
-            # Appends this subclass
-
-            methods_classesDict[class_name] = class_object
-
-    # Returns the lis of classes
-
-    return methods_classesDict
-
-# Defines a function to initializes the needed methods' classes
-
-def dispatch_processes(methods_names, context_class):
-
-    # Initializes a dictionary of classes that will be used in the post-
-    # processes
-
-    post_processClasses = dict()
-
-    # Gets the methods classes of this file as a dictionary, the keys a-
-    # re the names of the classes whereas the values are the classes ob-
-    # jects
-
-    methods_classesDict = get_allProcesses()
-
-    available_methodsNames = list(methods_classesDict.keys())
-
-    # Iterates through the methods names
-
-    for method_name in methods_names:
-
-        # If the name is in the list of available methods, updates the
-        # dictionary of classes used in the post-processing step
-
-        if method_name in available_methodsNames:
-
-            post_processClasses[method_name] = methods_classesDict[
-            method_name](context_class)
-
-        else:
-
-            available_list = "\n"
-
-            for name in available_methodsNames:
-
-                available_list += "'"+name+"'\n"
-
-            raise NameError("'"+str(method_name)+"' is not an availabl"+
-            "e post-processing method. Find one in the list:"+
-            available_list)
-        
-    # Returns the dictionary of classes that will be used in the post-
-    # processing step
-
-    return post_processClasses
+import source.tool_box.programming_tools as programming_tools
 
 ########################################################################
 #                   Post-processing tools selection                    #
@@ -102,8 +23,10 @@ def post_processingSelectionSingleField(post_processes, context_class):
     # If you implement any new post-processing tool, the code will auto-
     # matically retrieve it using the inspect functionality
 
-    available_processes = dispatch_processes(post_processes, 
-    context_class)
+    available_processes = programming_tools.dispatch_processes(
+    post_processes, post_classes, post_classes.PostProcessMethod, 
+    reserved_classes=[post_classes.PostProcessMethod, 
+    post_classes.PostProcessContext], class_input=context_class)
 
     # Iterates through the dictionary of wanted processes
     

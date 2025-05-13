@@ -139,6 +139,43 @@ variable_name="NoGivenName", time_tolerance=1E-5):
             "tity is "+str(standard_timeKeys[i])+" whereas the same po"+
             "int in the "+str(variable_name)+" macro quantity is "+str(
             compared_timeKeys[i]))
+
+# Defines a function to transform a key to ascii pattern
+
+def convert_stringToASCII(string_toConvert):
+
+    # Initializes the converted string
+
+    converted_string = ""
+
+    # Iterates through the characters
+
+    for character in string_toConvert:
+
+        # Checks if it is a space
+
+        if character==" " or character==' ':
+
+            # Substitutes the blank space for an underline
+
+            converted_string += "_"
+
+        # Checks if it is ascii. If the character encoding is larger
+        # than 128, just ignore it, for it's not ascii
+
+        elif ord(character)<128:
+
+            converted_string += character
+
+    # If the converted string is empty, returns a basic string
+
+    if len(converted_string)==0:
+
+        return "foo_variable"
+
+    # Returns the string
+
+    return converted_string
         
 ########################################################################
 #                       Saving of stress measures                      #
