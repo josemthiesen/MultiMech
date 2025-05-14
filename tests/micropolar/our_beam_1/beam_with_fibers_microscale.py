@@ -28,9 +28,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets the multiscale boundary conditions for each one of the fields
 
-    displacement_multiscaleBC = "MinimallyConstrainedFirstOrderBC"
+    displacement_multiscaleBC = "LinearFirstOrderBC"
     
-    microrotation_multiscaleBC = "LinearFirstOrderBC"
+    microrotation_multiscaleBC = "LinearFirstOrderBC"#"MinimallyConstrainedFirstOrderBC"
 
     # Reads the parameters set
 
@@ -126,6 +126,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
     homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
     "xt", "homogenized_couple_first_piola_microscale.txt"]
 
+    homogenized_cauchyFileName = ["homogenized_cauchy_microscale.t"+
+    "xt", "homogenized_couple_cauchy_microscale.txt"]
+
     stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "couple_c"+
     "auchy_stress_microscale.xdmf", "first_piola_stress_microscale.xdmf",
     "couple_first_piola_stress_microscale.xdmf"]
@@ -183,14 +186,6 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
 
-            """post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
-            "rectory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[2], "polynomial degree": 1}
-
-            post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
-            "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[3], "polynomial degree": 1}"""
-
             post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
             "ry path": results_pathText, "file name": 
             homogenized_piolaFileName[0], "subdomain":""}
@@ -198,6 +193,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
             post_processes[-1][-1]["HomogenizeCoupleFirstPiola"] = {"d"+
             "irectory path": results_pathText, "file name": 
             homogenized_piolaFileName[1], "subdomain":""}
+
+            post_processes[-1][-1]["HomogenizeCauchy"] = {"directo"+
+            "ry path": results_pathText, "file name": 
+            homogenized_cauchyFileName[0], "subdomain":""}
+
+            post_processes[-1][-1]["HomogenizeCoupleCauchy"] = {
+            "directory path": results_pathText, "file name": 
+            homogenized_cauchyFileName[1], "subdomain":""}
 
     ####################################################################
     #                       Material properties                        #

@@ -824,3 +824,166 @@ field_number, time):
     output_object.physical_groupsNamesToTags)
 
     return output_object
+
+# Defines a function to initialize the homogenized value of the Cauchy
+# stress over the reference configuration
+
+def initialize_cauchyHomogenization(data, direct_codeData, submesh_flag):
+
+    # Gets the directory and the name of the file
+
+    parent_path = data[0]
+
+    file_name = data[1]
+
+    # Gets the subdomain to integrate
+
+    subdomain = data[2]
+
+    # Gets the integration measure
+
+    dx = direct_codeData[0]
+
+    physical_groupsList = direct_codeData[1] 
+    
+    physical_groupsNamesToTags = direct_codeData[2]
+
+    constitutive_model = direct_codeData[3]
+
+    # Evaluates the volume of the domain
+
+    volume = 0.0
+
+    # If the solution comes from a submesh, there can be no domain
+
+    if submesh_flag:
+
+        if (isinstance(subdomain, int) or isinstance(subdomain, tuple)
+        or isinstance(subdomain, list)):
+            
+            raise ValueError("This solution comes from a submesh and t"+
+            "he subdomain "+str(subdomain)+" is solicited. Subdomains "+
+            "cannot be used in fields from submeshes, for theses meshe"+
+            "s do not have physical groups.")
+
+    # If a physical group of the mesh is given or a tuple of physical 
+    # groups
+
+    if isinstance(subdomain, list):
+
+        subdomain = tuple(subdomain)
+
+    if isinstance(subdomain, int):
+
+        volume = assemble(1*dx(subdomain))
+
+    elif isinstance(subdomain, tuple):
+
+        for sub in subdomain:
+
+            if isinstance(sub, str):
+
+                volume += assemble(1*dx(variational_tools.verify_physicalGroups(
+                sub, physical_groupsList, physical_groupsNamesToTags=
+                physical_groupsNamesToTags)))
+
+            else:
+
+                volume += assemble(1*dx(sub))
+
+    # Otherwise, integrates over the whole domain to get the volume
+
+    elif isinstance(subdomain, str):
+
+        if len(subdomain)==0:
+
+            volume = assemble(1*dx)
+
+        else:
+
+            volume = assemble(1*dx(variational_tools.verify_physicalGroups(
+            subdomain, physical_groupsList, physical_groupsNamesToTags=
+            physical_groupsNamesToTags)))
+
+    # Initializes the homogenized field list
+
+    homogenized_cauchyList = []
+
+    # Gets the name of the file with the path to it
+
+    file_name = file_tools.verify_path(parent_path, file_name)
+
+    # Assembles the output. This post-process does not have a variable
+    # that can be shared with a submesh
+
+    class OutputObject:
+
+        def __init__(self, homogenized_cauchyList, inverse_volume, dx, 
+        subdomain, file_name, constitutive_model, physical_groupsList,
+        physical_groupsNamesToTags):
+            
+            self.result = homogenized_cauchyList
+
+            self.inverse_volume = inverse_volume
+
+            self.dx = dx 
+
+            self.subdomain = subdomain 
+
+            self.file_name = file_name
+
+            self.constitutive_model = constitutive_model
+
+            self.physical_groupsList = physical_groupsList
+    
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+
+    output_object = OutputObject(homogenized_cauchyList, (1.0/volume
+    ), dx, subdomain, file_name, constitutive_model, physical_groupsList,
+    physical_groupsNamesToTags)
+
+    return output_object
+
+# Defines a function to update the homogenization of the first Piola-
+# Kirchhof
+
+def update_cauchyHomogenization(output_object, field, field_number, 
+time):
+    
+    print("Updates the homogenization of the Cauchy stress field\n")
+
+    output_object.result = homogenization_tools.homogenize_stressTensor(
+    field, output_object.constitutive_model, "cauchy", "cauchy_stress", 
+    output_object.result, time, output_object.inverse_volume, 
+    output_object.dx, output_object.subdomain,output_object.file_name, 
+    output_object.physical_groupsList, 
+    output_object.physical_groupsNamesToTags)
+
+    return output_object
+
+# Defines a function to initialize the homogenized value of the couple
+# Cauchy stress
+
+def initialize_coupleCauchyHomogenization(data, direct_codeData, 
+submesh_flag):
+    
+    return initialize_cauchyHomogenization(data, direct_codeData, 
+    submesh_flag)
+
+# Defines a function to update the homogenization of the couple Cauchy
+# stress
+
+def update_coupleCauchyHomogenization(output_object, field, field_number, 
+time):
+    
+    print("Updates the homogenization of the couple Cauchy stress fiel"
+    "d\n")
+
+    output_object.result = homogenization_tools.homogenize_stressTensor(
+    field, output_object.constitutive_model, "couple_cauchy", "cauchy_"+
+    "stress", output_object.result, time, output_object.inverse_volume, 
+    output_object.dx, output_object.subdomain,output_object.file_name, 
+    output_object.physical_groupsList, 
+    output_object.physical_groupsNamesToTags)
+
+    return output_object

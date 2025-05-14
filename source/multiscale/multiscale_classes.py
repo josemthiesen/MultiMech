@@ -265,26 +265,21 @@ class LinearFirstOrderBC(BCsClassTemplate):
 
         if n_dimsPrimalField==0:
 
-            #self.field_expression = multiscale_expressions.LinearScalarFieldExpression(
-            #0.0, [0.0, 0.0, 0.0], x_centroid, y_centroid, z_centroid)
-        
-            self.field_expression = multiscale_expressions.LinearFieldExpression(0.0, [0.0, 0.0, 0.0], x_centroid, y_centroid, z_centroid)
+            self.field_expression = multiscale_expressions.LinearFieldExpression(
+            getattr(self.macro_quantitiesClasses[-1], 
+            self.constrained_fieldName), getattr(
+            self.macro_quantitiesClasses[-1], 
+            self.constrained_gradientFieldName), x_centroid, y_centroid, 
+            z_centroid)
 
         elif n_dimsPrimalField==1:
 
-            """ self.field_expression = Expression(("mean[0]+gradient_fiel"+
-            "d[0,0]*(x[0]-x_centroid)+gradient_field[0,1]*(x[1]-y_cent"+
-            "roid)+gradient_field[0,2]*(x[2]-z_centroid)", "mean[1]+gr"+
-            "adient_field[1,0]*(x[0]-x_centroid)+gradient_field[1,1]*("+
-            "x[1]-y_centroid)+gradient_field[1,2]*(x[2]-z_centroid)", 
-            "mean[2]+gradient_field[2,0]*(x[0]-x_centroid)+gradient_fi"+
-            "eld[2,1]*(x[1]-y_centroid)+gradient_field[2,2]*(x[2]-z_ce"+
-            "ntroid)"),
-            mean_field=[0.0, 0.0, 0.0], gradient_field=[[0.0, 0.0, 0.0],[0.0, 0.0, 0.0],[0.0, 0.0, 
-            0.0]], x_centroid=x_centroid, y_centroid=y_centroid, z_centroid=z_centroid)"""
-
-            self.field_expression = multiscale_expressions.LinearVectorFieldExpression([0.0, 0.0, 0.0], [[0.0, 0.0, 0.0],[0.0, 0.0, 0.0],[0.0, 0.0, 
-            0.0]], x_centroid, y_centroid, z_centroid)
+            self.field_expression = multiscale_expressions.LinearVectorFieldExpression(
+            getattr(self.macro_quantitiesClasses[-1], 
+            self.constrained_fieldName), getattr(
+            self.macro_quantitiesClasses[-1], 
+            self.constrained_gradientFieldName), x_centroid, y_centroid, 
+            z_centroid)
 
         else:
 
@@ -321,21 +316,6 @@ class LinearFirstOrderBC(BCsClassTemplate):
     def update(self, bilinear_form, linear_form, boundary_conditions,
     trial_functionsDict, test_functionsDict, boundary_conditionIndex, 
     mesh_dataClass, monolithic_functionSpace):
-        
-        # Gets the mean field and the mean gradient 
-
-        mean_field = getattr(self.macro_quantitiesClasses[
-        boundary_conditionIndex], self.constrained_fieldName)
-
-        gradient_field = getattr(self.macro_quantitiesClasses[
-        boundary_conditionIndex], self.constrained_gradientFieldName)
-        
-        # Updates the values of the field and its gradient in the ex-
-        # pression for the field on the boundary
-
-        self.field_expression.mean_field = mean_field
-
-        self.field_expression.gradient_field = gradient_field
         
         # Adds the zero fluctuation boundary condtion. Checks first if
         # the formulation has multiple fields

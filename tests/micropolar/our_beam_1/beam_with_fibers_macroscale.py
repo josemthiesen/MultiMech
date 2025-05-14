@@ -244,6 +244,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     homogenized_piolaFileName = ["homogenized_first_piola.txt", "homog"+
     "enized_couple_first_piola.txt"]
 
+    homogenized_cauchyFileName = ["homogenized_cauchy.txt", "homogeniz"+
+    "ed_couple_cauchy.txt"]
+
     stress_fieldFileName = ["cauchy_stress.xdmf", "couple_cauchy_stres"+
     "s.xdmf", "first_piola_stress.xdmf", "couple_first_piola_stress.xd"+
     "mf"]
@@ -298,6 +301,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "irectory path": results_pathText, "file name": 
             homogenized_piolaFileName[1], "subdomain":["RVE matrix", 
             "RVE fiber"]}
+
+            post_processes[-1][-1]["HomogenizeCauchy"] = {"directo"+
+            "ry path": results_pathText, "file name": 
+            homogenized_cauchyFileName[0], "subdomain":""}
+
+            post_processes[-1][-1]["HomogenizeCoupleCauchy"] = {
+            "directory path": results_pathText, "file name": 
+            homogenized_cauchyFileName[1], "subdomain":""}
 
             """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
             "ory path": results_pathGraphics, "file name": 

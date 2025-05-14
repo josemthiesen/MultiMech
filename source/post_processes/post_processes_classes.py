@@ -208,3 +208,35 @@ class HomogenizeCoupleFirstPiola(PostProcessMethod):
         "ory path", "file name", "subdomain"], [context.dx, 
         context.physical_groupsList, 
         context.domain_physGroupsNamesToTags, context.constitutive_model])
+
+# Sets a class for the method to homogenize the Cauchy stress tensor
+
+class HomogenizeCauchy(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_cauchyHomogenization, 
+        post_functions.update_cauchyHomogenization, ["directory path",
+        "file name", "subdomain"], [context.dx, 
+        context.physical_groupsList, 
+        context.domain_physGroupsNamesToTags, context.constitutive_model])
+
+# Sets a class for the method to homogenize the couple Cauchy stress
+
+class HomogenizeCoupleCauchy(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_coupleCauchyHomogenization, 
+        post_functions.update_coupleCauchyHomogenization, ["directory "+
+        "path", "file name", "subdomain"], [context.dx, 
+        context.physical_groupsList, 
+        context.domain_physGroupsNamesToTags, context.constitutive_model])
