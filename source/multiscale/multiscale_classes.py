@@ -6,6 +6,10 @@ from abc import ABC, abstractmethod
 
 import source.tool_box.functional_tools as functional_tools
 
+import source.tool_box.programming_tools as programming_tools
+
+import source.multiscale.multiscale_expressions as multiscale_expressions
+
 ########################################################################
 #                Boundary conditions's classes templates               #
 ########################################################################
@@ -21,44 +25,55 @@ class BCsClassTemplate(ABC):
     # in the child classes
 
     def update(self, bilinear_form, linear_form, trial_functionsDict,
-    test_functionsDict, boundary_conditions):
+    test_functionsDict, boundary_conditions, monolithic_functionSpace):
 
         pass
 
-# Defines a class for the minimally-constrained boundary condition
+# Defines a class for the minimally-constrained boundary condition using 
+# first order homogenization
 
 class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
 
-    def __init__(self,  constrained_fieldName, 
-    constrained_gradientFieldName, fields_names, elements_dictionary, 
-    mesh_dataClass, macro_quantitiesFilesDict, macro_quantitiesClasses):
+    def __init__(self,  constrained_fieldName, fields_names, 
+    elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
+    macro_quantitiesClasses, volume_inverse):
         
         # Gets the name of the field to be minimally constrained and its
-        # gradient
+        # gradient. But removes non ASCII characters and blank spaces so 
+        # this names can be used as variables' names
 
-        self.constrained_fieldName = constrained_fieldName
+        self.constrained_fieldName = functional_tools.convert_stringToASCII(
+        constrained_fieldName)
 
-        self.constrained_gradientFieldName = (
-        constrained_gradientFieldName)
+        self.constrained_gradientFieldName = (constrained_fieldName+"_"+
+        "gradient")
         
         # Evaluates the volume of the microscale
 
-        self.volume_inverse = (1.0/assemble(1.0*mesh_dataClass.dx))
+        if volume_inverse is None:
+
+            self.volume_inverse = (1.0/assemble(1.0*mesh_dataClass.dx))
+
+        else:
+
+            self.volume_inverse = volume_inverse
         
         # Stores the macro quantities that will be used as boundary con-
         # ditions
 
         self.macro_quantitiesClasses = macro_quantitiesClasses
 
-        # Stores the dictionary of macro quantities
-
-        self.macro_quantitiesFilesDict = macro_quantitiesFilesDict
-
-        # Updates the list of macro quantities' classes
+        # Swaps the keys of the files dictionary to keep the names of 
+        # the field and its gradient as variables in the macro quanti-
+        # ties class. Then, updates the list of macro quantities' clas-
+        # ses
 
         self.macro_quantitiesClasses.append(
-        functional_tools.MacroQuantitiesInTime(macro_quantitiesFilesDict
-        ))
+        functional_tools.MacroQuantitiesInTime(
+        programming_tools.change_dictionaryKeys(
+        macro_quantitiesFilesDict, [["macro field file", 
+        self.constrained_fieldName], ["macro field gradient file",
+        self.constrained_gradientFieldName]])))
 
         # Gets the number of dimensions of the primal field
 
@@ -109,11 +124,11 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
         # pick up the trial and test functions relative to these Lagran-
         # ge fields
 
-        self.lagrange_fieldName = (self.constrained_fieldName+" lagran"+
-        "ge multiplier")
+        self.lagrange_fieldName = (self.constrained_fieldName+"_lagran"+
+        "ge_multiplier")
 
         self.lagrange_gradFieldName = (self.constrained_gradientFieldName
-        +" lagrange multiplier")
+        +"_lagrange_multiplier")
 
         self.fields_names = fields_names
 
@@ -134,7 +149,7 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
 
     def update(self, bilinear_form, linear_form, boundary_conditions,
     trial_functionsDict, test_functionsDict, boundary_conditionIndex,
-    mesh_dataClass):
+    mesh_dataClass, monolithic_functionSpace):
 
         # Gets the trial and test functions
 
@@ -148,10 +163,10 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
         lagrange_fieldTest = test_functionsDict[self.lagrange_fieldName]
 
         lagrange_gradFieldTrial = trial_functionsDict[
-        self.constrained_fieldName]
+        self.lagrange_gradFieldName]
 
         lagrange_gradFieldTest = test_functionsDict[
-        self.constrained_fieldName]
+        self.lagrange_gradFieldName]
 
         # Adds the variational bits to the bilinear form
 
@@ -159,25 +174,183 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
 
         bilinear_form += (self.volume_inverse*((inner(lagrange_fieldTest,
         getattr(self.macro_quantitiesClasses[boundary_conditionIndex], 
-        functional_tools.convert_stringToASCII(self.constrained_fieldName
-        )))*mesh_dataClass.dx)-(inner(lagrange_gradFieldTest, 
-        primal_fieldTrial)*mesh_dataClass.dx)))
+        self.constrained_fieldName))*mesh_dataClass.dx)-(inner(
+        lagrange_fieldTest, primal_fieldTrial)*mesh_dataClass.dx)))
 
         # Adds the work done by the constraint on the gradient of the 
         # field
 
         bilinear_form += (self.volume_inverse*((inner(
-        lagrange_gradFieldTest, getattr(
-        functional_tools.convert_stringToASCII(
-        self.macro_quantitiesClasses[boundary_conditionIndex], 
-        self.constrained_gradientFieldName)))*mesh_dataClass.dx)-(inner(
-        lagrange_gradFieldTest, grad(primal_fieldTrial))*mesh_dataClass.dx)))
+        lagrange_gradFieldTest, getattr(self.macro_quantitiesClasses[
+        boundary_conditionIndex], self.constrained_gradientFieldName))*
+        mesh_dataClass.dx)-(inner(lagrange_gradFieldTest, grad(
+        primal_fieldTrial))*mesh_dataClass.dx)))
 
         # Adds the work done by the lagrange multipliers
 
         linear_form += (self.volume_inverse*((inner(lagrange_fieldTrial, 
         primal_fieldTest)*mesh_dataClass.dx)+(inner(grad(primal_fieldTest
         ), lagrange_gradFieldTrial)*mesh_dataClass.dx)))
+
+        # Returns the boundary conditions and variational forms
+
+        return bilinear_form, linear_form, boundary_conditions
+    
+# Defines a class for the linear boundary condition considering first 
+# order homogenization
+
+class LinearFirstOrderBC(BCsClassTemplate):
+
+    def __init__(self,  constrained_fieldName, fields_names, 
+    elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
+    macro_quantitiesClasses, volume_inverse):
+        
+        # Gets the name of the field to be minimally constrained and its
+        # gradient. But removes non ASCII characters and blank spaces so 
+        # this names can be used as variables' names
+
+        self.constrained_fieldName = functional_tools.convert_stringToASCII(
+        constrained_fieldName)
+
+        self.constrained_gradientFieldName = (constrained_fieldName+"_"+
+        "gradient")
+        
+        # Evaluates the volume of the microscale
+
+        if volume_inverse is None:
+
+            self.volume_inverse = (1.0/assemble(1.0*mesh_dataClass.dx))
+
+        else:
+
+            self.volume_inverse = volume_inverse
+        
+        # Stores the macro quantities that will be used as boundary con-
+        # ditions
+
+        self.macro_quantitiesClasses = macro_quantitiesClasses
+
+        # Swaps the keys of the files dictionary to keep the names of 
+        # the field and its gradient as variables in the macro quanti-
+        # ties class. Then, updates the list of macro quantities' clas-
+        # ses
+
+        self.macro_quantitiesClasses.append(
+        functional_tools.MacroQuantitiesInTime(
+        programming_tools.change_dictionaryKeys(
+        macro_quantitiesFilesDict, [["macro field file", 
+        self.constrained_fieldName], ["macro field gradient file",
+        self.constrained_gradientFieldName]])))
+
+        # Finds the centroid of the mesh
+
+        position_vector = mesh_dataClass.x
+
+        x_centroid = (self.volume_inverse*assemble(position_vector[
+        0]*mesh_dataClass.dx))
+
+        y_centroid = (self.volume_inverse*assemble(position_vector[
+        1]*mesh_dataClass.dx))
+
+        z_centroid = (self.volume_inverse*assemble(position_vector[
+        2]*mesh_dataClass.dx))
+
+        # Gets the number of dimensions of the primal field
+
+        n_dimsPrimalField = len(elements_dictionary[
+        self.constrained_fieldName].value_shape())
+
+        # Constructs the expressions for the field on the boundary con-
+        # sidering zero fluctuations on the boundary
+
+        if n_dimsPrimalField==0:
+
+            #self.field_expression = multiscale_expressions.LinearScalarFieldExpression(
+            #0.0, [0.0, 0.0, 0.0], x_centroid, y_centroid, z_centroid)
+        
+            self.field_expression = multiscale_expressions.LinearFieldExpression(0.0, [0.0, 0.0, 0.0], x_centroid, y_centroid, z_centroid)
+
+        elif n_dimsPrimalField==1:
+
+            """ self.field_expression = Expression(("mean[0]+gradient_fiel"+
+            "d[0,0]*(x[0]-x_centroid)+gradient_field[0,1]*(x[1]-y_cent"+
+            "roid)+gradient_field[0,2]*(x[2]-z_centroid)", "mean[1]+gr"+
+            "adient_field[1,0]*(x[0]-x_centroid)+gradient_field[1,1]*("+
+            "x[1]-y_centroid)+gradient_field[1,2]*(x[2]-z_centroid)", 
+            "mean[2]+gradient_field[2,0]*(x[0]-x_centroid)+gradient_fi"+
+            "eld[2,1]*(x[1]-y_centroid)+gradient_field[2,2]*(x[2]-z_ce"+
+            "ntroid)"),
+            mean_field=[0.0, 0.0, 0.0], gradient_field=[[0.0, 0.0, 0.0],[0.0, 0.0, 0.0],[0.0, 0.0, 
+            0.0]], x_centroid=x_centroid, y_centroid=y_centroid, z_centroid=z_centroid)"""
+
+            self.field_expression = multiscale_expressions.LinearVectorFieldExpression([0.0, 0.0, 0.0], [[0.0, 0.0, 0.0],[0.0, 0.0, 0.0],[0.0, 0.0, 
+            0.0]], x_centroid, y_centroid, z_centroid)
+
+        else:
+
+            raise ValueError("There is not possible yet to use the lin"+
+            "ear multiscale boundary condition for fields with dimensi"+
+            "onality larger than a 1 (a vector). The given dimensional"+
+            "ity is "+str(n_dimsPrimalField))
+
+        # Saves the number of fields
+
+        self.n_fields = len(fields_names)
+
+        # Finds the index of this field to be constrained
+
+        self.field_index = 0
+
+        for i in range(self.n_fields):
+
+            if fields_names[i]==self.constrained_fieldName:
+
+                self.field_index = i 
+
+                break
+
+        # Saves the atributes that will be retrieved again for latter
+        # classes
+        
+        self.elements_dictionary = elements_dictionary
+
+        self.fields_names = fields_names
+        
+    # Defines a function to in fact construct the boundary condition
+
+    def update(self, bilinear_form, linear_form, boundary_conditions,
+    trial_functionsDict, test_functionsDict, boundary_conditionIndex, 
+    mesh_dataClass, monolithic_functionSpace):
+        
+        # Gets the mean field and the mean gradient 
+
+        mean_field = getattr(self.macro_quantitiesClasses[
+        boundary_conditionIndex], self.constrained_fieldName)
+
+        gradient_field = getattr(self.macro_quantitiesClasses[
+        boundary_conditionIndex], self.constrained_gradientFieldName)
+        
+        # Updates the values of the field and its gradient in the ex-
+        # pression for the field on the boundary
+
+        self.field_expression.mean_field = mean_field
+
+        self.field_expression.gradient_field = gradient_field
+        
+        # Adds the zero fluctuation boundary condtion. Checks first if
+        # the formulation has multiple fields
+
+        if self.n_fields>1:
+
+            boundary_conditions.append(DirichletBC(
+            monolithic_functionSpace.sub(self.field_index), 
+            self.field_expression, "on_boundary"))
+
+        else:
+
+            boundary_conditions.append(DirichletBC(
+            monolithic_functionSpace, self.field_expression, "on_bound"+
+            "ary"))
 
         # Returns the boundary conditions and variational forms
 

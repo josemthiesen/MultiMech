@@ -5,65 +5,6 @@ import functools
 import inspect
 
 ########################################################################
-#                         Return-handling tools                        #
-########################################################################
-
-# Defines a function to get a particular variable from the result of a 
-# function
-
-def get_result(whole_result, variable_name):
-
-    # Verifies whether the whole result is a dictionary
-
-    if isinstance(whole_result, dict):
-
-        # Tries to read the variable name as a key
-
-        try:
-
-            return whole_result[variable_name]
-        
-        except:
-
-            raise KeyError("The name '"+str(variable_name)+"' is not a"+
-            " key of the result dictionary of this function. Do you me"+
-            "an one of the following possible keys? "+str(set(
-            whole_result.keys()))[1:-1])
-        
-    # Verifies if it is a tuple
-
-    if isinstance(whole_result, tuple):
-
-        # Verifies if it is a named tuple
-        
-        if hasattr(whole_result, '_fields'):
-        
-            try:
-
-                return getattr(whole_result, variable_name)
-            
-            except:
-
-                raise AttributeError("The named tuple returned by the "+
-                "function does not have a variable named "+str(
-                variable_name)+". This named tuple has the following a"+
-                "ttributes:\n"+str(whole_result._fields)[1:-1])
-            
-        # If it is not a named tuple, raise an exception
-
-        else:
-
-            raise TypeError("The result of the function is a tuple but"+
-            " it is not a named tuple. Thus, the variable name '"+str(
-            variable_name)+"' cannot be used")
-        
-    # Simply gives the result
-        
-    else:
-
-        return whole_result
-
-########################################################################
 #                         Memory-handling tools                        #
 ########################################################################
 
@@ -151,6 +92,99 @@ def optional_argumentsInitializer(default_argumentsDictionary):
     return decorator
 
 ########################################################################
+#                           Dictionary tools                           #
+########################################################################
+
+# Defines a function to swap the keys of a dictionary. Uses a list of 
+# lists to change some or all keys; each sublist is a pair of old and 
+# new keys
+
+def change_dictionaryKeys(original_dictionary, old_keysList):
+
+    for old_key, new_key in old_keysList:
+
+        # Tests if the key is in the dictionary
+
+        if old_key in original_dictionary:
+
+            # Adds the new key
+
+            original_dictionary[new_key] = original_dictionary[old_key]
+
+            # Deletes the old key
+
+            original_dictionary.pop(old_key)
+
+        # If this key is not found, raises an error message
+
+        else:
+
+            raise KeyError("The key '"+str(old_key)+"' cannot be delet"+
+            "ed and swapped by the new key '"+str(new_key)+"' because "+
+            "the old keys does not exist in the dictionary.")
+
+    return original_dictionary
+
+########################################################################
+#                         Return-handling tools                        #
+########################################################################
+
+# Defines a function to get a particular variable from the result of a 
+# function
+
+def get_result(whole_result, variable_name):
+
+    # Verifies whether the whole result is a dictionary
+
+    if isinstance(whole_result, dict):
+
+        # Tries to read the variable name as a key
+
+        try:
+
+            return whole_result[variable_name]
+        
+        except:
+
+            raise KeyError("The name '"+str(variable_name)+"' is not a"+
+            " key of the result dictionary of this function. Do you me"+
+            "an one of the following possible keys? "+str(set(
+            whole_result.keys()))[1:-1])
+        
+    # Verifies if it is a tuple
+
+    if isinstance(whole_result, tuple):
+
+        # Verifies if it is a named tuple
+        
+        if hasattr(whole_result, '_fields'):
+        
+            try:
+
+                return getattr(whole_result, variable_name)
+            
+            except:
+
+                raise AttributeError("The named tuple returned by the "+
+                "function does not have a variable named "+str(
+                variable_name)+". This named tuple has the following a"+
+                "ttributes:\n"+str(whole_result._fields)[1:-1])
+            
+        # If it is not a named tuple, raise an exception
+
+        else:
+
+            raise TypeError("The result of the function is a tuple but"+
+            " it is not a named tuple. Thus, the variable name '"+str(
+            variable_name)+"' cannot be used")
+        
+    # Simply gives the result
+        
+    else:
+
+        return whole_result
+
+########################################################################
 #                Classes from file automatic retriever                 #
 ########################################################################
 
@@ -194,10 +228,10 @@ def get_allProcesses(searched_file, parent_class, reserved_classes=None):
 def dispatch_processes(methods_names, searched_file, parent_class, 
 class_input=None, reserved_classes=None):
 
-    # Assures methods_names is a list
+    # Assures methods_names is a list, or a tuple or a dictionary
 
     if not (isinstance(methods_names, list) or isinstance(methods_names, 
-    tuple)):
+    tuple) or isinstance(methods_names, dict)):
 
         methods_names = [methods_names]
 

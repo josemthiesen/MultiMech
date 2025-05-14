@@ -21,9 +21,10 @@ import source.tool_box.multiscale_boundary_conditions_tools as multiscale_BCsToo
 @programming_tools.optional_argumentsInitializer({'neumann_loads': 
 lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: []})
 
-def micropolar_microscale(macro_displacementName, 
-macro_gradDisplacementName, macro_microrotationName, 
-macro_gradMicrorotationName, constitutive_model, maximum_loadingSteps, 
+def micropolar_microscale(displacement_multiscaleBC, 
+microrotation_multiscaleBC, macro_displacementFileName, 
+macro_gradDisplacementFileName, macro_microrotationFileName, 
+macro_gradMicrorotationFileName, constitutive_model, maximum_loadingSteps, 
 t_final, post_processes, mesh_fileName, solver_parameters, 
 polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
 0.0, solution_name=None, verbose=False):
@@ -39,132 +40,62 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     verbose)
 
     ####################################################################
-    #                         Macro quantities                         #
-    ####################################################################
-
-    # Creates a dictionary with the names of the macro variables (name
-    # them as python variables, i.e. no spaces nor non-ASCII characters)
-    # as keys and the txt file name
-
-    macro_quantitiesDict = dict()
-
-    macro_quantitiesDict["macro_displacement"] = macro_displacementName
-
-    macro_quantitiesDict["macro_gradDisplacement"] = macro_gradDisplacementName
-
-    macro_quantitiesDict["macro_rotation"] = macro_microrotationName
-
-    macro_quantitiesDict["macro_gradMicrorotation"] =  macro_gradMicrorotationName
-
-    ####################################################################
     #                          Function space                          #
     ####################################################################
 
-    """# Constructs elements for the displacement and for the microrotation
-    # fields
-
-    displacement_element = VectorElement("CG", 
-    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeDisplacement)
-
-    microrotation_element = VectorElement("CG", 
-    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeMicrorotation)
-
-    # Defines the finite element spaces for the Lagrange multipliers, 
-    # which enforce the micro-scale kinematical constraints. The degree 
-    # of the polynomial is 0 because the lagrange multiplier is constant
-    # throughout the element
-
-    # Displacement constraint (impedes rigid body translation)
-
-    lagrangeMult_U = VectorElement("Real", mesh_dataClass.mesh.ufl_cell(
-    ), 0) 
-
-    # Displacement gradient constraint (impedes rigid body rotation)
-
-    lagrangeMult_GradU = TensorElement("Real", 
-    mesh_dataClass.mesh.ufl_cell(), 0) 
-
-    # Microrotation constraint
-
-    lagrangeMult_Phi = VectorElement("Real", 
-    mesh_dataClass.mesh.ufl_cell(), 0) 
-
-    # Microrotation gradient constraint
-
-    lagrangeMult_GradPhi = TensorElement("Real", 
-    mesh_dataClass.mesh.ufl_cell(), 0)
-
-    # Defines the mixed element for the monolithic solution
-
-    mixed_element = MixedElement([displacement_element, 
-    microrotation_element, lagrangeMult_U, lagrangeMult_GradU, 
-    lagrangeMult_Phi, lagrangeMult_GradPhi])
-
-    # Defines the finite element space for the monolithic solution
-
-    monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
-    mixed_element)
-
-    # Sets the names for each field that will be used to retrive and 
-    # sort post-processes into a dictionary. The names are the keys and
-    # the values are the indexes in the monolithic function space
-
-    fields_names = {"displacement":0, "microrotation":1, "displacement"+
-    " lagrange multiplier": 2, "displacement gradient lagrange multipl"+
-    "ier": 3, "microrotation lagrange multiplier": 4, "microrotation g"+
-    "radient lagrange multiplier": 5}
-
-    # Initializes the class of macro quantities. Put this class into a
-    # list because you could have multiple classes
-
-    macro_quantitiesClasses = [functional_tools.MacroQuantitiesInTime(
-    macro_quantitiesDict)]"""
-
-    bilinear_form = 0.0
-    
-    linear_form = 0.0
+    # Assembles a dictionary of finite elements for the two primal 
+    # fields: displacement and microrotation
 
     elements_dictionary = {"displacement": VectorElement("CG", 
     mesh_dataClass.mesh.ufl_cell(), polynomial_degreeDisplacement), "m"+
     "icrorotation": VectorElement("CG", mesh_dataClass.mesh.ufl_cell(), 
     polynomial_degreeMicrorotation)}
 
+    ####################################################################
+    #                        Boundary conditions                       #
+    ####################################################################
+
+    # Builds a dictionary of multiscale boundary conditions. Each key is
+    # the name of the field to be constrained, whereas the value is a
+    # dictionary with two mandatory keys: "boundary condition" that sta-
+    # tes the type of boundary condition to be applied and has the name
+    # of one of the classes defined in multiscale_classes.py; "macro in-
+    # formation", that is a dictionary of the macro file paths
+
     multiscale_BCsDict = dict()
 
-    multiscale_BCsDict["displacement"] = {"MinimallyConstrainedFirstOr"+
-    "derBC":}
+    multiscale_BCsDict["displacement"] = {"boundary condition": 
+    displacement_multiscaleBC, "macro information": {"macro field file":
+    macro_displacementFileName, "macro field gradient file":
+    macro_gradDisplacementFileName}}
+
+    multiscale_BCsDict["microrotation"] = {"boundary condition": 
+    microrotation_multiscaleBC, "macro information": {"macro field fil"+
+    "e": macro_microrotationFileName, "macro field gradient file":
+    macro_gradMicrorotationFileName}}
+
+    # Calls up the function to automatically select the boundary condi-
+    # tions
 
     (bilinear_form, linear_form, boundary_conditions, 
     macro_quantitiesClasses, fields_namesDict, solution_fields, 
-    variation_fields) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
-    multiscale_BCsDict, elements_dictionary, mesh_dataClass, 
-    bilinear_form, linear_form)
+    variation_fields, trial_functions, monolithic_solution, 
+    mixed_element, volume_inverse) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
+    multiscale_BCsDict, elements_dictionary, mesh_dataClass)
 
     ####################################################################
     #                         Variational forms                        #
     ####################################################################
 
-    # Defines the trial and test functions
+    # Recovers the primal fields and their variations
 
-    delta_solution = TrialFunction(monolithic_functionSpace) 
+    u_new = solution_fields["displacement"]
+    
+    phi_new = solution_fields["microrotation"]
 
-    variation_solution = TestFunction(monolithic_functionSpace)
-
-    # Creates the function for the updated solution, i.e. the vector of 
-    # parameters
-
-    solution_new = Function(monolithic_functionSpace)
-
-    # Splits the solution and the test function. Splits the fields but 
-    # keeps each one with the global vector of parameters
-
-    (u_new, phi_new, lagrange_displacement, lagrange_gradDisp, 
-    lagrange_microrotation, lagrange_gradMicrorotation) = split(
-    solution_new)
-
-    (variation_u, variation_phi, v_lagrangeDisplacement, v_lagrangeGradDisp, 
-    v_lagrangeMicrorotation, v_lagrangeGradMicrorotation) = split(
-    variation_solution)
+    variation_u = variation_fields["displacement"]
+    
+    variation_phi = variation_fields["microrotation"]
 
     # Constructs the variational form for the inner work
 
@@ -172,51 +103,21 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     u_new, phi_new, variation_u, variation_phi, constitutive_model, 
     mesh_dataClass)
 
-    # Evaluates the volume of the domain
-    
-    total_volume = assemble(1.0*mesh_dataClass.dx)
+    # Constructs the residual and evaluates its derivative w.r.t. the
+    # trial solution
 
-    # Constructs the variational form of the Lagrange multipliers
+    residual_form = ((volume_inverse*internal_VarForm)+bilinear_form-
+    linear_form)
 
-    Int_dlambu = ((1/total_volume)*((dot(v_lagrangeDisplacement,
-    macro_quantitiesClasses[0].macro_displacement)*dx)-(dot(
-    v_lagrangeDisplacement,u_new)*dx)))
-
-    Int_dlambphi = ((1/total_volume)*((dot(v_lagrangeMicrorotation,
-    macro_quantitiesClasses[0].macro_rotation)*dx)-(dot(
-    v_lagrangeMicrorotation, phi_new)*dx)))
-
-    Int_dlambgrau = ((1/total_volume)*((inner(v_lagrangeGradDisp, 
-    macro_quantitiesClasses[0].macro_gradDisplacement)*dx)-(inner(
-    v_lagrangeGradDisp, grad(u_new))*dx)))
-
-    Int_dlambgradphi = ((1/total_volume)*((inner(
-    v_lagrangeGradMicrorotation, macro_quantitiesClasses[0
-    ].macro_gradMicrorotation)*dx)-(inner(v_lagrangeGradMicrorotation,
-    grad(phi_new))*dx))) 
-
-    l_du = (-(1/total_volume)*((dot(lagrange_displacement, variation_u)*
-    dx)+(inner(lagrange_gradDisp, grad(variation_u))*dx)))
-
-    l_dphi = (-(1/total_volume)*((dot(lagrange_microrotation,
-    variation_phi)*dx)+(inner(lagrange_gradMicrorotation, grad(
-    variation_phi))*dx))) 
-
-    # Assembles the residual, takes the Gateaux derivative and assembles
-    # the nonlinear problem object
-
-    residual_form = (((1/total_volume)*internal_VarForm)+Int_dlambu+
-    Int_dlambphi+Int_dlambgrau+Int_dlambgradphi+l_du+l_dphi)
-
-    residual_derivative = derivative(residual_form, solution_new, 
-    delta_solution)
+    residual_derivative = derivative(residual_form, monolithic_solution, 
+    trial_functions)
 
     # Makes the boundary condition an empty list, because the macrosca-
     # le boundary conditions are applied directly onto the variational
     # form, using Lagrange multipliers
 
-    Res = NonlinearVariationalProblem(residual_form, solution_new, [], 
-    J=residual_derivative)
+    Res = NonlinearVariationalProblem(residual_form, monolithic_solution,
+    boundary_conditions, J=residual_derivative)
 
     ####################################################################
     #                    Solver parameters setting                     #
@@ -232,12 +133,12 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
 
     if len(solution_name)==0:
 
-        for field_name in fields_names:
+        for field_name in fields_namesDict:
 
             solution_name.append([field_name, "Microscale"])
 
     newton_raphson_tools.newton_raphsonMultipleFields(
-    maximum_loadingSteps, solver, solution_new, fields_names, 
+    maximum_loadingSteps, solver, monolithic_solution, fields_namesDict, 
     mixed_element, mesh_dataClass, constitutive_model, 
     post_processesList=post_processes, solver_parameters=
     solver_parameters, solution_name=solution_name, 

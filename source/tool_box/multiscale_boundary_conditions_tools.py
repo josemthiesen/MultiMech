@@ -18,38 +18,81 @@ import source.tool_box.programming_tools as programming_tools
 lambda: []})
 
 def select_multiscaleBoundaryConditions(multiscale_BCsDict,
-elements_dictionary, mesh_dataClass, bilinear_form, linear_form, 
+elements_dictionary, mesh_dataClass, bilinear_form=0.0, linear_form=0.0, 
 boundary_conditions=None):
+    
+    # Verifies if the multiscale_BCsDict is a dictionary
+
+    if not isinstance(multiscale_BCsDict, dict):
+
+        raise TypeError("The dictionary of multiscale boundary conditi"+
+        "ons must be a dictionary, whose keys are the constrained fiel"+
+        "ds' names\nand the values are dictionaries of boundary condti"+
+        "ons' names and macro information")
+    
+    # Tests whether it is a dictionary of dictionaries
+
+    if not isinstance(multiscale_BCsDict[list(multiscale_BCsDict.keys())
+    [0]], dict):
+        
+        # Gives a generic field name and encapsulate it as a field dic-
+        # tionary
+
+        multiscale_BCsDict = {"generic_field": multiscale_BCsDict}
 
     # Gets the names of the fields from the keys of the dictionary of e-
     # lements
 
-    fields_names = [field_name for field_name in elements_dicionary.keys(
+    fields_names = [field_name for field_name in elements_dictionary.keys(
     )]
 
     # Initializes the list of macro quantities classes as an empty list
 
     macro_quantitiesClasses = []
 
+    # Initializes the inverse of the volume
+
+    volume_inverse = None
+
     # Iterates through the fields
 
-    for field_name, field_BCs in multiscale_BCsDict.items():
+    for field_name, field_BC in multiscale_BCsDict.items():
+
+        # Checks if this field has as value a dictionary with a boundary
+        # condition key and a macro information key
+
+        if not ("boundary condition" in field_BC):
+
+            raise KeyError("The dictionary of multiscale boundary cond"+
+            "itions has the fields' names as keys and another dictiona"+
+            "ry as value.\nThis inner dictionary must have the key 'bo"+
+            "undary condition'")
+
+        if not ("macro information" in field_BC):
+
+            raise KeyError("The dictionary of multiscale boundary cond"+
+            "itions has the fields' names as keys and another dictiona"+
+            "ry as value.\nThis inner dictionary must have the key 'ma"+
+            "cro information'")
 
         # Constructs a dictionary of classes of multiscale boundary con-
         # ditions that are implemented. If you implement any new bounda-
         # ry condition, the code will automatically retrieve it using 
         # the inspect functionality if the class you created is a child 
-        # of the class BCsClassTemplate
+        # of the class BCsClassTemplate.
+        # Retrieves at last just the boundary condition because the dis-
+        # patch functions returns a dictionary of methods
 
         multiscale_BCsDict[field_name] = programming_tools.dispatch_processes(
-        field_BCs, multiscale_classes, 
+        field_BC["boundary condition"], multiscale_classes, 
         multiscale_classes.BCsClassTemplate, reserved_classes=[
         multiscale_classes.BCsClassTemplate], class_input=(field_name,
-        field_name+" gradient", fields_names, elements_dictionary, 
-        mesh_dataClass, macro_quantitiesClasses))
+        fields_names, elements_dictionary, mesh_dataClass, field_BC["m"+
+        "acro information"], macro_quantitiesClasses, volume_inverse))[
+        field_BC["boundary condition"]]
 
-        # Recovers the elements dictionary, the fields names, and the 
-        # macro quantities list of classes
+        # Recovers the elements dictionary, the fields names, the macro
+        # quantities list of classes, and the inverse of the volume
 
         elements_dictionary = multiscale_BCsDict[field_name
         ].elements_dictionary
@@ -59,18 +102,16 @@ boundary_conditions=None):
         macro_quantitiesClasses = multiscale_BCsDict[field_name
         ].macro_quantitiesClasses
 
+        volume_inverse = multiscale_BCsDict[field_name].volume_inverse
+
     # Constructs the mixed element using the order of fields from the 
     # list of field names, then, creates the monolithic function space
 
-    mixed_element = [elements_dictionary[field_name] for field_name in (
-    fields_names)]
+    mixed_element = MixedElement([elements_dictionary[field_name] for (
+    field_name) in (fields_names)])
 
     monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
     mixed_element)
-
-    # Defines the trial functions
-
-    delta_solution = TrialFunction(monolithic_functionSpace) 
 
     # Creates the function for the updated solution, i.e. the vector of 
     # parameters. Then, splits into the individual fields. As the mono-
@@ -78,7 +119,11 @@ boundary_conditions=None):
     # the individual fields following this order. Does the same for the
     # variations
 
-    solution_functions = split(Function(monolithic_functionSpace))
+    trial_functions = TrialFunction(monolithic_functionSpace)
+
+    monolithic_solution = Function(monolithic_functionSpace)
+
+    solution_functions = split(monolithic_solution)
 
     variation_functions = split(TestFunction(monolithic_functionSpace))
 
@@ -105,14 +150,15 @@ boundary_conditions=None):
 
     counter_BCs = 0
 
-    for field_BCs in multiscale_BCsDict.values():
+    for field_BC in multiscale_BCsDict.values():
 
         # Uses the standard update method that is obligatory for all BCs
         # classes
 
-        bilinear_form, linear_form, boundary_conditions = fields_BCs.update(
+        bilinear_form, linear_form, boundary_conditions = field_BC.update(
         bilinear_form, linear_form, boundary_conditions, solution_fields,
-        variation_fields, counter_BCs, mesh_dataClass)
+        variation_fields, counter_BCs, mesh_dataClass,
+        monolithic_functionSpace)
 
         # Updates the counter of BCs
 
@@ -123,4 +169,5 @@ boundary_conditions=None):
 
     return (bilinear_form, linear_form, boundary_conditions, 
     macro_quantitiesClasses, fields_namesDict, solution_fields, 
-    variation_fields)
+    variation_fields, trial_functions, monolithic_solution, 
+    mixed_element, volume_inverse)

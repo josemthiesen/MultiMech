@@ -1,0 +1,41 @@
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp: In member function ‘virtual void dolfin::dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55::eval(Eigen::Ref<Eigen::Matrix<double, -1, 1> >, Eigen::Ref<const Eigen::Matrix<double, -1, 1> >) const’:
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:64:23: error: ‘mean’ was not declared in this scope
+   64 |           values[0] = mean[0]+gradient_field[0,0]*(x[0]-x_centroid)+gradient_field[0,1]*(x[1]-y_centroid)+gradient_field[0,2]*(x[2]-z_centroid);
+      |                       ^~~~
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:64:31: error: ‘gradient_field’ was not declared in this scope
+   64 |           values[0] = mean[0]+gradient_field[0,0]*(x[0]-x_centroid)+gradient_field[0,1]*(x[1]-y_centroid)+gradient_field[0,2]*(x[2]-z_centroid);
+      |                               ^~~~~~~~~~~~~~
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:64:46: warning: left operand of comma operator has no effect [-Wunused-value]
+   64 |           values[0] = mean[0]+gradient_field[0,0]*(x[0]-x_centroid)+gradient_field[0,1]*(x[1]-y_centroid)+gradient_field[0,2]*(x[2]-z_centroid);
+      |                                              ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:64:84: warning: left operand of comma operator has no effect [-Wunused-value]
+   64 |           values[0] = mean[0]+gradient_field[0,0]*(x[0]-x_centroid)+gradient_field[0,1]*(x[1]-y_centroid)+gradient_field[0,2]*(x[2]-z_centroid);
+      |                                                                                    ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:64:122: warning: left operand of comma operator has no effect [-Wunused-value]
+   64 |           values[0] = mean[0]+gradient_field[0,0]*(x[0]-x_centroid)+gradient_field[0,1]*(x[1]-y_centroid)+gradient_field[0,2]*(x[2]-z_centroid);
+      |                                                                                                                          ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:65:46: warning: left operand of comma operator has no effect [-Wunused-value]
+   65 |           values[1] = mean[1]+gradient_field[1,0]*(x[0]-x_centroid)+gradient_field[1,1]*(x[1]-y_centroid)+gradient_field[1,2]*(x[2]-z_centroid);
+      |                                              ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:65:84: warning: left operand of comma operator has no effect [-Wunused-value]
+   65 |           values[1] = mean[1]+gradient_field[1,0]*(x[0]-x_centroid)+gradient_field[1,1]*(x[1]-y_centroid)+gradient_field[1,2]*(x[2]-z_centroid);
+      |                                                                                    ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:65:122: warning: left operand of comma operator has no effect [-Wunused-value]
+   65 |           values[1] = mean[1]+gradient_field[1,0]*(x[0]-x_centroid)+gradient_field[1,1]*(x[1]-y_centroid)+gradient_field[1,2]*(x[2]-z_centroid);
+      |                                                                                                                          ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:66:46: warning: left operand of comma operator has no effect [-Wunused-value]
+   66 |           values[2] = mean[2]+gradient_field[2,0]*(x[0]-x_centroid)+gradient_field[2,1]*(x[1]-y_centroid)+gradient_field[2,2]*(x[2]-z_centroid);
+      |                                              ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:66:84: warning: left operand of comma operator has no effect [-Wunused-value]
+   66 |           values[2] = mean[2]+gradient_field[2,0]*(x[0]-x_centroid)+gradient_field[2,1]*(x[1]-y_centroid)+gradient_field[2,2]*(x[2]-z_centroid);
+      |                                                                                    ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:66:122: warning: left operand of comma operator has no effect [-Wunused-value]
+   66 |           values[2] = mean[2]+gradient_field[2,0]*(x[0]-x_centroid)+gradient_field[2,1]*(x[1]-y_centroid)+gradient_field[2,2]*(x[2]-z_centroid);
+      |                                                                                                                          ^
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp: In member function ‘virtual double dolfin::dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55::get_property(std::string) const’:
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:78:11: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   78 |           if (name == "x_centroid") return x_centroid;          if (name == "y_centroid") return y_centroid;          if (name == "z_centroid") return z_centroid;
+      |           ^~
+/tmp/tmp_ugd241r/dolfin_expression_f8fdb4ad27314856d8bc3694e8171d55.cpp:78:65: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   78 |           if (name == "x_centroid") return x_centroid;          if (name == "y_centroid") return y_centroid;          if (name == "z_centroid") return z_centroid;
+      |                                                                 ^~

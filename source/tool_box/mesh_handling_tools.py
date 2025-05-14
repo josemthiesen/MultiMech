@@ -12,7 +12,7 @@ import source.tool_box.variational_tools as variational_tools
 
 class MeshData:
 
-    def __init__(self, mesh, dx, ds, n, domain_meshCollection, 
+    def __init__(self, mesh, dx, ds, n, x, domain_meshCollection, 
     domain_meshFunction, boundary_meshCollection, boundary_meshFunction, 
     domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag,
     verbose):
@@ -26,6 +26,8 @@ class MeshData:
         self.ds = ds
         
         self.n = n
+
+        self.x = x
         
         self.domain_meshCollection = domain_meshCollection 
 
@@ -343,12 +345,16 @@ False):
 
     n  = FacetNormal(mesh)
 
+    # Sets the position vector
+
+    x_position = SpatialCoordinate(mesh)
+
     print("Finishes creating the mesh functions, measures, and tags di"+
     "ctionaries.\n")
 
     # Stores these objects inside a class and returns it
 
-    return MeshData(mesh, dx, ds, n, domain_meshCollection, 
+    return MeshData(mesh, dx, ds, n, x_position, domain_meshCollection, 
     domain_meshFunction, boundary_meshCollection, boundary_meshFunction, 
     domain_physicalGroupsNameToTag, boundary_physicalGroupsNameToTag,
     verbose)

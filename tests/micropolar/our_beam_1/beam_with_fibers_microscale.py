@@ -26,12 +26,25 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 def case1_varyingMicropolarNumber(flag_newMesh=False):
 
+    # Sets the multiscale boundary conditions for each one of the fields
+
+    displacement_multiscaleBC = "MinimallyConstrainedFirstOrderBC"
+    
+    microrotation_multiscaleBC = "LinearFirstOrderBC"
+
     # Reads the parameters set
 
     base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
 
     parameters_sets = file_tools.txt_toList(base_path+"//parameters_se"+
     "ts")
+
+    # Sets a list of names for each set of parameters, which will yield
+    # different simulations
+
+    simulations_names = ["simulation_11", "simulation_12"]#, "simulation"+
+    #"_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
+    #"ion_31", "simulation_32", "simulation_33"]
 
     # Defines a list of lists, each list is a set of material parameters:
     # 0.  Young modulus of the matrix
@@ -52,7 +65,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Iterates through the simulations
 
-    for i in range(len(parameters_sets)):
+    for i in range(min([len(parameters_sets),len(simulations_names)])):
 
         # Makes a new mesh just for the first test and if a new mesh is
         # asked for
@@ -65,41 +78,22 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         # Calls the simulation for bending 
 
-        beam_case_1(base_path, *parameters_sets[i][0:10], gamma_matrix=
-        parameters_sets[i][10], gamma_fiber=parameters_sets[i][11], 
-        RVE_width=parameters_sets[i][12], RVE_length=parameters_sets[i][
-        13], fiber_radius=parameters_sets[i][14], flag_newMesh=flag_mesh)
+        beam_case_1(displacement_multiscaleBC, 
+        microrotation_multiscaleBC,base_path, *parameters_sets[i][0:10], 
+        gamma_matrix=parameters_sets[i][10], gamma_fiber=parameters_sets[
+        i][11], RVE_width=parameters_sets[i][12], RVE_length=
+        parameters_sets[i][13], fiber_radius=parameters_sets[i][14], 
+        flag_newMesh=flag_mesh, subfolder_name=simulations_names[i])
 
 # Defines a function to try different parameters
 
-def beam_case_1(base_path, E_matrix, E_fiber, nu_matrix, nu_fiber, 
-N_micropolarMatrix, N_micropolarFiber, characteristic_lengthMatrix, 
+def beam_case_1(displacement_multiscaleBC, microrotation_multiscaleBC,
+base_path, E_matrix, E_fiber, nu_matrix, nu_fiber, N_micropolarMatrix, 
+N_micropolarFiber, characteristic_lengthMatrix, 
 characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
-1, RVE_localizationZ=3, flag_newMesh=True):
-    
-    # Sets a sufix to denote the material parameters
-
-    sufix = ""
-
-    if flag_bending:
-
-        sufix += ("bending_matrix_lb_"+float_toString(
-        characteristic_lengthMatrix)+"_fiber_lb_"+float_toString(
-        characteristic_lengthFiber)+"_")
-
-    else:
-
-        sufix += ("torsion_matrix_lt_"+float_toString(
-        characteristic_lengthMatrix)+"_fiber_lt_"+float_toString(
-        characteristic_lengthFiber)+"_")
-
-    sufix += ("matrix_gamma_"+float_toString(gamma_matrix)+"_fiber_gam"+
-    "ma_"+float_toString(gamma_fiber)+"_")
-
-    sufix += ("matrix_N_"+float_toString(N_micropolarMatrix)+"_fiber_N"+
-    "_"+float_toString(N_micropolarFiber))
+1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation"):
 
     ####################################################################
     ####################################################################
@@ -113,9 +107,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
 
     # Defines the path to the results directory 
 
-    results_pathGraphics = base_path+"//graphics//"+sufix
+    results_pathGraphics = base_path+"//graphics//"+subfolder_name
 
-    results_pathText = base_path+"//text//"+sufix
+    results_pathText = base_path+"//text//"+subfolder_name
 
     saving_fileNames = ["displacement_microscale.xdmf", "microrotation"+
     "_microscale.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
@@ -138,14 +132,21 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
 
     post_processes = []
 
-    fields_names = ["displacement", "microrotation", "displacement lag"+
-    "range multiplier", "displacement gradient lagrange multiplier", 
-    "microrotation lagrange multiplier", "microrotation gradient lagra"+
-    "nge multiplier"]
+    fields_names = ["displacement", "microrotation"]
+    
+    if displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC":
+    
+        fields_names.extend(["displacement_lagrange_multiplier", "disp"+
+        "lacement_gradient_lagrange_multiplier"]) 
+
+    if microrotation_multiscaleBC=="MinimallyConstrainedFirstOrderBC":
+    
+        fields_names.extend(["microrotation_lagrange_multiplier", "mic"+
+        "rorotation_gradient_lagrange_multiplier"])
 
     # Iterates through the fields (displacement and microrotation)
 
-    for i in range(6):
+    for i in range(len(fields_names)):
 
         post_processes.append([fields_names[i], dict()])
 
@@ -377,12 +378,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
 
     # Solves the variational problem
 
-    variational_framework.micropolar_microscale(macro_displacementName, 
-    macro_gradDisplacementName, macro_microrotationName, 
-    macro_gradMicrorotationName, constitutive_model,
-    maximum_loadingSteps, t_final, post_processes, file_directory+"//"+
-    mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
-    polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
-    polynomial_degreeMicrorotation, t=t, verbose=verbose)
+    variational_framework.micropolar_microscale(
+    displacement_multiscaleBC, microrotation_multiscaleBC,
+    macro_displacementName, macro_gradDisplacementName, 
+    macro_microrotationName, macro_gradMicrorotationName, 
+    constitutive_model, maximum_loadingSteps, t_final, post_processes, 
+    file_directory+"//"+mesh_fileName, solver_parameters, 
+    polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
+    polynomial_degreeMicrorotation=polynomial_degreeMicrorotation, t=t, 
+    verbose=verbose)
 
 case1_varyingMicropolarNumber(flag_newMesh=True)

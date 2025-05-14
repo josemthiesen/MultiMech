@@ -1,0 +1,14 @@
+/tmp/tmpm5wia840/dolfin_expression_661854369f2415bd4ba6ee596500bcd0.cpp: In member function ‘virtual void dolfin::dolfin_expression_661854369f2415bd4ba6ee596500bcd0::eval(Eigen::Ref<Eigen::Matrix<double, -1, 1> >, Eigen::Ref<const Eigen::Matrix<double, -1, 1> >) const’:
+/tmp/tmpm5wia840/dolfin_expression_661854369f2415bd4ba6ee596500bcd0.cpp:64:23: error: ‘a’ was not declared in this scope
+   64 |           values[0] = a[0] + (grad[0][0]*(x[0]-x_centroid)) + (grad[0][1]*(x[1]-y_centroid)) + (grad[0][2]*(x[2]-z_centroid));
+      |                       ^
+/tmp/tmpm5wia840/dolfin_expression_661854369f2415bd4ba6ee596500bcd0.cpp:64:31: error: ‘grad’ was not declared in this scope
+   64 |           values[0] = a[0] + (grad[0][0]*(x[0]-x_centroid)) + (grad[0][1]*(x[1]-y_centroid)) + (grad[0][2]*(x[2]-z_centroid));
+      |                               ^~~~
+/tmp/tmpm5wia840/dolfin_expression_661854369f2415bd4ba6ee596500bcd0.cpp: In member function ‘virtual double dolfin::dolfin_expression_661854369f2415bd4ba6ee596500bcd0::get_property(std::string) const’:
+/tmp/tmpm5wia840/dolfin_expression_661854369f2415bd4ba6ee596500bcd0.cpp:78:11: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   78 |           if (name == "x_centroid") return x_centroid;          if (name == "y_centroid") return y_centroid;          if (name == "z_centroid") return z_centroid;
+      |           ^~
+/tmp/tmpm5wia840/dolfin_expression_661854369f2415bd4ba6ee596500bcd0.cpp:78:65: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   78 |           if (name == "x_centroid") return x_centroid;          if (name == "y_centroid") return y_centroid;          if (name == "z_centroid") return z_centroid;
+      |                                                                 ^~
