@@ -477,7 +477,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     solver_parameters["linear_solver"] = "mumps"#"mumps"
 
-    solver_parameters["newton_relative_tolerance"] = 1e-8#1e-8
+    solver_parameters["newton_relative_tolerance"] = 1e-6#1e-8
 
     solver_parameters["newton_absolute_tolerance"] = 1e-5#1e-8
 
