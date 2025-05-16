@@ -156,7 +156,7 @@ class LinearVectorFieldExpression(UserExpression):
 # periodic. The domain must be a cube (the dimensions don't have to be
 # the same)
 
-class PeriodicBoundary(Subdomain):
+"""class PeriodicBoundary(Subdomain):
 
     def __init__(self, mean_field, gradient_field, x_centroid, 
     y_centroid, z_centroid, length_x, length_y, length_z):
@@ -221,4 +221,4 @@ class PeriodicBoundary(Subdomain):
         if (near(x[1], self.y_centroid-self.semi_lengthY) and near(x[2],
         self.z_centroid-self.semi_lengthZ)):
 
-            y[]
+            y[]"""

@@ -80,8 +80,9 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     (bilinear_form, linear_form, boundary_conditions, 
     macro_quantitiesClasses, fields_namesDict, solution_fields, 
     variation_fields, trial_functions, monolithic_solution, 
-    mixed_element, volume_inverse) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
-    multiscale_BCsDict, elements_dictionary, mesh_dataClass)
+    mixed_element, volume_inverse, fields_corrections) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
+    multiscale_BCsDict, elements_dictionary, mesh_dataClass, 
+    fluctuation_field=False)
 
     ####################################################################
     #                         Variational forms                        #
@@ -142,4 +143,5 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     mixed_element, mesh_dataClass, constitutive_model, 
     post_processesList=post_processes, solver_parameters=
     solver_parameters, solution_name=solution_name, 
-    macro_quantitiesClasses=macro_quantitiesClasses)
+    macro_quantitiesClasses=macro_quantitiesClasses, fields_corrections=
+    fields_corrections)

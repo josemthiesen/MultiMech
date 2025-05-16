@@ -19,7 +19,7 @@ lambda: []})
 
 def select_multiscaleBoundaryConditions(multiscale_BCsDict,
 elements_dictionary, mesh_dataClass, bilinear_form=0.0, linear_form=0.0, 
-boundary_conditions=None):
+boundary_conditions=None, fluctuation_field=True):
     
     # Verifies if the multiscale_BCsDict is a dictionary
 
@@ -53,6 +53,12 @@ boundary_conditions=None):
     # Initializes the inverse of the volume
 
     volume_inverse = None
+
+    # Initializes a dictionary of field corrections, due to having or 
+    # not the BVP been defined using a fluctuation field instead of the 
+    # complete field
+
+    field_corrections = dict()
 
     # Iterates through the fields
 
@@ -88,8 +94,8 @@ boundary_conditions=None):
         multiscale_classes.BCsClassTemplate, reserved_classes=[
         multiscale_classes.BCsClassTemplate], class_input=(field_name,
         fields_names, elements_dictionary, mesh_dataClass, field_BC["m"+
-        "acro information"], macro_quantitiesClasses, volume_inverse))[
-        field_BC["boundary condition"]]
+        "acro information"], macro_quantitiesClasses, volume_inverse,
+        fluctuation_field))[field_BC["boundary condition"]]
 
         # Recovers the elements dictionary, the fields names, the macro
         # quantities list of classes, and the inverse of the volume
@@ -103,6 +109,18 @@ boundary_conditions=None):
         ].macro_quantitiesClasses
 
         volume_inverse = multiscale_BCsDict[field_name].volume_inverse
+
+        # Recovers the correction of the primal field. If the BVP is 
+        # constructed using the fluctuation field, a correction (linear
+        # or quadratic) must be added. Constructs the function space to
+        # project the solution with the correction later for visualiza-
+        # tion and post-processing
+
+        if fluctuation_field:
+
+            field_corrections[field_name] = [multiscale_BCsDict[
+            field_name].field_correction, FunctionSpace(
+            mesh_dataClass.mesh, elements_dictionary[field_name])]
 
     # Constructs the mixed element using the order of fields from the 
     # list of field names, then, creates the monolithic function space
@@ -137,11 +155,23 @@ boundary_conditions=None):
 
     for i in range(len(fields_names)):
 
-        solution_fields[fields_names[i]] = solution_functions[i]
+        field_name = fields_names[i]
 
-        variation_fields[fields_names[i]] = variation_functions[i]
+        # Retrives the fields and adds the corrections due to using the
+        # fluctuation field or not
 
-        fields_namesDict[fields_names[i]] = i
+        if fluctuation_field:
+
+            solution_fields[field_name] = (solution_functions[i]
+            +field_corrections[field_name][0])
+
+        else:
+
+            solution_fields[field_name] = solution_functions[i]
+
+        variation_fields[field_name] = variation_functions[i]
+
+        fields_namesDict[field_name] = i
 
     # With the constructed fields, both trial and test functions, it is
     # time to build the variational forms and the boundary conditions
@@ -170,4 +200,4 @@ boundary_conditions=None):
     return (bilinear_form, linear_form, boundary_conditions, 
     macro_quantitiesClasses, fields_namesDict, solution_fields, 
     variation_fields, trial_functions, monolithic_solution, 
-    mixed_element, volume_inverse)
+    mixed_element, volume_inverse, field_corrections)

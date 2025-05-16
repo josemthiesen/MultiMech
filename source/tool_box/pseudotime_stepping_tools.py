@@ -325,14 +325,16 @@ t_final=None):
 lambda: [], 'post_processesSubmeshList': lambda: [], 'dirichlet_loads': 
 lambda: [], 'neumann_loads': lambda: [], 'solver_parameters': lambda: 
 dict(), 'solution_name': lambda: ["solution", "DNS"], ('volume_physGro'+
-'upsSubmesh'): lambda: [], 'macro_quantitiesClasses': lambda: []})
+'upsSubmesh'): lambda: [], 'macro_quantitiesClasses': lambda: [], 'fie'+
+'lds_corrections': lambda: dict()})
 
 def newton_raphsonMultipleFields(maximum_loadingSteps, solver, 
 solution_field, fields_names, mixed_element, mesh_dataClass, 
 constitutive_model, post_processesList=None, post_processesSubmeshList=
 None, dirichlet_loads=None, neumann_loads=None, solver_parameters=None, 
 solution_name=None, volume_physGroupsSubmesh=None, 
-macro_quantitiesClasses=None, t=None, t_final=None):
+macro_quantitiesClasses=None, t=None, t_final=None, fields_corrections=
+None):
 
     # Verifies if the classes of macroscale quantities are indeed ins-
     # tances of some class
@@ -573,9 +575,32 @@ macro_quantitiesClasses=None, t=None, t_final=None):
         print("The solution of this pseudotime took "+str(end_time-
         start_time)+" seconds\n\n")
 
-        # Splits the solution
+        # Splits the solution and appends each field to a list. Adds the
+        # correction if needed (the correction is another field; linear
+        # or quadratic, as examples)
 
         split_solution = list(solution_field.split(deepcopy=True))
+
+        for field_name, field_correction in fields_corrections.items():
+
+            field_index = 0
+
+            try:
+
+                field_index = fields_names[field_name]
+
+            except:
+
+                raise KeyError("The field correction of the '"+str(
+                field_name)+"' cannot be added to the solution for thi"+
+                "s name was not found in the dictionary of fields' nam"+
+                "es':\n"+str(list(fields_names.keys())))
+
+            # Projects the solution with the correction 
+
+            split_solution[field_index] = project(split_solution[
+            field_index]+fields_corrections[field_name][0], 
+            fields_corrections[field_name][1])
 
         # Renames the solution fields
 
