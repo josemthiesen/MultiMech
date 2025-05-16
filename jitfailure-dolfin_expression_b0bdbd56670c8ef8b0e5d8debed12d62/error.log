@@ -1,4 +1,0 @@
-/tmp/tmp7anyrj3v/dolfin_expression_b0bdbd56670c8ef8b0e5d8debed12d62.cpp: In member function ‘virtual void dolfin::dolfin_expression_b0bdbd56670c8ef8b0e5d8debed12d62::eval(Eigen::Ref<Eigen::Matrix<double, -1, 1> >, Eigen::Ref<const Eigen::Matrix<double, -1, 1> >) const’:
-/tmp/tmp7anyrj3v/dolfin_expression_b0bdbd56670c8ef8b0e5d8debed12d62.cpp:62:28: error: ‘grad’ was not declared in this scope
-   62 |           values[0] = 1 + (grad[0][0]*(x[1]-x_centroid));
-      |                            ^~~~

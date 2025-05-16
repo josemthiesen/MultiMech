@@ -32,6 +32,11 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     
     microrotation_multiscaleBC = "LinearFirstOrderBC"#"MinimallyConstrainedFirstOrderBC"
 
+    # Defines a flag to use the fluctuation of the field instead of the
+    # field proper in the BVP
+
+    fluctuation_field = True
+
     # Reads the parameters set
 
     base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
@@ -42,7 +47,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
 
-    simulations_names = ["simulation_11", "simulation_12"]#, "simulation"+
+    simulations_names = ["simulation_11"]#, "simulation_12"]#, "simulation"+
     #"_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
     #"ion_31", "simulation_32", "simulation_33"]
 
@@ -83,7 +88,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
         gamma_matrix=parameters_sets[i][10], gamma_fiber=parameters_sets[
         i][11], RVE_width=parameters_sets[i][12], RVE_length=
         parameters_sets[i][13], fiber_radius=parameters_sets[i][14], 
-        flag_newMesh=flag_mesh, subfolder_name=simulations_names[i])
+        flag_newMesh=flag_mesh, subfolder_name=simulations_names[i],
+        fluctuation_field=fluctuation_field)
 
 # Defines a function to try different parameters
 
@@ -93,7 +99,8 @@ N_micropolarFiber, characteristic_lengthMatrix,
 characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
-1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation"):
+1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation",
+fluctuation_field=False):
 
     ####################################################################
     ####################################################################
@@ -111,27 +118,57 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
 
     results_pathText = base_path+"//text//"+subfolder_name
 
-    saving_fileNames = ["displacement_microscale.xdmf", "microrotation"+
-    "_microscale.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
-    "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
-    "ation.xdmf"]
+    if fluctuation_field:
 
-    homogenized_displacementFileName = ["homogenized_displacement_micr"+
-    "oscale.txt", "homogenized_microrotation_microscale.txt"]
+        saving_fileNames = ["displacement_microscale_fluctuation.xdmf", "microrotation"+
+        "_microscale_fluctuation.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
+        "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
+        "ation.xdmf"]
 
-    homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
-    "gradient_microscale.txt", "homogenized_microrotation_grad_microsc"+
-    "ale.txt"]
+        homogenized_displacementFileName = ["homogenized_displacement_micr"+
+        "oscale_fluctuation.txt", "homogenized_microrotation_microscale.txt"]
 
-    homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
-    "xt", "homogenized_couple_first_piola_microscale.txt"]
+        homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
+        "gradient_microscale_fluctuation.txt", "homogenized_microrotation_grad_microsc"+
+        "ale.txt"]
 
-    homogenized_cauchyFileName = ["homogenized_cauchy_microscale.t"+
-    "xt", "homogenized_couple_cauchy_microscale.txt"]
+        homogenized_piolaFileName = ["homogenized_first_piola_microscale_fluctuation.t"+
+        "xt", "homogenized_couple_first_piola_microscale.txt"]
 
-    stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "couple_c"+
-    "auchy_stress_microscale.xdmf", "first_piola_stress_microscale.xdmf",
-    "couple_first_piola_stress_microscale.xdmf"]
+        homogenized_cauchyFileName = ["homogenized_cauchy_microscale_fluctuation.t"+
+        "xt", "homogenized_couple_cauchy_microscale.txt"]
+
+    else:
+
+        saving_fileNames = ["displacement_microscale.xdmf", "microrotation"+
+        "_microscale.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
+        "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
+        "ation.xdmf"]
+
+        homogenized_displacementFileName = ["homogenized_displacement_micr"+
+        "oscale.txt", "homogenized_microrotation_microscale.txt"]
+
+        homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
+        "gradient_microscale.txt", "homogenized_microrotation_grad_microsc"+
+        "ale.txt"]
+
+        homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
+        "xt", "homogenized_couple_first_piola_microscale.txt"]
+
+        homogenized_cauchyFileName = ["homogenized_cauchy_microscale.t"+
+        "xt", "homogenized_couple_cauchy_microscale.txt"]
+
+    if fluctuation_field:
+
+        stress_fieldFileName = ["cauchy_stress_microscale_fluctuation.xdmf", "couple_c"+
+        "auchy_stress_microscale_fluctuation.xdmf", "first_piola_stress_microscale.xdmf",
+        "couple_first_piola_stress_microscale.xdmf"]
+
+    else:
+
+        stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "couple_c"+
+        "auchy_stress_microscale.xdmf", "first_piola_stress_microscale.xdmf",
+        "couple_first_piola_stress_microscale.xdmf"]
 
     post_processes = []
 
@@ -389,6 +426,6 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
     file_directory+"//"+mesh_fileName, solver_parameters, 
     polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
     polynomial_degreeMicrorotation=polynomial_degreeMicrorotation, t=t, 
-    verbose=verbose)
+    verbose=verbose, fluctuation_field=fluctuation_field)
 
 case1_varyingMicropolarNumber(flag_newMesh=True)

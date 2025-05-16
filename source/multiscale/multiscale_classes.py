@@ -153,10 +153,29 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
 
         if fluctuation_field:
 
+            # Finds the centroid of the mesh
+
+            position_vector = mesh_dataClass.x
+
+            x_centroid = (self.volume_inverse*assemble(position_vector[
+            0]*mesh_dataClass.dx))
+
+            y_centroid = (self.volume_inverse*assemble(position_vector[
+            1]*mesh_dataClass.dx))
+
+            z_centroid = (self.volume_inverse*assemble(position_vector[
+            2]*mesh_dataClass.dx))
+
+            # Saves the centroid as a constant vector
+
+            centroid_vector = Constant([x_centroid, y_centroid, 
+            z_centroid])
+
             self.field_correction = (getattr(
             self.macro_quantitiesClasses[-1], self.constrained_fieldName
             )+dot(getattr(self.macro_quantitiesClasses[-1], 
-            self.constrained_gradientFieldName), mesh_dataClass.x))
+            self.constrained_gradientFieldName), mesh_dataClass.x-
+            centroid_vector))
 
         else:
 
@@ -326,10 +345,29 @@ class LinearFirstOrderBC(BCsClassTemplate):
 
         if fluctuation_field:
 
-            self.field_correction = (getattr(
+            # Saves the centroid as a constant vector
+
+            centroid_vector = Constant([x_centroid, y_centroid, 
+            z_centroid])
+
+            """self.field_correction = (getattr(
             self.macro_quantitiesClasses[-1], self.constrained_fieldName
-            )+dot(getattr(self.macro_quantitiesClasses[-1], 
-            self.constrained_gradientFieldName), mesh_dataClass.x))
+            )+(getattr(self.macro_quantitiesClasses[-1], 
+            self.constrained_gradientFieldName)*(mesh_dataClass.x-
+            centroid_vector)))"""
+
+            self.field_correction = project(multiscale_expressions.LinearVectorFieldExpression(
+            getattr(self.macro_quantitiesClasses[-1], 
+            self.constrained_fieldName), getattr(
+            self.macro_quantitiesClasses[-1], 
+            self.constrained_gradientFieldName), x_centroid, 
+            y_centroid, z_centroid,degree=1), FunctionSpace(mesh_dataClass.mesh,
+            self.elements_dictionary[self.constrained_fieldName]))
+
+            self.linear_parameters = [getattr(
+            self.macro_quantitiesClasses[-1], self.constrained_fieldName
+            ), getattr(self.macro_quantitiesClasses[-1], 
+            self.constrained_gradientFieldName), centroid_vector]
 
             # Constructs the expressions for the field on the boundary 
             # considering zero fluctuations on the boundary

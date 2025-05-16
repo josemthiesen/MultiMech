@@ -14,9 +14,9 @@ import numpy as np
 class LinearScalarFieldExpression(UserExpression):
 
     def __init__(self, mean_field, gradient_field, x_centroid, 
-    y_centroid, z_centroid):
+    y_centroid, z_centroid, **kwargs):
 
-        super().__init__()
+        super().__init__(**kwargs)
 
         # Initializes the values
 
@@ -78,9 +78,9 @@ class LinearScalarFieldExpression(UserExpression):
 class LinearVectorFieldExpression(UserExpression):
 
     def __init__(self, mean_field, gradient_field, x_centroid, 
-    y_centroid, z_centroid):
+    y_centroid, z_centroid, **kwargs):
 
-        super().__init__()
+        super().__init__(**kwargs)
 
         # Initializes the values
 

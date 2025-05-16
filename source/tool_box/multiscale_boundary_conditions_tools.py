@@ -19,7 +19,7 @@ lambda: []})
 
 def select_multiscaleBoundaryConditions(multiscale_BCsDict,
 elements_dictionary, mesh_dataClass, bilinear_form=0.0, linear_form=0.0, 
-boundary_conditions=None, fluctuation_field=True):
+boundary_conditions=None, fluctuation_field=False):
     
     # Verifies if the multiscale_BCsDict is a dictionary
 
@@ -120,7 +120,8 @@ boundary_conditions=None, fluctuation_field=True):
 
             field_corrections[field_name] = [multiscale_BCsDict[
             field_name].field_correction, FunctionSpace(
-            mesh_dataClass.mesh, elements_dictionary[field_name])]
+            mesh_dataClass.mesh, elements_dictionary[field_name]), 
+            *multiscale_BCsDict[field_name].linear_parameters]
 
     # Constructs the mixed element using the order of fields from the 
     # list of field names, then, creates the monolithic function space

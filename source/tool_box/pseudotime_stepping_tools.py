@@ -598,9 +598,53 @@ None):
 
             # Projects the solution with the correction 
 
+            avaliacoes = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.5,0.5,0.5]]
+
+            print("The value of the solution at some points:\n")
+
+            for avaliacao in avaliacoes:
+
+                print("x="+str(avaliacao)+", u="+str(split_solution[field_index](avaliacao)))
+
+            print("\n\n\n")
+
+            """correction_projection = project(fields_corrections[field_name][0], 
+            fields_corrections[field_name][1])"""
+
+            correction_projection = fields_corrections[field_name][0]
+
+            print("The value of the correction's constant is:")
+
+            print(fields_corrections[field_name][2].values())
+
+            print("The value of the correction's gradient is:")
+
+            print(fields_corrections[field_name][3].values())
+
+            print("The value of the centroid is:")
+
+            print(fields_corrections[field_name][4].values())
+
+            print("The value of the correction at some points:\n")
+
+            for avaliacao in avaliacoes:
+
+                print("x="+str(avaliacao)+", u="+str(correction_projection(avaliacao)))
+
+            print("\n\nCorrects the field "+str(field_index)+" by name "+str(
+            field_name)+"\n\n")
+
             split_solution[field_index] = project(split_solution[
             field_index]+fields_corrections[field_name][0], 
             fields_corrections[field_name][1])
+
+            print("The value of the solution at some points:\n")
+
+            for avaliacao in avaliacoes:
+
+                print("x="+str(avaliacao)+", u="+str(split_solution[field_index](avaliacao)))
+
+            print("\n\n\n")
 
         # Renames the solution fields
 

@@ -27,7 +27,7 @@ macro_gradDisplacementFileName, macro_microrotationFileName,
 macro_gradMicrorotationFileName, constitutive_model, maximum_loadingSteps, 
 t_final, post_processes, mesh_fileName, solver_parameters, 
 polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
-0.0, solution_name=None, verbose=False):
+0.0, solution_name=None, verbose=False, fluctuation_field=False):
 
     ####################################################################
     #                               Mesh                               #
@@ -82,7 +82,7 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     variation_fields, trial_functions, monolithic_solution, 
     mixed_element, volume_inverse, fields_corrections) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
     multiscale_BCsDict, elements_dictionary, mesh_dataClass, 
-    fluctuation_field=False)
+    fluctuation_field=fluctuation_field)
 
     ####################################################################
     #                         Variational forms                        #
