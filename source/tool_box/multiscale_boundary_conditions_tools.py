@@ -40,6 +40,57 @@ boundary_conditions=None, fluctuation_field=False):
 
         multiscale_BCsDict = {"generic_field": multiscale_BCsDict}
 
+    # Tests whether any of the boundary condition is in factr a periodic
+    # boundary condition
+
+    for field_name, BC_type in multiscale_BCsDict.items():
+
+        try: 
+
+            if BC_type["boundary condition"][0:8]=="Periodic":
+
+                # Updates the fluctuation field flag to true, because 
+                # the periodic boundary condition must be coded with tje
+                # fluctuation field
+                
+                fluctuation_field = True   
+
+                # Checks the boundary condition's order
+
+                BC_order = ""
+
+                if BC_type["boundary condition"][-9:-1]=="stOrderB":
+
+                    BC_order = "FirstOrderBC"
+
+                elif BC_type["boundary condition"][-9:-1]=="ndOrderB":
+
+                    BC_order = "SecondOrderBC"
+
+                else:
+
+                    raise NameError("The homogenization order of the '"+
+                    BC_type["boundary condition"]+"' boundary conditio"+
+                    "n could not be resolved. It does not end with 'Fi"+
+                    "rstOrderBC' nor 'SecondOrderBC'")
+
+                # Converts all boundary conditions to periodic, because
+                # one field to be periodic requires all of them to be 
+                # too
+
+                for field_name in multiscale_BCsDict.keys():
+
+                    multiscale_BCsDict[field_name]["boundary condition"
+                    ] = "Periodic"+BC_order
+
+        except:
+
+            raise NameError("The dictionary of multiscale boundary con"+
+            "ditions has a boundary condition dictionary attached to t"+
+            "he field '"+str(field_name)+"' that does not have the key"+
+            " 'boundary condition' or the corresponding value does not"+
+            " have at least 8 characters.")
+
     # Gets the names of the fields from the keys of the dictionary of e-
     # lements
 
@@ -118,10 +169,8 @@ boundary_conditions=None, fluctuation_field=False):
 
         if fluctuation_field:
 
-            field_corrections[field_name] = [multiscale_BCsDict[
-            field_name].field_correction, FunctionSpace(
-            mesh_dataClass.mesh, elements_dictionary[field_name]), 
-            *multiscale_BCsDict[field_name].linear_parameters]
+            field_corrections[field_name] = multiscale_BCsDict[
+            field_name].field_correction
 
     # Constructs the mixed element using the order of fields from the 
     # list of field names, then, creates the monolithic function space
@@ -161,7 +210,7 @@ boundary_conditions=None, fluctuation_field=False):
         # Retrives the fields and adds the corrections due to using the
         # fluctuation field or not
 
-        if fluctuation_field:
+        if fluctuation_field and (field_name in field_corrections):
 
             solution_fields[field_name] = (solution_functions[i]
             +field_corrections[field_name][0])

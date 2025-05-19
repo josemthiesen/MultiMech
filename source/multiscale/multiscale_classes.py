@@ -31,6 +31,10 @@ class BCsClassTemplate(ABC):
 
         pass
 
+########################################################################
+#                      First order homogenization                      #
+########################################################################
+
 # Defines a class for the minimally-constrained boundary condition using 
 # first order homogenization
 
@@ -149,57 +153,15 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
 
         # Verifies if fluctuation field flag is true, which means that 
         # the field in the microscale boundary value problem is, in 
-        # fact, the fluctuation
+        # fact, the fluctuation. In either case, constructs the boundary
+        # condition's expression and the field correction for the fluc-
+        # tuation
 
-        if fluctuation_field:
-
-            # Finds the centroid of the mesh
-
-            position_vector = mesh_dataClass.x
-
-            x_centroid = (self.volume_inverse*assemble(position_vector[
-            0]*mesh_dataClass.dx))
-
-            y_centroid = (self.volume_inverse*assemble(position_vector[
-            1]*mesh_dataClass.dx))
-
-            z_centroid = (self.volume_inverse*assemble(position_vector[
-            2]*mesh_dataClass.dx))
-
-            # Saves the centroid as a constant vector
-
-            centroid_vector = Constant([x_centroid, y_centroid, 
-            z_centroid])
-
-            self.field_correction = (getattr(
-            self.macro_quantitiesClasses[-1], self.constrained_fieldName
-            )+dot(getattr(self.macro_quantitiesClasses[-1], 
-            self.constrained_gradientFieldName), mesh_dataClass.x-
-            centroid_vector))
-
-        else:
-
-            if n_dimsPrimalField==0:
-
-                self.field_correction = Constant(0.0)
-
-            elif n_dimsPrimalField==1:
-
-                self.field_correction = Constant([0.0, 0.0, 0.0])
-
-            else:
-
-                # Gets the dimension of the space
-
-                space_dimension = mesh_dataClass.mesh.topology().dim()
-
-                # Constructs the tensor element
-
-                dimensions_list = [space_dimension for tensor_index in range(
-                n_dimsPrimalField)]
-
-                self.field_correction = Constant(np.zeros(tuple(
-                dimensions_list)))
+        self.field_expression, self.field_correction = (
+        multiscale_expressions.construct_fieldCorrections(
+        fluctuation_field, self.volume_inverse, mesh_dataClass, 
+        self.macro_quantitiesClasses, self.constrained_fieldName, 
+        self.constrained_gradientFieldName, elements_dictionary))
         
     # Defines a function to in fact construct the boundary condition
 
@@ -298,18 +260,111 @@ class LinearFirstOrderBC(BCsClassTemplate):
         self.constrained_fieldName], ["macro field gradient file",
         self.constrained_gradientFieldName]])))
 
-        # Finds the centroid of the mesh
+        # Saves the number of fields
 
-        position_vector = mesh_dataClass.x
+        self.n_fields = len(fields_names)
 
-        x_centroid = (self.volume_inverse*assemble(position_vector[
-        0]*mesh_dataClass.dx))
+        # Finds the index of this field to be constrained
 
-        y_centroid = (self.volume_inverse*assemble(position_vector[
-        1]*mesh_dataClass.dx))
+        self.field_index = 0
 
-        z_centroid = (self.volume_inverse*assemble(position_vector[
-        2]*mesh_dataClass.dx))
+        for i in range(self.n_fields):
+
+            if fields_names[i]==self.constrained_fieldName:
+
+                self.field_index = i 
+
+                break
+
+        # Saves the atributes that will be retrieved again for latter
+        # classes
+        
+        self.elements_dictionary = elements_dictionary
+
+        self.fields_names = fields_names
+
+        # Verifies if fluctuation field flag is true, which means that 
+        # the field in the microscale boundary value problem is, in 
+        # fact, the fluctuation. In either case, constructs the boundary
+        # condition's expression and the field correction for the fluc-
+        # tuation
+
+        self.field_expression, self.field_correction = (
+        multiscale_expressions.construct_fieldCorrections(
+        fluctuation_field, self.volume_inverse, mesh_dataClass, 
+        self.macro_quantitiesClasses, self.constrained_fieldName, 
+        self.constrained_gradientFieldName, elements_dictionary))
+        
+    # Defines a function to in fact construct the boundary condition
+
+    def update(self, bilinear_form, linear_form, boundary_conditions,
+    trial_functionsDict, test_functionsDict, boundary_conditionIndex, 
+    mesh_dataClass, monolithic_functionSpace):
+        
+        # Adds the zero fluctuation boundary condtion. Checks first if
+        # the formulation has multiple fields
+
+        if self.n_fields>1:
+
+            boundary_conditions.append(DirichletBC(
+            monolithic_functionSpace.sub(self.field_index), 
+            self.field_expression, "on_boundary"))
+
+        else:
+
+            boundary_conditions.append(DirichletBC(
+            monolithic_functionSpace, self.field_expression, "on_bound"+
+            "ary"))
+
+        # Returns the boundary conditions and variational forms
+
+        return bilinear_form, linear_form, boundary_conditions
+    
+# Defines a class for the periodic boundary condition considering first 
+# order homogenization
+
+class PeriodicFirstOrderBC(BCsClassTemplate):
+
+    def __init__(self,  constrained_fieldName, fields_names, 
+    elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
+    macro_quantitiesClasses, volume_inverse, fluctuation_field):
+        
+        # Gets the name of the field to be minimally constrained and its
+        # gradient. But removes non ASCII characters and blank spaces so 
+        # this names can be used as variables' names
+
+        self.constrained_fieldName = functional_tools.convert_stringToASCII(
+        constrained_fieldName)
+
+        self.constrained_gradientFieldName = (constrained_fieldName+"_"+
+        "gradient")
+        
+        # Evaluates the volume of the microscale
+
+        if volume_inverse is None:
+
+            self.volume_inverse = (1.0/assemble(1.0*mesh_dataClass.dx))
+
+        else:
+
+            self.volume_inverse = volume_inverse
+        
+        # Stores the macro quantities that will be used as boundary con-
+        # ditions
+
+        self.macro_quantitiesClasses = macro_quantitiesClasses
+
+        # Swaps the keys of the files dictionary to keep the names of 
+        # the field and its gradient as variables in the macro quanti-
+        # ties class. Then, updates the list of macro quantities' clas-
+        # ses
+
+        self.macro_quantitiesClasses.append(
+        functional_tools.MacroQuantitiesInTime(
+        programming_tools.change_dictionaryKeys(
+        macro_quantitiesFilesDict, [["macro field file", 
+        self.constrained_fieldName], ["macro field gradient file",
+        self.constrained_gradientFieldName]])))
 
         # Saves the number of fields
 
@@ -334,119 +389,23 @@ class LinearFirstOrderBC(BCsClassTemplate):
 
         self.fields_names = fields_names
 
-        # Gets the number of dimensions of the primal field
-
-        self.n_dimsPrimalField = len(elements_dictionary[
-        self.constrained_fieldName].value_shape())
-
         # Verifies if fluctuation field flag is true, which means that 
         # the field in the microscale boundary value problem is, in 
-        # fact, the fluctuation
+        # fact, the fluctuation. In either case, constructs the boundary
+        # condition's expression and the field correction for the fluc-
+        # tuation
 
-        if fluctuation_field:
-
-            # Saves the centroid as a constant vector
-
-            centroid_vector = Constant([x_centroid, y_centroid, 
-            z_centroid])
-
-            """self.field_correction = (getattr(
-            self.macro_quantitiesClasses[-1], self.constrained_fieldName
-            )+(getattr(self.macro_quantitiesClasses[-1], 
-            self.constrained_gradientFieldName)*(mesh_dataClass.x-
-            centroid_vector)))"""
-
-            self.field_correction = project(multiscale_expressions.LinearVectorFieldExpression(
-            getattr(self.macro_quantitiesClasses[-1], 
-            self.constrained_fieldName), getattr(
-            self.macro_quantitiesClasses[-1], 
-            self.constrained_gradientFieldName), x_centroid, 
-            y_centroid, z_centroid,degree=1), FunctionSpace(mesh_dataClass.mesh,
-            self.elements_dictionary[self.constrained_fieldName]))
-
-            self.linear_parameters = [getattr(
-            self.macro_quantitiesClasses[-1], self.constrained_fieldName
-            ), getattr(self.macro_quantitiesClasses[-1], 
-            self.constrained_gradientFieldName), centroid_vector]
-
-            # Constructs the expressions for the field on the boundary 
-            # considering zero fluctuations on the boundary
-
-            if self.n_dimsPrimalField==0:
-
-                self.field_expression = "0.0"
-
-            elif self.n_dimsPrimalField==1:
-
-                self.field_expression = ("0.0", "0.0", "0.0")
-
-            else:
-
-                raise ValueError("There is not possible yet to use the"+
-                " linear multiscale boundary condition for fields with"+
-                " dimensionality larger than a 1 (a vector). The given"+
-                " dimensionality is "+str(self.n_dimsPrimalField))
-
-        else:
-
-            # Constructs the expressions for the field on the boundary 
-            # considering zero fluctuations on the boundary
-
-            if self.n_dimsPrimalField==0:
-
-                self.field_expression = multiscale_expressions.LinearFieldExpression(
-                getattr(self.macro_quantitiesClasses[-1], 
-                self.constrained_fieldName), getattr(
-                self.macro_quantitiesClasses[-1], 
-                self.constrained_gradientFieldName), x_centroid, 
-                y_centroid, z_centroid)
-
-                # As the field is not the fluctuation, the correction to
-                # the full field is null
-
-                self.field_correction = Constant(0.0)
-
-            elif self.n_dimsPrimalField==1:
-
-                self.field_expression = multiscale_expressions.LinearVectorFieldExpression(
-                getattr(self.macro_quantitiesClasses[-1], 
-                self.constrained_fieldName), getattr(
-                self.macro_quantitiesClasses[-1], 
-                self.constrained_gradientFieldName), x_centroid, 
-                y_centroid, z_centroid)
-
-                # As the field is not the fluctuation, the correction to
-                # the full field is null
-
-                self.field_correction = Constant([0.0, 0.0, 0.0])
-
-            else:
-
-                raise ValueError("There is not possible yet to use the"+
-                " linear multiscale boundary condition for fields with"+
-                " dimensionality larger than a 1 (a vector). The given"+
-                " dimensionality is "+str(self.n_dimsPrimalField))
+        self.field_expression, self.field_correction = (
+        multiscale_expressions.construct_fieldCorrections(
+        fluctuation_field, self.volume_inverse, mesh_dataClass, 
+        self.macro_quantitiesClasses, self.constrained_fieldName, 
+        self.constrained_gradientFieldName, elements_dictionary))
         
     # Defines a function to in fact construct the boundary condition
 
     def update(self, bilinear_form, linear_form, boundary_conditions,
     trial_functionsDict, test_functionsDict, boundary_conditionIndex, 
     mesh_dataClass, monolithic_functionSpace):
-        
-        # Adds the zero fluctuation boundary condtion. Checks first if
-        # the formulation has multiple fields
-
-        if self.n_fields>1:
-
-            boundary_conditions.append(DirichletBC(
-            monolithic_functionSpace.sub(self.field_index), 
-            self.field_expression, "on_boundary"))
-
-        else:
-
-            boundary_conditions.append(DirichletBC(
-            monolithic_functionSpace, self.field_expression, "on_bound"+
-            "ary"))
 
         # Returns the boundary conditions and variational forms
 

@@ -47,7 +47,7 @@ class AffineField(UserExpression):
 affine_field_expr = AffineField(u0=u0, G=G, xc=xc, degree=1)
 
 # Project the affine field to the function space for visualization
-affine_field = project(affine_field_expr, V)
+affine_field = interpolate(affine_field_expr, V)
 
 print(affine_field([0.5, 0.5, 0.5]))
 

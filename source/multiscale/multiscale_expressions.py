@@ -222,3 +222,117 @@ class LinearVectorFieldExpression(UserExpression):
         self.z_centroid-self.semi_lengthZ)):
 
             y[]"""
+
+########################################################################
+#                            Field updating                            #
+########################################################################
+
+# Defines a function to construct the updates of a fluctuation field gi-
+# ven a first order approximation
+
+def construct_fieldCorrections(fluctuation_field, volume_inverse, 
+mesh_dataClass, macro_quantitiesClasses, constrained_fieldName, 
+constrained_gradientFieldName, elements_dictionary):
+
+    # Gets the number of dimensions of the primal field
+
+    n_dimsPrimalField = len(elements_dictionary[constrained_fieldName
+    ].value_shape())
+    
+    # Finds the centroid of the mesh
+
+    position_vector = mesh_dataClass.x
+
+    x_centroid = float(volume_inverse*assemble(position_vector[0]*
+    mesh_dataClass.dx))
+
+    y_centroid = float(volume_inverse*assemble(position_vector[1]*
+    mesh_dataClass.dx))
+
+    z_centroid = float(volume_inverse*assemble(position_vector[2]*
+    mesh_dataClass.dx))
+
+    # Tests if the primal field is the fluctuation field
+        
+    if fluctuation_field:
+
+        # Saves the centroid as a constant vector
+
+        centroid_vector = Constant([x_centroid, y_centroid, 
+        z_centroid])
+
+        # Constructs the expressions for the field on the boundary con-
+        # sidering zero fluctuations on the boundary
+
+        if n_dimsPrimalField==0:
+
+            field_expression = Constant(0.0)
+
+            # Constructs a tensorial expression for the updating of the 
+            # solution field inside the variational form; constructs an 
+            # expression to update the solution field for post-proces-
+            # sing; and constructs the function space to interpolate the 
+            # correcting expression into
+
+            return (field_expression, [(getattr(macro_quantitiesClasses[
+            -1], constrained_fieldName)+dot(getattr(
+            macro_quantitiesClasses[-1], constrained_gradientFieldName),
+            (mesh_dataClass.x-centroid_vector))), 
+            LinearScalarFieldExpression(getattr(macro_quantitiesClasses[
+            -1], constrained_fieldName), getattr(macro_quantitiesClasses[
+            -1], constrained_gradientFieldName), x_centroid, y_centroid, 
+            z_centroid), FunctionSpace(mesh_dataClass.mesh, 
+            elements_dictionary[constrained_fieldName])])
+
+        elif n_dimsPrimalField==1:
+
+            field_expression = Constant((0.0, 0.0, 0.0))
+
+            # Constructs a tensorial expression for the updating of the 
+            # solution field inside the variational form; constructs an 
+            # expression to update the solution field for post-proces-
+            # sing; and constructs the function space to interpolate the 
+            # correcting expression into
+
+            return (field_expression, [(getattr(macro_quantitiesClasses[
+            -1], constrained_fieldName)+dot(getattr(
+            macro_quantitiesClasses[-1], constrained_gradientFieldName),
+            (mesh_dataClass.x-centroid_vector))), 
+            LinearVectorFieldExpression(getattr(macro_quantitiesClasses[
+            -1], constrained_fieldName), getattr(macro_quantitiesClasses[
+            -1], constrained_gradientFieldName), x_centroid, y_centroid, 
+            z_centroid), FunctionSpace(mesh_dataClass.mesh, 
+            elements_dictionary[constrained_fieldName])])
+
+        else:
+
+            raise ValueError("There is not possible yet to use the linear "+
+            "multiscale boundary condition for fields with dimensionality "+
+            "larger than a 1 (a vector). The given dimensionality is "+str(
+            n_dimsPrimalField))
+        
+    else:
+
+        # Constructs the expressions for the field on the boundary con-
+        # sidering zero fluctuations on the boundary
+
+        if n_dimsPrimalField==0:
+
+            return (LinearScalarFieldExpression(getattr(
+            macro_quantitiesClasses[-1], constrained_fieldName),getattr(
+            macro_quantitiesClasses[-1], constrained_gradientFieldName), 
+            x_centroid, y_centroid, z_centroid), None)
+
+        elif n_dimsPrimalField==1:
+
+            return (LinearVectorFieldExpression(getattr(
+            macro_quantitiesClasses[-1], constrained_fieldName),getattr(
+            macro_quantitiesClasses[-1], constrained_gradientFieldName), 
+            x_centroid, y_centroid, z_centroid), None)
+
+        else:
+
+            raise ValueError("There is not possible yet to use the"+
+            " linear multiscale boundary condition for fields with"+
+            " dimensionality larger than a 1 (a vector). The given"+
+            " dimensionality is "+str(n_dimsPrimalField))
