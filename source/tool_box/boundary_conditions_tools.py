@@ -2,6 +2,10 @@
 
 from dolfin import *
 
+import numpy as np
+
+from scipy.spatial import KDTree
+
 import source.tool_box.programming_tools as programming_tools
 
 ########################################################################
@@ -509,6 +513,86 @@ None):
         print("Finishes creating fixed support boundary conditions.\n")
 
     return boundary_conditions
+        
+########################################################################
+#                             Node finding                             #
+########################################################################
+
+# Defines a function to find a node of the mesh nearest to a given point
+
+def find_node(mesh_dataClass, point_coordinates, node_number, 
+node_coordinates):
+
+    # Tests if the node has already been found
+
+    if (node_number is None) or (node_coordinates is None):
+
+        # Gets the coordinates of the mesh
+
+        mesh_coordinates = mesh_dataClass.mesh.coordinates()
+
+        # Gets a tree of these coordinates
+
+        coordinates_tree = KDTree(mesh_coordinates)
+
+        # Gets the number of the node that is closest to the given coor-
+        # dinates
+
+        _, node_number = coordinates_tree.query(point_coordinates)
+
+        # Returns the node number
+
+        node_number = int(node_number)
+
+        return node_number, mesh_coordinates[node_number]
+    
+    else:
+
+        # Returns the node number as it's been given
+
+        return node_number, node_coordinates
+
+########################################################################
+#                          Subdomain classes                           #
+########################################################################
+
+# Defines a function to generate a class to apply boundary conditions to 
+# a node
+
+def generate_nodeSubdomain(point_coordinates, mesh_dataClass, tolerance=
+1E-5):
+
+    # Gets the coordinates of the node closest to the point required
+
+    _, node_coordinates = find_node(mesh_dataClass, point_coordinates,
+    None, None)
+
+    # Defines the class
+
+    class FixedNode(SubDomain):
+
+        def __init__(self, node_coordinates, tolerance):
+
+            super().__init__()
+
+            self.node_coordinates = node_coordinates
+
+            self.tolerance = tolerance
+
+        def inside(self, x, on_boundary):
+
+            # Ignores the on_boudnary flag because a node inside the do-
+            # main can be fixed
+
+            return (near(x[0], self.node_coordinates[0], self.tolerance
+            ) and near(x[1], self.node_coordinates[1], self.tolerance)
+            and near(x[2], self.node_coordinates[2], self.tolerance))
+
+    # Instantiates the class
+
+    fixed_node = FixedNode(node_coordinates, tolerance)
+
+    return fixed_node
 
 ########################################################################
 #                              Utilities                               #

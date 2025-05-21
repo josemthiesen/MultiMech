@@ -10,6 +10,8 @@ import source.tool_box.functional_tools as functional_tools
 
 import source.tool_box.programming_tools as programming_tools
 
+import source.tool_box.boundary_conditions_tools as BC_tools
+
 import source.multiscale.multiscale_expressions as multiscale_expressions
 
 ########################################################################
@@ -43,7 +45,7 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
     def __init__(self,  constrained_fieldName, fields_names, 
     elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
     macro_quantitiesClasses, volume_inverse, fluctuation_field,
-    centroid_coordinates, constrained_node):
+    centroid_coordinates, fixed_nodeSubdomain, fixed_nodeExpression):
         
         # Gets the name of the field to be minimally constrained and its
         # gradient. But removes non ASCII characters and blank spaces so 
@@ -168,7 +170,9 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
         # Just saves a node to be constrained. This node is necessary 
         # just for periodic BCs
 
-        self.constrained_node = constrained_node
+        self.fixed_nodeSubdomain = fixed_nodeSubdomain
+            
+        self.fixed_nodeExpression = fixed_nodeExpression
         
     # Defines a function to in fact construct the boundary condition
 
@@ -229,7 +233,7 @@ class LinearFirstOrderBC(BCsClassTemplate):
     def __init__(self,  constrained_fieldName, fields_names, 
     elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
     macro_quantitiesClasses, volume_inverse, fluctuation_field, 
-    centroid_coordinates, constrained_node):
+    centroid_coordinates, fixed_nodeSubdomain, fixed_nodeExpression):
         
         # Gets the name of the field to be minimally constrained and its
         # gradient. But removes non ASCII characters and blank spaces so 
@@ -307,7 +311,9 @@ class LinearFirstOrderBC(BCsClassTemplate):
         # Just saves a node to be constrained. This node is necessary 
         # just for periodic BCs
 
-        self.constrained_node = constrained_node
+        self.fixed_nodeSubdomain = fixed_nodeSubdomain
+            
+        self.fixed_nodeExpression = fixed_nodeExpression
         
     # Defines a function to in fact construct the boundary condition
 
@@ -342,7 +348,7 @@ class PeriodicFirstOrderBC(BCsClassTemplate):
     def __init__(self,  constrained_fieldName, fields_names, 
     elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
     macro_quantitiesClasses, volume_inverse, fluctuation_field, 
-    centroid_coordinates, constrained_node):
+    centroid_coordinates, fixed_nodeSubdomain, fixed_nodeExpression):
         
         # Gets the name of the field to be minimally constrained and its
         # gradient. But removes non ASCII characters and blank spaces so 
@@ -417,10 +423,27 @@ class PeriodicFirstOrderBC(BCsClassTemplate):
         self.constrained_gradientFieldName, elements_dictionary,
         centroid_coordinates))
 
-        # Gets the number of the node closest to the centroid
+        # Makes a subdomain class to capture the region where to apply
+        # the boundary condition to fixed node. Finds the node that is
+        # closest to the centroid
 
-        self.constrained_node = multiscale_expressions.find_node(
-        mesh_dataClass, self.centroid, constrained_node)
+        if (fixed_nodeSubdomain is None) or (fixed_nodeExpression is None
+        ):
+
+            self.fixed_nodeSubdomain = BC_tools.generate_nodeSubdomain(
+            self.centroid, mesh_dataClass)
+
+            # Gets the expression for the boundary condition
+
+            self.fixed_nodeExpression = Constant(np.zeros(
+            self.elements_dictionary[self.constrained_fieldName
+            ].value_shape()))
+
+        else:
+
+            self.fixed_nodeSubdomain = fixed_nodeSubdomain
+            
+            self.fixed_nodeExpression = fixed_nodeExpression
         
     # Defines a function to in fact construct the boundary condition
 
@@ -428,41 +451,20 @@ class PeriodicFirstOrderBC(BCsClassTemplate):
     trial_functionsDict, test_functionsDict, boundary_conditionIndex, 
     mesh_dataClass, monolithic_functionSpace):
         
-        # Constrains a node in the mesh to avoid rigid body deformation
-        # modes
+        # Checks first if the formulation has multiple fields
 
-        # Gets the map of degrees of freedom of this field for each node.
-        # Reshapes this list of DOFs into a matrix, which has the number
-        # of columns equal to the size of the value
-
-        field_dofmap = np.array(monolithic_functionSpace.sub(
-        self.field_index).dofmap().dofs(mesh_dataClass.mesh, 0)).reshape(
-        mesh_dataClass.mesh.num_vertices(), monolithic_functionSpace.sub(
-        self.field_index).ufl_element().value_size())
-
-        # Gets the degrees of freedom of the constrained node. The 0 is
-        # there because a node is an entity of 0 topological dimension
-
-        constrained_nodeDOFs = field_dofmap[self.constrained_node]
-
-        # Adds the boundary condition to each DOF individually
-
-        if len(constrained_nodeDOFs)==1:
+        if self.n_fields>1:
 
             boundary_conditions.append(DirichletBC(
-            monolithic_functionSpace.sub(self.field_index), Constant(0.0
-            ), constrained_nodeDOFs, method="pointwise"))
+            monolithic_functionSpace.sub(self.field_index), 
+            self.fixed_nodeExpression, self.fixed_nodeSubdomain, method=
+            "pointwise"))
 
         else:
 
-            for i in range(len(constrained_nodeDOFs)):
-
-                print([constrained_nodeDOFs[i]])
-
-                boundary_conditions.append(DirichletBC(
-                monolithic_functionSpace.sub(self.field_index).sub(i), 
-                Constant(0.0), [constrained_nodeDOFs[i]], method="poin"+
-                "twise"))
+            boundary_conditions.append(DirichletBC(
+            monolithic_functionSpace, self.fixed_nodeExpression, 
+            self.fixed_nodeSubdomain, method="pointwise"))
 
         # Returns the boundary conditions and variational forms
 

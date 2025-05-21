@@ -174,12 +174,14 @@ fluctuation_field=False):
 
     fields_names = ["displacement", "microrotation"]
     
-    if displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC":
+    if (displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
+    and microrotation_multiscaleBC!="PeriodicFirstOrderBC"):
     
         fields_names.extend(["displacement_lagrange_multiplier", "disp"+
         "lacement_gradient_lagrange_multiplier"]) 
 
-    if microrotation_multiscaleBC=="MinimallyConstrainedFirstOrderBC":
+    if (microrotation_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
+    and displacement_multiscaleBC!="PeriodicFirstOrderBC"):
     
         fields_names.extend(["microrotation_lagrange_multiplier", "mic"+
         "rorotation_gradient_lagrange_multiplier"])

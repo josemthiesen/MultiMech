@@ -2,10 +2,6 @@
 
 from dolfin import *
 
-import numpy as np
-
-from scipy.spatial import KDTree
-
 ########################################################################
 #                   Boundary conditions' expressions                   #
 ########################################################################
@@ -486,38 +482,3 @@ constrained_gradientFieldName, elements_dictionary, centroid_coordinates
             " linear multiscale boundary condition for fields with"+
             " dimensionality larger than a 1 (a vector). The given"+
             " dimensionality is "+str(n_dimsPrimalField))
-        
-########################################################################
-#                             Node finding                             #
-########################################################################
-
-# Defines a function to find a node of the mesh nearest to a given point
-
-def find_node(mesh_dataClass, point_coordinates, node_number):
-
-    # Tests if the node has already been found
-
-    if node_number is None:
-
-        # Gets the coordinates of the mesh
-
-        mesh_coordinates = mesh_dataClass.mesh.coordinates()
-
-        # Gets a tree of these coordinates
-
-        coordinates_tree = KDTree(mesh_coordinates)
-
-        # Gets the number of the node that is closest to the given coor-
-        # dinates
-
-        _, node_number = coordinates_tree.query(point_coordinates)
-
-        # Returns the node number
-
-        return int(node_number)
-    
-    else:
-
-        # Returns the node number as it's been given
-
-        return node_number

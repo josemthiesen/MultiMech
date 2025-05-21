@@ -115,13 +115,16 @@ boundary_conditions=None, fluctuation_field=False):
     macro_quantitiesClasses = []
 
     # Initializes the inverse of the volume, the centroid of the mesh, 
-    # and the number of a node to be constrained
+    # a class to fix a node, and the expression for the Dirichlet boun-
+    # dary condition to fix this node
 
     volume_inverse = None
 
     centroid_coordinates = None
 
-    constrained_node = None
+    fixed_nodeSubdomain = None
+            
+    fixed_nodeExpression = None
 
     # Initializes a dictionary of field corrections, due to having or 
     # not the BVP been defined using a fluctuation field instead of the 
@@ -164,8 +167,8 @@ boundary_conditions=None, fluctuation_field=False):
         multiscale_classes.BCsClassTemplate], class_input=(field_name,
         fields_names, elements_dictionary, mesh_dataClass, field_BC["m"+
         "acro information"], macro_quantitiesClasses, volume_inverse,
-        fluctuation_field, centroid_coordinates, constrained_node))[
-        field_BC["boundary condition"]]
+        fluctuation_field, centroid_coordinates, fixed_nodeSubdomain,
+        fixed_nodeExpression))[field_BC["boundary condition"]]
 
         # Recovers the elements dictionary, the fields names, the macro
         # quantities list of classes, the inverse of the volume, the
@@ -184,7 +187,9 @@ boundary_conditions=None, fluctuation_field=False):
 
         centroid_coordinates = multiscale_BCsDict[field_name].centroid
 
-        constrained_node = multiscale_BCsDict[field_name].constrained_node
+        fixed_nodeSubdomain = multiscale_BCsDict[field_name].fixed_nodeSubdomain
+            
+        fixed_nodeExpression = multiscale_BCsDict[field_name].fixed_nodeExpression
 
         # Recovers the correction of the primal field. If the BVP is 
         # constructed using the fluctuation field, a correction (linear
