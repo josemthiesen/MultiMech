@@ -5,6 +5,8 @@ from dolfin import *
 
 import source.multiscale.multiscale_classes as multiscale_classes
 
+import source.multiscale.multiscale_expressions as multiscale_expressions
+
 import source.tool_box.programming_tools as programming_tools
 
 # Defines a function to select and apply the multiscale boundary condi-
@@ -20,6 +22,11 @@ lambda: []})
 def select_multiscaleBoundaryConditions(multiscale_BCsDict,
 elements_dictionary, mesh_dataClass, bilinear_form=0.0, linear_form=0.0, 
 boundary_conditions=None, fluctuation_field=False):
+    
+    # Converts the dictionary of elements to true fenics elements
+
+    elements_dictionary = construct_elementsDictionary(
+    elements_dictionary, mesh_dataClass)
     
     # Verifies if the multiscale_BCsDict is a dictionary
 
@@ -40,14 +47,20 @@ boundary_conditions=None, fluctuation_field=False):
 
         multiscale_BCsDict = {"generic_field": multiscale_BCsDict}
 
-    # Tests whether any of the boundary condition is in factr a periodic
+    # Tests whether any of the boundary condition is in fact a periodic
     # boundary condition
+
+    flag_periodicBC = False
 
     for field_name, BC_type in multiscale_BCsDict.items():
 
         try: 
 
             if BC_type["boundary condition"][0:8]=="Periodic":
+
+                # Updates the flag for periodic boundary condition
+
+                flag_periodicBC = True
 
                 # Updates the fluctuation field flag to true, because 
                 # the periodic boundary condition must be coded with tje
@@ -101,9 +114,14 @@ boundary_conditions=None, fluctuation_field=False):
 
     macro_quantitiesClasses = []
 
-    # Initializes the inverse of the volume
+    # Initializes the inverse of the volume, the centroid of the mesh, 
+    # and the number of a node to be constrained
 
     volume_inverse = None
+
+    centroid_coordinates = None
+
+    constrained_node = None
 
     # Initializes a dictionary of field corrections, due to having or 
     # not the BVP been defined using a fluctuation field instead of the 
@@ -146,10 +164,13 @@ boundary_conditions=None, fluctuation_field=False):
         multiscale_classes.BCsClassTemplate], class_input=(field_name,
         fields_names, elements_dictionary, mesh_dataClass, field_BC["m"+
         "acro information"], macro_quantitiesClasses, volume_inverse,
-        fluctuation_field))[field_BC["boundary condition"]]
+        fluctuation_field, centroid_coordinates, constrained_node))[
+        field_BC["boundary condition"]]
 
         # Recovers the elements dictionary, the fields names, the macro
-        # quantities list of classes, and the inverse of the volume
+        # quantities list of classes, the inverse of the volume, the
+        # centroid of the mesh, and the number of a node to be cons-
+        # trained
 
         elements_dictionary = multiscale_BCsDict[field_name
         ].elements_dictionary
@@ -160,6 +181,10 @@ boundary_conditions=None, fluctuation_field=False):
         ].macro_quantitiesClasses
 
         volume_inverse = multiscale_BCsDict[field_name].volume_inverse
+
+        centroid_coordinates = multiscale_BCsDict[field_name].centroid
+
+        constrained_node = multiscale_BCsDict[field_name].constrained_node
 
         # Recovers the correction of the primal field. If the BVP is 
         # constructed using the fluctuation field, a correction (linear
@@ -178,8 +203,22 @@ boundary_conditions=None, fluctuation_field=False):
     mixed_element = MixedElement([elements_dictionary[field_name] for (
     field_name) in (fields_names)])
 
-    monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
-    mixed_element)
+    # The function space is constrained in its construction if the peri-
+    # odic boundary condition is required
+
+    monolithic_functionSpace = 0
+
+    if flag_periodicBC:
+
+        monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
+        mixed_element, constrained_domain=
+        multiscale_expressions.PeriodicCubicBoundary(
+        *centroid_coordinates, mesh_dataClass))
+
+    else:
+
+        monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
+        mixed_element)
 
     # Creates the function for the updated solution, i.e. the vector of 
     # parameters. Then, splits into the individual fields. As the mono-
@@ -251,3 +290,141 @@ boundary_conditions=None, fluctuation_field=False):
     macro_quantitiesClasses, fields_namesDict, solution_fields, 
     variation_fields, trial_functions, monolithic_solution, 
     mixed_element, volume_inverse, field_corrections)
+
+########################################################################
+#                              Utilities                               #
+########################################################################
+
+# Defines a function to construct the dictionary of elements
+
+def construct_elementsDictionary(elements_dictionary, mesh_dataClass):
+
+    # Sets a list of allowed interpolation functions
+
+    allowed_interpolationFunction = ["CG", "DG", "Lagrange"]
+
+    # Iterates through the dictionary of elements
+    
+    for field_name, element_dictionary in elements_dictionary.items():
+
+        # Verifies if this is already a fenics element. Tests by veri-
+        # fying if has a cell attribute
+
+        try:
+
+            cell = element_dictionary.cell()
+
+        # If not, it must be a dictionary with finite element's informa-
+        # tion
+
+        except:
+
+            if not isinstance(element_dictionary, dict):
+
+                raise TypeError("The dictionary to construct the finit"+
+                "e element of the field '"+str(field_name)+"' is not a"+
+                " dictionary. Check out: "+str(element_dictionary))
+            
+            # Gets the polynomial degree. Uses second degree polynomial 
+            # as default
+
+            polynomial_degree = 2
+
+            if "polynomial degree" in element_dictionary:
+
+                polynomial_degree = element_dictionary["polynomial deg"+
+                "ree"]
+            
+            # Gets the interpolation function
+
+            interpolation_function = ""
+
+            if "interpolation function" in element_dictionary:
+
+                interpolation_function = element_dictionary["interpola"+
+                "tion function"]
+
+                # Verifies if this interpolation function is one of the 
+                # admissible ones
+
+                if not (interpolation_function in (
+                allowed_interpolationFunction)):
+                    
+                    raise NameError("The interpolation function '"+str(
+                    interpolation_function)+"' is not one of the admis"+
+                    "sible functions. Check the list ahead: "+str(
+                    allowed_interpolationFunction))
+                
+            elif "shape function" in element_dictionary:
+
+                interpolation_function = element_dictionary["shape fun"+
+                "ction"]
+
+                # Verifies if this interpolation function is one of the 
+                # admissible ones
+
+                if not (interpolation_function in (
+                allowed_interpolationFunction)):
+                    
+                    raise NameError("The interpolation function '"+str(
+                    interpolation_function)+"' is not one of the admis"+
+                    "sible functions. Check the list ahead: "+str(
+                    allowed_interpolationFunction))
+                
+            else:
+
+                # Uses continuous Galerkin as default
+
+                interpolation_function = "CG"
+
+            # Gets the element type (scalar, vector, tensor...)
+
+            if "field type" in element_dictionary:
+
+                element_type = element_dictionary["field type"]
+
+                # If the field is a scalar-valued field
+
+                if element_type=="scalar":
+
+                    # Creates the element
+
+                    elements_dictionary[field_name] = FiniteElement(
+                    interpolation_function, 
+                    mesh_dataClass.mesh.ufl_cell(), polynomial_degree)
+
+                # If the field is a vector-valued field
+
+                elif element_type=="vector":
+
+                    # Creates the element
+
+                    elements_dictionary[field_name] = VectorElement(
+                    interpolation_function, 
+                    mesh_dataClass.mesh.ufl_cell(), polynomial_degree)
+
+                # If the field is a tensor-valued field
+
+                elif element_type=="tensor":
+
+                    # Creates the element
+
+                    elements_dictionary[field_name] = TensorElement(
+                    interpolation_function, 
+                    mesh_dataClass.mesh.ufl_cell(), polynomial_degree)
+
+                else:
+
+                    raise NameError("There is no '"+str(element_type)+
+                    "' field implemented. A field can be either 'scala"+
+                    "r', 'vector', or 'tensor' for the element to be d"+
+                    "ynamically generated")
+                
+            else:
+
+                raise KeyError("There is no key 'field type' in the di"+
+                "ctionary to create finite elements.")
+        
+    # Returns the finite elements dictionary
+
+    return elements_dictionary

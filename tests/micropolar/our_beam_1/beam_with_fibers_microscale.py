@@ -28,14 +28,14 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets the multiscale boundary conditions for each one of the fields
 
-    displacement_multiscaleBC = "MinimallyConstrainedFirstOrderBC"#"LinearFirstOrderBC"
+    displacement_multiscaleBC = "PeriodicFirstOrderBC"#"MinimallyConstrainedFirstOrderBC"#"LinearFirstOrderBC"
     
     microrotation_multiscaleBC = "MinimallyConstrainedFirstOrderBC"
 
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
 
-    fluctuation_field = False
+    fluctuation_field = True
 
     # Reads the parameters set
 

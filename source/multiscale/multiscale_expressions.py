@@ -4,6 +4,8 @@ from dolfin import *
 
 import numpy as np
 
+from scipy.spatial import KDTree
+
 ########################################################################
 #                   Boundary conditions' expressions                   #
 ########################################################################
@@ -154,20 +156,16 @@ class LinearVectorFieldExpression(UserExpression):
 
 # Defines a class for a function space to have a domain constrained as
 # periodic. The domain must be a cube (the dimensions don't have to be
-# the same)
+# the same) aligned with the X, Y, and Z axes
 
-"""class PeriodicBoundary(Subdomain):
+class PeriodicCubicBoundary(SubDomain):
 
-    def __init__(self, mean_field, gradient_field, x_centroid, 
-    y_centroid, z_centroid, length_x, length_y, length_z):
+    def __init__(self, x_centroid, y_centroid, z_centroid, 
+    mesh_dataClass, tolerance=None):
 
         super().__init__()
 
         # Initializes the values
-
-        self.mean_field = mean_field
-
-        self.gradient_field = gradient_field
 
         self.x_centroid = x_centroid
         
@@ -175,13 +173,63 @@ class LinearVectorFieldExpression(UserExpression):
         
         self.z_centroid = z_centroid
 
-        # Gets the cube dimensions
+        # Gets the cube dimensions. To this end, gets the extreme values
+        # of each coordinate
 
-        self.semi_lengthX = 0.5*length_x
+        mesh_coordinates = mesh_dataClass.mesh.coordinates()
 
-        self.semi_lengthY = 0.5*length_y
+        x_min = mesh_coordinates[:,0].min()
 
-        self.semi_lengthZ = 0.5*length_z
+        x_max = mesh_coordinates[:,0].max()
+
+        y_min = mesh_coordinates[:,1].min()
+
+        y_max = mesh_coordinates[:,1].max()
+
+        z_min = mesh_coordinates[:,2].min()
+
+        z_max = mesh_coordinates[:,2].max()
+
+        self.length_x = x_max-x_min
+
+        self.length_y = y_max-y_min
+
+        self.length_z = z_max-z_min
+
+        self.semi_lengthX = 0.5*self.length_x
+
+        self.semi_lengthY = 0.5*self.length_y
+
+        self.semi_lengthZ = 0.5*self.length_z
+
+        # If no tolerance is given, sets it as a thousandth of the smal-
+        # lest length
+
+        if tolerance is None:
+
+            self.tolerance = abs(min([self.length_x, self.length_y,
+            self.length_z])*0.001)
+
+        else:
+
+            self.tolerance = tolerance
+
+        # Checks if the mesh is in fact a cube by comparing the volume
+        # with the analytical volume
+
+        numerical_volume = float(assemble(1.0*mesh_dataClass.dx))
+        
+        analytical_volume = self.length_x*self.length_y*self.length_z
+
+        if not near(numerical_volume, analytical_volume, self.tolerance):
+
+            raise TypeError("The numerically evaluated volume of the m"+
+            "esh, "+str(numerical_volume)+", is not equal to the analy"+
+            "tical volume, "+str(analytical_volume)+", thus, the mesh "+
+            "is probably not a cube and periodic boundary condition ca"+
+            "nnot be used")
+
+        self.mapped_points = 0
 
     # Redefines the inside method to give all True for points on the 
     # master facets, which are conveined here as x=-0.5*length_x, y=-0.5
@@ -190,11 +238,19 @@ class LinearVectorFieldExpression(UserExpression):
 
     def inside(self, x, on_boundary):
 
-        flag_xFacet = near(self.x_centroid-x[0], self.semi_lengthX)
+        flag_xFacet = near(self.x_centroid-self.semi_lengthX, x[0], 
+        self.tolerance)
 
-        flag_yFacet = near(self.y_centroid-x[1], self.semi_lengthY)
+        flag_yFacet = near(self.y_centroid-self.semi_lengthY, x[1], 
+        self.tolerance)
 
-        flag_zFacet = near(self.z_centroid-x[2], self.semi_lengthZ)
+        flag_zFacet = near(self.z_centroid-self.semi_lengthZ, x[2], 
+        self.tolerance)
+
+        if bool ((flag_xFacet or flag_yFacet or flag_zFacet) and
+        on_boundary):
+
+            print("The point x="+str(x)+" is in a master face")
 
         return bool ((flag_xFacet or flag_yFacet or flag_zFacet) and
         on_boundary)
@@ -203,25 +259,121 @@ class LinearVectorFieldExpression(UserExpression):
 
     def map(self, x, y):
 
-        # If the point x is on the vertex of the three facets, maps it 
+        flag_mapped = False
+
+        """# If the point x is on the vertex of the three facets, maps it 
         # to the opposite point
 
-        if (near(x[0], self.x_centroid-self.semi_lengthX) and near(x[1], 
-        self.y_centroid-self.semi_lengthY) and near(x[2], 
-        self.z_centroid-self.semi_lengthZ)):
+        if (near(x[0], self.x_centroid-self.semi_lengthX, self.tolerance
+        ) and near(x[1], self.y_centroid-self.semi_lengthY, 
+        self.tolerance) and near(x[2], self.z_centroid-self.semi_lengthZ, 
+        self.tolerance)):
 
-            y[0] = x[0]+(2*self.semi_lengthX)
+            y[0] = x[0]+self.length_x
 
-            y[1] = x[1]+(2*self.semi_lengthY)
+            y[1] = x[1]+self.length_y
 
-            y[2] = x[2]+(2*self.semi_lengthZ)
+            y[2] = x[2]+self.length_z
+
+            flag_mapped = True
 
         # If the point x is in the edge along the X axis
 
-        if (near(x[1], self.y_centroid-self.semi_lengthY) and near(x[2],
-        self.z_centroid-self.semi_lengthZ)):
+        elif (near(x[1], self.y_centroid-self.semi_lengthY, 
+        self.tolerance) and near(x[2], self.z_centroid-self.semi_lengthZ,
+        self.tolerance)):
 
-            y[]"""
+            y[0] = x[0]
+
+            y[1] = x[1]+self.length_y
+
+            y[2] = x[2]+self.length_z
+
+            flag_mapped = True
+
+        # If the point x is in the edge along the Y axis
+
+        elif (near(x[0], self.x_centroid-self.semi_lengthX, 
+        self.tolerance) and near(x[2], self.z_centroid-self.semi_lengthZ, 
+        self.tolerance)):
+
+            y[0] = x[0]+self.length_x
+
+            y[1] = x[1]
+
+            y[2] = x[2]+self.length_z
+
+            flag_mapped = True
+
+        # If the point x is in the edge along the Z axis
+
+        elif (near(x[0], self.x_centroid-self.semi_lengthX, 
+        self.tolerance) and near(x[1], self.y_centroid-self.semi_lengthY, 
+        self.tolerance)):
+
+            y[0] = x[0]+self.length_x
+
+            y[1] = x[1]+self.length_y
+
+            y[2] = x[2]
+
+            flag_mapped = True
+
+        # If the point x is on the plane X=x_centroid-semi_lengthX
+
+        elif (near(x[0], self.x_centroid-self.semi_lengthX, 
+        self.tolerance)):
+
+            y[0] = x[0]+self.length_x
+
+            y[1] = x[1]
+
+            y[2] = x[2]
+
+            flag_mapped = True
+
+        # If the point x is on the plane Y=y_centroid-semi_lengthY
+
+        elif (near(x[1], self.y_centroid-self.semi_lengthY, 
+        self.tolerance)):
+
+            y[0] = x[0]
+
+            y[1] = x[1]+self.length_y
+
+            y[2] = x[2]
+
+            flag_mapped = True
+
+        # If the point x is on the plane Z=z_centroid-semi_lengthZ
+
+        elif (near(x[2], self.z_centroid-self.semi_lengthZ, 
+        self.tolerance)):
+
+            y[0] = x[0]
+
+            y[1] = x[1]
+
+            y[2] = x[2]+self.length_z
+
+            flag_mapped = True
+
+        if not flag_mapped:
+
+            raise ValueError("The point x="+str(x)+" could not be mapp"+
+            "ed in the boundary periodically. Consider adjusting the t"+
+            "olerance or verify the mesh's periodicity")
+
+        else:
+
+            self.mapped_points += 1
+
+            print("Mapped the "+str(self.mapped_points)+"-th point, x="+
+            str(x)+", correctly")"""
+
+        y[0] = x[0] - self.length_x if near(x[0], self.x_centroid + self.semi_lengthX, self.tolerance) else x[0]
+        y[1] = x[1] - self.length_y if near(x[1], self.y_centroid + self.semi_lengthY, self.tolerance) else x[1]
+        y[2] = x[2] - self.length_z if near(x[2], self.z_centroid + self.semi_lengthZ, self.tolerance) else x[2]
 
 ########################################################################
 #                            Field updating                            #
@@ -232,7 +384,8 @@ class LinearVectorFieldExpression(UserExpression):
 
 def construct_fieldCorrections(fluctuation_field, volume_inverse, 
 mesh_dataClass, macro_quantitiesClasses, constrained_fieldName, 
-constrained_gradientFieldName, elements_dictionary):
+constrained_gradientFieldName, elements_dictionary, centroid_coordinates
+):
 
     # Gets the number of dimensions of the primal field
 
@@ -241,16 +394,14 @@ constrained_gradientFieldName, elements_dictionary):
     
     # Finds the centroid of the mesh
 
-    position_vector = mesh_dataClass.x
+    if centroid_coordinates is None:
 
-    x_centroid = float(volume_inverse*assemble(position_vector[0]*
-    mesh_dataClass.dx))
+        position_vector = mesh_dataClass.x
 
-    y_centroid = float(volume_inverse*assemble(position_vector[1]*
-    mesh_dataClass.dx))
-
-    z_centroid = float(volume_inverse*assemble(position_vector[2]*
-    mesh_dataClass.dx))
+        centroid_coordinates = [float(volume_inverse*assemble(
+        position_vector[0]*mesh_dataClass.dx)), float(volume_inverse*
+        assemble(position_vector[1]*mesh_dataClass.dx)), float(
+        volume_inverse*assemble(position_vector[2]*mesh_dataClass.dx))]
 
     # Tests if the primal field is the fluctuation field
         
@@ -258,8 +409,7 @@ constrained_gradientFieldName, elements_dictionary):
 
         # Saves the centroid as a constant vector
 
-        centroid_vector = Constant([x_centroid, y_centroid, 
-        z_centroid])
+        centroid_vector = Constant(centroid_coordinates)
 
         # Constructs the expressions for the field on the boundary con-
         # sidering zero fluctuations on the boundary
@@ -280,9 +430,9 @@ constrained_gradientFieldName, elements_dictionary):
             (mesh_dataClass.x-centroid_vector))), 
             LinearScalarFieldExpression(getattr(macro_quantitiesClasses[
             -1], constrained_fieldName), getattr(macro_quantitiesClasses[
-            -1], constrained_gradientFieldName), x_centroid, y_centroid, 
-            z_centroid), FunctionSpace(mesh_dataClass.mesh, 
-            elements_dictionary[constrained_fieldName])])
+            -1], constrained_gradientFieldName), *centroid_coordinates), 
+            FunctionSpace(mesh_dataClass.mesh, elements_dictionary[
+            constrained_fieldName])], centroid_coordinates)
 
         elif n_dimsPrimalField==1:
 
@@ -300,9 +450,9 @@ constrained_gradientFieldName, elements_dictionary):
             (mesh_dataClass.x-centroid_vector))), 
             LinearVectorFieldExpression(getattr(macro_quantitiesClasses[
             -1], constrained_fieldName), getattr(macro_quantitiesClasses[
-            -1], constrained_gradientFieldName), x_centroid, y_centroid, 
-            z_centroid), FunctionSpace(mesh_dataClass.mesh, 
-            elements_dictionary[constrained_fieldName])])
+            -1], constrained_gradientFieldName), *centroid_coordinates), 
+            FunctionSpace(mesh_dataClass.mesh, elements_dictionary[
+            constrained_fieldName])], centroid_coordinates)
 
         else:
 
@@ -321,14 +471,14 @@ constrained_gradientFieldName, elements_dictionary):
             return (LinearScalarFieldExpression(getattr(
             macro_quantitiesClasses[-1], constrained_fieldName),getattr(
             macro_quantitiesClasses[-1], constrained_gradientFieldName), 
-            x_centroid, y_centroid, z_centroid), None)
+            *centroid_coordinates), None, centroid_coordinates)
 
         elif n_dimsPrimalField==1:
 
             return (LinearVectorFieldExpression(getattr(
             macro_quantitiesClasses[-1], constrained_fieldName),getattr(
             macro_quantitiesClasses[-1], constrained_gradientFieldName), 
-            x_centroid, y_centroid, z_centroid), None)
+            *centroid_coordinates), None, centroid_coordinates)
 
         else:
 
@@ -336,3 +486,38 @@ constrained_gradientFieldName, elements_dictionary):
             " linear multiscale boundary condition for fields with"+
             " dimensionality larger than a 1 (a vector). The given"+
             " dimensionality is "+str(n_dimsPrimalField))
+        
+########################################################################
+#                             Node finding                             #
+########################################################################
+
+# Defines a function to find a node of the mesh nearest to a given point
+
+def find_node(mesh_dataClass, point_coordinates, node_number):
+
+    # Tests if the node has already been found
+
+    if node_number is None:
+
+        # Gets the coordinates of the mesh
+
+        mesh_coordinates = mesh_dataClass.mesh.coordinates()
+
+        # Gets a tree of these coordinates
+
+        coordinates_tree = KDTree(mesh_coordinates)
+
+        # Gets the number of the node that is closest to the given coor-
+        # dinates
+
+        _, node_number = coordinates_tree.query(point_coordinates)
+
+        # Returns the node number
+
+        return int(node_number)
+    
+    else:
+
+        # Returns the node number as it's been given
+
+        return node_number

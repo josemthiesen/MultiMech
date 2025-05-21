@@ -42,7 +42,8 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
 
     def __init__(self,  constrained_fieldName, fields_names, 
     elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
-    macro_quantitiesClasses, volume_inverse, fluctuation_field):
+    macro_quantitiesClasses, volume_inverse, fluctuation_field,
+    centroid_coordinates, constrained_node):
         
         # Gets the name of the field to be minimally constrained and its
         # gradient. But removes non ASCII characters and blank spaces so 
@@ -157,11 +158,17 @@ class MinimallyConstrainedFirstOrderBC(BCsClassTemplate):
         # condition's expression and the field correction for the fluc-
         # tuation
 
-        self.field_expression, self.field_correction = (
+        self.field_expression, self.field_correction, self.centroid = (
         multiscale_expressions.construct_fieldCorrections(
         fluctuation_field, self.volume_inverse, mesh_dataClass, 
         self.macro_quantitiesClasses, self.constrained_fieldName, 
-        self.constrained_gradientFieldName, elements_dictionary))
+        self.constrained_gradientFieldName, elements_dictionary, 
+        centroid_coordinates))
+
+        # Just saves a node to be constrained. This node is necessary 
+        # just for periodic BCs
+
+        self.constrained_node = constrained_node
         
     # Defines a function to in fact construct the boundary condition
 
@@ -221,7 +228,8 @@ class LinearFirstOrderBC(BCsClassTemplate):
 
     def __init__(self,  constrained_fieldName, fields_names, 
     elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
-    macro_quantitiesClasses, volume_inverse, fluctuation_field):
+    macro_quantitiesClasses, volume_inverse, fluctuation_field, 
+    centroid_coordinates, constrained_node):
         
         # Gets the name of the field to be minimally constrained and its
         # gradient. But removes non ASCII characters and blank spaces so 
@@ -289,11 +297,17 @@ class LinearFirstOrderBC(BCsClassTemplate):
         # condition's expression and the field correction for the fluc-
         # tuation
 
-        self.field_expression, self.field_correction = (
+        self.field_expression, self.field_correction, self.centroid  = (
         multiscale_expressions.construct_fieldCorrections(
         fluctuation_field, self.volume_inverse, mesh_dataClass, 
         self.macro_quantitiesClasses, self.constrained_fieldName, 
-        self.constrained_gradientFieldName, elements_dictionary))
+        self.constrained_gradientFieldName, elements_dictionary,
+        centroid_coordinates))
+
+        # Just saves a node to be constrained. This node is necessary 
+        # just for periodic BCs
+
+        self.constrained_node = constrained_node
         
     # Defines a function to in fact construct the boundary condition
 
@@ -327,7 +341,8 @@ class PeriodicFirstOrderBC(BCsClassTemplate):
 
     def __init__(self,  constrained_fieldName, fields_names, 
     elements_dictionary, mesh_dataClass, macro_quantitiesFilesDict, 
-    macro_quantitiesClasses, volume_inverse, fluctuation_field):
+    macro_quantitiesClasses, volume_inverse, fluctuation_field, 
+    centroid_coordinates, constrained_node):
         
         # Gets the name of the field to be minimally constrained and its
         # gradient. But removes non ASCII characters and blank spaces so 
@@ -395,17 +410,59 @@ class PeriodicFirstOrderBC(BCsClassTemplate):
         # condition's expression and the field correction for the fluc-
         # tuation
 
-        self.field_expression, self.field_correction = (
+        self.field_expression, self.field_correction, self.centroid = (
         multiscale_expressions.construct_fieldCorrections(
         fluctuation_field, self.volume_inverse, mesh_dataClass, 
         self.macro_quantitiesClasses, self.constrained_fieldName, 
-        self.constrained_gradientFieldName, elements_dictionary))
+        self.constrained_gradientFieldName, elements_dictionary,
+        centroid_coordinates))
+
+        # Gets the number of the node closest to the centroid
+
+        self.constrained_node = multiscale_expressions.find_node(
+        mesh_dataClass, self.centroid, constrained_node)
         
     # Defines a function to in fact construct the boundary condition
 
     def update(self, bilinear_form, linear_form, boundary_conditions,
     trial_functionsDict, test_functionsDict, boundary_conditionIndex, 
     mesh_dataClass, monolithic_functionSpace):
+        
+        # Constrains a node in the mesh to avoid rigid body deformation
+        # modes
+
+        # Gets the map of degrees of freedom of this field for each node.
+        # Reshapes this list of DOFs into a matrix, which has the number
+        # of columns equal to the size of the value
+
+        field_dofmap = np.array(monolithic_functionSpace.sub(
+        self.field_index).dofmap().dofs(mesh_dataClass.mesh, 0)).reshape(
+        mesh_dataClass.mesh.num_vertices(), monolithic_functionSpace.sub(
+        self.field_index).ufl_element().value_size())
+
+        # Gets the degrees of freedom of the constrained node. The 0 is
+        # there because a node is an entity of 0 topological dimension
+
+        constrained_nodeDOFs = field_dofmap[self.constrained_node]
+
+        # Adds the boundary condition to each DOF individually
+
+        if len(constrained_nodeDOFs)==1:
+
+            boundary_conditions.append(DirichletBC(
+            monolithic_functionSpace.sub(self.field_index), Constant(0.0
+            ), constrained_nodeDOFs, method="pointwise"))
+
+        else:
+
+            for i in range(len(constrained_nodeDOFs)):
+
+                print([constrained_nodeDOFs[i]])
+
+                boundary_conditions.append(DirichletBC(
+                monolithic_functionSpace.sub(self.field_index).sub(i), 
+                Constant(0.0), [constrained_nodeDOFs[i]], method="poin"+
+                "twise"))
 
         # Returns the boundary conditions and variational forms
 

@@ -44,12 +44,15 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
     ####################################################################
 
     # Assembles a dictionary of finite elements for the two primal 
-    # fields: displacement and microrotation
+    # fields: displacement and microrotation. Each field has a key and
+    # the corresponding value is another dictionary, which has keys for
+    # necessary information to create finite elements
 
-    elements_dictionary = {"displacement": VectorElement("CG", 
-    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeDisplacement), "m"+
-    "icrorotation": VectorElement("CG", mesh_dataClass.mesh.ufl_cell(), 
-    polynomial_degreeMicrorotation)}
+    elements_dictionary = {"displacement": {"field type": "vector", "i"+
+    "nterpolation function": "CG", "polynomial degree": 
+    polynomial_degreeDisplacement}, "microrotation": {"field type": "v"+
+    "ector", "interpolation function": "CG", "polynomial degree": 
+    polynomial_degreeMicrorotation}}
 
     ####################################################################
     #                        Boundary conditions                       #
