@@ -424,10 +424,10 @@ fluctuation_field=False):
     displacement_multiscaleBC, microrotation_multiscaleBC,
     macro_displacementName, macro_gradDisplacementName, 
     macro_microrotationName, macro_gradMicrorotationName, 
-    constitutive_model, maximum_loadingSteps, t_final, post_processes, 
+    constitutive_model, maximum_loadingSteps, post_processes, 
     file_directory+"//"+mesh_fileName, solver_parameters, 
     polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
-    polynomial_degreeMicrorotation=polynomial_degreeMicrorotation, t=t, 
+    polynomial_degreeMicrorotation=polynomial_degreeMicrorotation, 
     verbose=verbose, fluctuation_field=fluctuation_field)
 
 case1_varyingMicropolarNumber(flag_newMesh=True)

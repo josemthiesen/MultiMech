@@ -362,9 +362,59 @@ None):
             MacroScaleClass.time_keys, variable_name=type(
             MacroScaleClass).__name__)
     
-    # Gets the number of fields in the mixed element
+    # Gets the number of fields in the mixed element. But, verifies if
+    # the solution is really a mixed solution space
 
-    n_fields = mixed_element.num_sub_elements()
+    n_fields = 1
+
+    if solution_field.function_space().ufl_element().family()=="Mixed":
+
+        n_fields = mixed_element.num_sub_elements()
+
+    # Otherwise, the solution is indeed composed by a single field and
+    # the single field pseudotime stepping function must be called
+
+    else:
+
+        # Treats the lists of post processes to convert them to dictio-
+        # naries (the format used in the single field pseudotime step-
+        # ping function)
+
+        if isinstance(post_processesList, list):
+
+            # Takes the first component
+
+            if len(post_processesList)>0:
+
+                post_processesList = post_processesList[0]
+
+            else:
+
+                post_processesList = dict()
+
+        if isinstance(post_processesSubmeshList, list):
+
+            # Takes the first component
+
+            if len(post_processesSubmeshList)>0:
+
+                post_processesSubmeshList = post_processesSubmeshList[0]
+
+            else:
+
+                post_processesSubmeshList = dict()
+
+        # Calls the appropriate function to iterate in a single-field 
+        # problem
+
+        newton_raphsonSingleField(maximum_loadingSteps, solver, 
+        solution_field, mesh_dataClass, constitutive_model, 
+        post_processesDict=post_processesList, post_processesSubmeshDict
+        =post_processesSubmeshList, dirichlet_loads=dirichlet_loads, 
+        neumann_loads=neumann_loads, solver_parameters=solver_parameters, 
+        solution_name=solution_name, volume_physGroupsSubmesh=
+        volume_physGroupsSubmesh, macro_quantitiesClasses=
+        macro_quantitiesClasses, t=t, t_final=t_final)
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+

@@ -13,19 +13,17 @@ import source.tool_box.programming_tools as programming_tools
 import source.tool_box.multiscale_boundary_conditions_tools as multiscale_BCsTools
 
 # Defines a function to model a hyperelastic problem with a displacement
-# and a microrotation fields only in the microscale. It uses the macro
-# quantities read from txt files
+# only in the microscale. It uses the macro quantities read from txt fi-
+# les
 
 @programming_tools.optional_argumentsInitializer({'neumann_loads': 
 lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: []})
 
-def micropolar_microscale(displacement_multiscaleBC, 
-microrotation_multiscaleBC, macro_displacementFileName, 
-macro_gradDisplacementFileName, macro_microrotationFileName, 
-macro_gradMicrorotationFileName, constitutive_model, maximum_loadingSteps, 
-post_processes, mesh_fileName, solver_parameters, 
-polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2,
-solution_name=None, verbose=False, fluctuation_field=False):
+def hyperelastic_microscale(displacement_multiscaleBC, 
+macro_displacementFileName, macro_gradDisplacementFileName, 
+constitutive_model, maximum_loadingSteps, post_processes, mesh_fileName, 
+solver_parameters, polynomial_degree=2, solution_name=None, verbose=
+False, fluctuation_field=False):
 
     ####################################################################
     #                               Mesh                               #
@@ -41,16 +39,14 @@ solution_name=None, verbose=False, fluctuation_field=False):
     #                          Function space                          #
     ####################################################################
 
-    # Assembles a dictionary of finite elements for the two primal 
-    # fields: displacement and microrotation. Each field has a key and
-    # the corresponding value is another dictionary, which has keys for
-    # necessary information to create finite elements
+    # Assembles a dictionary of finite elements for the one and primal 
+    # field: displacement. The field has a key and the corresponding va-
+    # lue is another dictionary, which has keys for necessary informa-
+    # tion to create finite elements
 
     elements_dictionary = {"displacement": {"field type": "vector", "i"+
     "nterpolation function": "CG", "polynomial degree": 
-    polynomial_degreeDisplacement}, "microrotation": {"field type": "v"+
-    "ector", "interpolation function": "CG", "polynomial degree": 
-    polynomial_degreeMicrorotation}}
+    polynomial_degree}}
 
     ####################################################################
     #                        Boundary conditions                       #
@@ -70,11 +66,6 @@ solution_name=None, verbose=False, fluctuation_field=False):
     macro_displacementFileName, "macro field gradient file":
     macro_gradDisplacementFileName}}
 
-    multiscale_BCsDict["microrotation"] = {"boundary condition": 
-    microrotation_multiscaleBC, "macro information": {"macro field fil"+
-    "e": macro_microrotationFileName, "macro field gradient file":
-    macro_gradMicrorotationFileName}}
-
     # Calls up the function to automatically select the boundary condi-
     # tions
 
@@ -92,18 +83,13 @@ solution_name=None, verbose=False, fluctuation_field=False):
     # Recovers the primal fields and their variations
 
     u_new = solution_fields["displacement"]
-    
-    phi_new = solution_fields["microrotation"]
 
     variation_u = variation_fields["displacement"]
-    
-    variation_phi = variation_fields["microrotation"]
 
     # Constructs the variational form for the inner work
 
-    internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
-    u_new, phi_new, variation_u, variation_phi, constitutive_model, 
-    mesh_dataClass)
+    internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
+    u_new, variation_u, constitutive_model, mesh_dataClass)
 
     # Constructs the residual and evaluates its derivative w.r.t. the
     # trial solution
@@ -139,9 +125,14 @@ solution_name=None, verbose=False, fluctuation_field=False):
 
             solution_name.append([field_name, "Microscale"])
 
-    # The micropolar microscale problem is by definition a mixed pro-
-    # blem (displacement and microrotation fields). Thus, there is no 
-    # need to test whether the solution has multiple fields in it
+    # The hyperelastic microscale problem is, in nature, a single-field
+    # problem. But, if minimally constrained boundary condition is used,
+    # the problems gains one field for each Lagrange multiplier. Thus,
+    # the solution of the problem is given to an algorithms that can 
+    # handle multiple fields. 
+    # If the solution, however, does not have multiple fields, the fol-
+    # lowing function will automatically reconnect with the single-field
+    # framework
 
     newton_raphson_tools.newton_raphsonMultipleFields(
     maximum_loadingSteps, solver, monolithic_solution, fields_namesDict, 
