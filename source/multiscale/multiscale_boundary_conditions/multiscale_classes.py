@@ -12,7 +12,7 @@ import source.tool_box.programming_tools as programming_tools
 
 import source.tool_box.boundary_conditions_tools as BC_tools
 
-import source.multiscale.multiscale_expressions as multiscale_expressions
+import source.multiscale.multiscale_boundary_conditions.multiscale_expressions as multiscale_expressions
 
 ########################################################################
 #                Boundary conditions's classes templates               #

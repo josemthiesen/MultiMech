@@ -4,8 +4,6 @@ from dolfin import *
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
-import source.tool_box.functional_tools as functional_tools
-
 import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools

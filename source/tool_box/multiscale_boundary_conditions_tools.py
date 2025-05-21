@@ -3,9 +3,9 @@
 
 from dolfin import *
 
-import source.multiscale.multiscale_classes as multiscale_classes
+import source.multiscale.multiscale_boundary_conditions.multiscale_expressions as multiscale_expressions
 
-import source.multiscale.multiscale_expressions as multiscale_expressions
+import source.multiscale.multiscale_boundary_conditions.multiscale_classes as multiscale_classes
 
 import source.tool_box.programming_tools as programming_tools
 
