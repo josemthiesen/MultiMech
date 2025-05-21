@@ -54,6 +54,11 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
     def __init__(self, material_properties):
 
+        # Sets the names of the fields that are necessary to compute 
+        # this model
+
+        self.required_fieldsNames = ["displacement", "microrotation"]
+
         # Gets the parameters
 
         self.mu = Constant(material_properties["mu"])

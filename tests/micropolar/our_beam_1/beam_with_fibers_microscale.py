@@ -28,7 +28,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets the multiscale boundary conditions for each one of the fields
 
-    displacement_multiscaleBC = "PeriodicFirstOrderBC"#"MinimallyConstrainedFirstOrderBC"#"LinearFirstOrderBC"
+    displacement_multiscaleBC = "MinimallyConstrainedFirstOrderBC"#"PeriodicFirstOrderBC""LinearFirstOrderBC"
     
     microrotation_multiscaleBC = "MinimallyConstrainedFirstOrderBC"
 
@@ -378,18 +378,6 @@ fluctuation_field=False):
 
     solver_parameters["krylov_monitor_convergence"] = False"""
 
-    # Sets the initial time
-
-    t = 0.0
-
-    # Sets the final pseudotime of the simulation
-
-    t_final = 1.0
-
-    # Sets the maximum number of steps of loading
-
-    maximum_loadingSteps = 25
-
     ####################################################################
     #                        Boundary conditions                       #
     ####################################################################
@@ -424,10 +412,10 @@ fluctuation_field=False):
     displacement_multiscaleBC, microrotation_multiscaleBC,
     macro_displacementName, macro_gradDisplacementName, 
     macro_microrotationName, macro_gradMicrorotationName, 
-    constitutive_model, maximum_loadingSteps, post_processes, 
-    file_directory+"//"+mesh_fileName, solver_parameters, 
-    polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
-    polynomial_degreeMicrorotation=polynomial_degreeMicrorotation, 
-    verbose=verbose, fluctuation_field=fluctuation_field)
+    constitutive_model, post_processes, file_directory+"//"+
+    mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
+    polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
+    polynomial_degreeMicrorotation, verbose=verbose, fluctuation_field=
+    fluctuation_field)
 
 case1_varyingMicropolarNumber(flag_newMesh=True)

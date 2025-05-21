@@ -11,6 +11,8 @@ import source.tool_box.homogenization_tools as homogenization_tools
 
 import source.tool_box.functional_tools as functional_tools
 
+import source.tool_box.constitutive_tools as constitutive_tools
+
 ########################################################################
 #                      Post-processing tools list                      #
 ########################################################################
@@ -52,7 +54,8 @@ def initialize_fieldSaving(data, direct_codeData, submesh_flag):
 
 # Defines a function to update the file with the field
 
-def update_fieldSaving(output_object, field, field_number, time):
+def update_fieldSaving(output_object, field, field_number, time, 
+fields_namesDict):
     
     print("Updates the saving of the "+str(field_number)+" field\n")
 
@@ -154,6 +157,12 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 
             self.parent_toChildMeshResult = parent_toChildMeshResult
 
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
     output_object = OutputObject(file, W, constitutive_model, dx, 
     physical_groupsList, physical_groupsNamesToTags, 0.0)
 
@@ -162,13 +171,19 @@ def initialize_cauchyStressSaving(data, direct_codeData, submesh_flag):
 # Defines a function to update the Cauchy stress field
 
 def update_cauchyStressSaving(output_object, field, field_number, time, 
-flag_parentMeshReuse=False):
+fields_namesDict, flag_parentMeshReuse=False):
     
     print("Updates the saving of the Cauchy stress field\n")
+
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
     
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["Cauchy stress", "stress"], "cauchy", "cauc"+
-    "hy_stress")
+    return functional_tools.save_stressField(output_object, 
+    retrieved_fields, time, flag_parentMeshReuse, ["Cauchy stress", 
+    "stress"], "cauchy", "cauchy_stress")
 
 ########################################################################
 #                      Couple Cauchy stress field                      #
@@ -249,6 +264,12 @@ submesh_flag):
 
             self.parent_toChildMeshResult = parent_toChildMeshResult
 
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
     output_object = OutputObject(file, W, constitutive_model, dx, 
     physical_groupsList, physical_groupsNamesToTags, 0.0)
 
@@ -257,13 +278,19 @@ submesh_flag):
 # Defines a function to update the couple Cauchy stress field
 
 def update_coupleCauchyStressSaving(output_object, field, field_number, 
-time, flag_parentMeshReuse=False):
+time, fields_namesDict, flag_parentMeshReuse=False):
     
     print("Updates the saving of the couple Cauchy stress field\n")
 
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["Couple Cauchy stress", "stress"], "couple_"+
-    "cauchy", "cauchy_stress")
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
+
+    return functional_tools.save_stressField(output_object, 
+    retrieved_fields, time, flag_parentMeshReuse, ["Couple Cauchy stre"+
+    "ss", "stress"], "couple_cauchy", "cauchy_stress")
 
 ########################################################################
 #                  First Piola-Kirchhoff stress field                  #
@@ -345,6 +372,12 @@ submesh_flag):
 
             self.parent_toChildMeshResult = parent_toChildMeshResult
 
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
     output_object = OutputObject(file, W, constitutive_model, dx, 
     physical_groupsList, physical_groupsNamesToTags, 0.0)
 
@@ -353,14 +386,21 @@ submesh_flag):
 # Defines a function to update the first Piola-Kirchhoff stress field
 
 def update_firstPiolaStressSaving(output_object, field, field_number, 
-time, flag_parentMeshReuse=False):
+time, fields_namesDict, flag_parentMeshReuse=False):
     
     print("Updates the saving of the first Piola-Kirchhoff stress fiel"+
     "d\n")
+
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
     
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["First Piola-Kirchhoff stress", "stress"], 
-    "first_piola_kirchhoff", "first_piolaStress")
+    return functional_tools.save_stressField(output_object, 
+    retrieved_fields, time, flag_parentMeshReuse, ["First Piola-Kirchh"+
+    "off stress", "stress"], "first_piola_kirchhoff", "first_piolaStre"+
+    "ss")
 
 ########################################################################
 #              Couple first Piola-Kirchhoff stress field               #
@@ -442,6 +482,12 @@ submesh_flag):
 
             self.parent_toChildMeshResult = parent_toChildMeshResult
 
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
     output_object = OutputObject(file, W, constitutive_model, dx, 
     physical_groupsList, physical_groupsNamesToTags, 0.0)
 
@@ -451,14 +497,21 @@ submesh_flag):
 # field
 
 def update_coupleFirstPiolaStressSaving(output_object, field, 
-field_number, time, flag_parentMeshReuse=False):
+field_number, time, fields_namesDict, flag_parentMeshReuse=False):
     
     print("Updates the saving of the couple first Piola-Kirchhoff stre"+
     "ss field\n")
+
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
     
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["Couple first Piola-Kirchhoff stress", "str"+
-    "ess"], "couple_first_piola_kirchhoff", "first_piolaStress")
+    return functional_tools.save_stressField(output_object, 
+    retrieved_fields, time, flag_parentMeshReuse, ["Couple first Piola"+
+    "-Kirchhoff stress", "stress"], "couple_first_piola_kirchhoff", "f"+
+    "irst_piolaStress")
 
 ########################################################################
 #                            Homogenization                            #
@@ -581,7 +634,8 @@ def initialize_fieldHomogenization(data, direct_codeData, submesh_flag):
 
 # Defines a function to update the homogenized field
 
-def update_fieldHomogenization(output_object, field, field_number, time):
+def update_fieldHomogenization(output_object, field, field_number, time,
+fields_namesDict):
     
     print("Updates the homogenization of the "+str(field_number)+" fie"+
     "ld\n")
@@ -629,7 +683,7 @@ submesh_flag):
 # field
 
 def update_gradientFieldHomogenization(output_object, field, 
-field_number, time):
+field_number, time, fields_namesDict):
     
     print("Updates the homogenization of the gradient of the "+str(
     field_number)+" field\n")
@@ -654,7 +708,7 @@ field_number, time):
     # -1, for a single field is sent downstream
 
     output_object = update_fieldHomogenization(output_object, 
-    grad_field, -1, time)
+    grad_field, -1, time, fields_namesDict)
 
     return output_object
 
@@ -772,6 +826,12 @@ submesh_flag):
     
             self.physical_groupsNamesToTags = physical_groupsNamesToTags
 
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
     output_object = OutputObject(homogenized_firstPiolaList, (1.0/volume
     ), dx, subdomain, file_name, constitutive_model, physical_groupsList,
     physical_groupsNamesToTags)
@@ -782,14 +842,20 @@ submesh_flag):
 # Kirchhof
 
 def update_firstPiolaHomogenization(output_object, field, field_number, 
-time):
+time, fields_namesDict):
     
     print("Updates the homogenization of the first Piola-Kirchhoff str"+
     "ess field\n")
 
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
+
     output_object.result = homogenization_tools.homogenize_stressTensor(
-    field, output_object.constitutive_model, "first_piola_kirchhoff", 
-    "first_piolaStress", output_object.result, time, 
+    retrieved_fields, output_object.constitutive_model, "first_piola_k"+
+    "irchhoff", "first_piolaStress", output_object.result, time, 
     output_object.inverse_volume, output_object.dx, 
     output_object.subdomain,output_object.file_name, 
     output_object.physical_groupsList, 
@@ -810,14 +876,20 @@ submesh_flag):
 # Piola-Kirchhof
 
 def update_coupleFirstPiolaHomogenization(output_object, field, 
-field_number, time):
+field_number, time, fields_namesDict):
     
     print("Updates the homogenization of the couple first Piola-Kirchh"+
     "off stress field\n")
 
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
+
     output_object.result = homogenization_tools.homogenize_stressTensor(
-    field, output_object.constitutive_model, "couple_first_piola_kirch"+
-    "hoff", "first_piolaStress", output_object.result, time, 
+    retrieved_fields, output_object.constitutive_model, "couple_first_"+
+    "piola_kirchhoff", "first_piolaStress", output_object.result, time, 
     output_object.inverse_volume, output_object.dx, 
     output_object.subdomain,output_object.file_name, 
     output_object.physical_groupsList, 
@@ -938,6 +1010,12 @@ def initialize_cauchyHomogenization(data, direct_codeData, submesh_flag):
     
             self.physical_groupsNamesToTags = physical_groupsNamesToTags
 
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
     output_object = OutputObject(homogenized_cauchyList, (1.0/volume
     ), dx, subdomain, file_name, constitutive_model, physical_groupsList,
     physical_groupsNamesToTags)
@@ -948,14 +1026,21 @@ def initialize_cauchyHomogenization(data, direct_codeData, submesh_flag):
 # Kirchhof
 
 def update_cauchyHomogenization(output_object, field, field_number, 
-time):
+time, fields_namesDict):
     
     print("Updates the homogenization of the Cauchy stress field\n")
 
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
+
     output_object.result = homogenization_tools.homogenize_stressTensor(
-    field, output_object.constitutive_model, "cauchy", "cauchy_stress", 
-    output_object.result, time, output_object.inverse_volume, 
-    output_object.dx, output_object.subdomain,output_object.file_name, 
+    retrieved_fields, output_object.constitutive_model, "cauchy", "cau"+
+    "chy_stress", output_object.result, time, 
+    output_object.inverse_volume, output_object.dx, 
+    output_object.subdomain, output_object.file_name, 
     output_object.physical_groupsList, 
     output_object.physical_groupsNamesToTags)
 
@@ -974,15 +1059,22 @@ submesh_flag):
 # stress
 
 def update_coupleCauchyHomogenization(output_object, field, field_number, 
-time):
+time, fields_namesDict):
     
     print("Updates the homogenization of the couple Cauchy stress fiel"
     "d\n")
 
+    # Retrieves the desired fields from the whole list of fields 
+    # functions
+
+    retrieved_fields = functional_tools.select_fields(field, 
+    output_object.required_fieldsNames, fields_namesDict)
+
     output_object.result = homogenization_tools.homogenize_stressTensor(
-    field, output_object.constitutive_model, "couple_cauchy", "cauchy_"+
-    "stress", output_object.result, time, output_object.inverse_volume, 
-    output_object.dx, output_object.subdomain,output_object.file_name, 
+    retrieved_fields, output_object.constitutive_model, "couple_cauchy", 
+    "cauchy_stress", output_object.result, time, 
+    output_object.inverse_volume, output_object.dx, 
+    output_object.subdomain, output_object.file_name, 
     output_object.physical_groupsList, 
     output_object.physical_groupsNamesToTags)
 

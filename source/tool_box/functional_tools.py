@@ -14,8 +14,243 @@ import source.tool_box.variational_tools as variational_tools
 import source.tool_box.programming_tools as programming_tools
 
 ########################################################################
+#                            Solver setting                            #
+########################################################################
+
+# Defines a function to set the nonlinear problem from the residual and
+# the Gateaux derivative
+
+def set_nonlinearProblem(residual_form, monolithic_solution, 
+trial_functions, boundary_conditions, solver_parameters=None):
+    
+    # Evaluates the Gateaux derivative of the residue form
+    
+    residual_derivative = derivative(residual_form, monolithic_solution, 
+    trial_functions)
+
+    # Sets the nonlinear variational problem
+
+    Res = NonlinearVariationalProblem(residual_form, monolithic_solution, 
+    boundary_conditions, J=residual_derivative)
+
+    # Sets the solver to this problem
+
+    solver = NonlinearVariationalSolver(Res)
+
+    if not (solver_parameters is None):
+
+        solver = set_solverParameters(solver, solver_parameters)
+
+    return solver
+
+# Defines a function to update solver parameters
+
+def set_solverParameters(solver, solver_parameters):
+
+    # Sets a list of implemented solver parameters
+
+    admissible_keys = ["nonlinear_solver", "linear_solver", "newton_re"+
+    "lative_tolerance", "newton_absolute_tolerance", "newton_maximum_i"+
+    "terations", "preconditioner", "krylov_absolute_tolerance", "krylo"+
+    "v_relative_tolerance", "krylov_maximum_iterations", "krylov_monit"+
+    "or_convergence"]
+
+    # Gets the keys of the solver parameters dictionary
+
+    parameter_types = solver_parameters.keys()
+
+    # Iterates the keys of the solver parameters to verify if any of 
+    # them is not admissible
+
+    for key in parameter_types:
+
+        if not (key in admissible_keys):
+
+            raise NameError("The key "+str(key)+" is not an admissible"+
+            " key to set solver parameters.")
+        
+    # Sets the solver parameters
+
+    if "nonlinear_solver" in parameter_types:
+
+        solver.parameters["nonlinear_solver"] = solver_parameters["non"+
+        "linear_solver"]
+
+    else:
+
+        solver.parameters["nonlinear_solver"] = "newton"
+
+    if "linear_solver" in parameter_types:
+
+        solver.parameters["newton_solver"]["linear_solver"] = (
+        solver_parameters["linear_solver"])
+
+    if "newton_relative_tolerance" in parameter_types:
+
+        solver.parameters["newton_solver"]["relative_tolerance"] = (
+        solver_parameters["newton_relative_tolerance"])
+
+    if "newton_absolute_tolerance" in parameter_types:
+
+        solver.parameters["newton_solver"]["absolute_tolerance"] = (
+        solver_parameters["newton_absolute_tolerance"])
+
+    if "newton_maximum_iterations" in parameter_types:
+
+        solver.parameters["newton_solver"]["maximum_iterations"] = (
+        solver_parameters["newton_maximum_iterations"])
+
+    if "preconditioner" in parameter_types:
+
+        solver.parameters["newton_solver"]["preconditioner"] = (
+        solver_parameters["preconditioner"])
+
+    if "krylov_absolute_tolerance" in parameter_types:
+
+        solver.parameters['newton_solver']['krylov_solver']['absolute_'+
+        'tolerance'] = solver_parameters["krylov_absolute_tolerance"]
+
+    if "krylov_relative_tolerance" in parameter_types:
+
+        solver.parameters['newton_solver']['krylov_solver']['relative_'+
+        'tolerance'] = solver_parameters["krylov_relative_tolerance"]
+
+    if "krylov_maximum_iterations" in parameter_types:
+
+        solver.parameters['newton_solver']['krylov_solver']['maximum_i'+
+        'terations'] = solver_parameters["krylov_maximum_iterations"]
+
+    if "krylov_monitor_convergence" in parameter_types:
+
+        solver.parameters['newton_solver']['krylov_solver']['monitor_c'+
+        'onvergence'] = solver_parameters["krylov_monitor_convergence"]
+
+    # Returns the updated solver
+
+    return solver
+
+########################################################################
 #                       Finite element creation                        #
 ########################################################################
+
+# Defines a function to select a field from a list of fields
+
+def select_fields(split_fieldsList, required_fieldsNames, 
+fields_namesDict):
+
+    # Initializes a list of fields that will be used
+
+    retrieved_fields = []
+
+    # Iterates through the required fields' names
+
+    for name in required_fieldsNames:
+
+        # Verifies if this name is in the dictionary of fields' names 
+        # that came from the generation of the finite elements
+
+        if not (name in fields_namesDict):
+                
+            raise NameError("The field '"+str(name)+"' is required in "+
+            "this post-process, but it is not in the list of names of "+
+            "fields, that is: "+str(fields_namesDict.keys()))
+        
+        # Appends the field by its name
+
+        retrieved_fields.append(split_fieldsList[fields_namesDict[name]])
+
+    # Returns the list of fields
+
+    if len(retrieved_fields)==1:
+
+        return retrieved_fields[0]
+
+    return retrieved_fields
+
+# Defines a function to construct a function space given a dictionary of
+# instructions to create finite elements
+
+def construct_monolithicFunctionSpace(elements_dictionary, 
+mesh_dataClass, verbose=False):
+    
+    # Transforms the dictionary of instructions into real finite elements
+    # and get the names of the fields
+
+    elements_dictionary, fields_names = construct_elementsDictionary(
+    elements_dictionary, mesh_dataClass)
+
+    # Constructs the mixed element
+
+    mixed_element = 0
+
+    if len(fields_names)>1:
+
+        mixed_element = MixedElement([elements_dictionary[field_name
+        ] for field_name in (fields_names)])
+
+    else:
+
+        mixed_element = elements_dictionary[fields_names[0]]
+
+    # Constructs the monolithic function space using the finite element
+    # or the set of finite elements, which were previously created
+
+    monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
+    mixed_element)
+
+    # Creates the function for the updated solution, i.e. the vector of 
+    # parameters. Then, splits into the individual fields. As the mono-
+    # lithic function space has an specific order of fields, retrieves 
+    # the individual fields following this order. Does the same for the
+    # variations
+
+    trial_functions = TrialFunction(monolithic_functionSpace)
+
+    monolithic_solution = Function(monolithic_functionSpace)
+
+    solution_functions = []
+
+    variation_functions = []
+
+    if len(fields_names)>1:
+
+        solution_functions = split(monolithic_solution)
+
+        variation_functions = split(TestFunction(monolithic_functionSpace
+        ))
+
+    else:
+
+        solution_functions = [monolithic_solution]
+
+        variation_functions = [TestFunction(monolithic_functionSpace)]
+
+    # Organizes them into dictionaries
+
+    solution_fields = dict()
+
+    variation_fields = dict()
+
+    fields_namesDict = dict()
+
+    for i in range(len(fields_names)):
+
+        field_name = fields_names[i]
+
+        # Retrives the individual field and its variation
+
+        solution_fields[field_name] = solution_functions[i]
+
+        variation_fields[field_name] = variation_functions[i]
+
+        fields_namesDict[field_name] = i
+
+    if verbose:
+
+        print("Finishes creating the function spaces\n")
+
+    return (monolithic_functionSpace, monolithic_solution, fields_names, 
+    solution_fields, variation_fields, trial_functions, fields_namesDict)
 
 # Defines a function to construct a dictionary of elements from a dic-
 # tionary of finite elements' instructions
@@ -25,6 +260,10 @@ def construct_elementsDictionary(elements_dictionary, mesh_dataClass):
     # Sets a list of allowed interpolation functions
 
     allowed_interpolationFunction = ["CG", "DG", "Lagrange"]
+
+    # Initializes a list of names of the fields
+
+    fields_names = []
 
     # Iterates through the dictionary of elements
     
@@ -36,6 +275,10 @@ def construct_elementsDictionary(elements_dictionary, mesh_dataClass):
         try:
 
             cell = element_dictionary.cell()
+
+            # Updates the list of fields' names
+
+            fields_names.append(field_name)
 
         # If not, it must be a dictionary with finite element's informa-
         # tion
@@ -161,10 +404,14 @@ def construct_elementsDictionary(elements_dictionary, mesh_dataClass):
 
                     raise KeyError("There is no key 'field type' in th"+
                     "e dictionary to create finite elements.")
+                
+            # Updates the list of fields' names
+
+            fields_names.append(field_name)
         
     # Returns the finite elements dictionary
 
-    return elements_dictionary
+    return elements_dictionary, fields_names
 
 ########################################################################
 #                        Time stepping classes                         #

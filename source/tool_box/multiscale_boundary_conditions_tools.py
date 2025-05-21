@@ -27,14 +27,8 @@ boundary_conditions=None, fluctuation_field=False):
     
     # Converts the dictionary of elements to true fenics elements
 
-    elements_dictionary = functional_tools.construct_elementsDictionary(
+    elements_dictionary, fields_names = functional_tools.construct_elementsDictionary(
     elements_dictionary, mesh_dataClass)
-
-    # Gets the names of the fields from the keys of the dictionary of e-
-    # lements
-
-    fields_names = [field_name for field_name in elements_dictionary.keys(
-    )]
     
     # Verifies if the multiscale_BCsDict is a dictionary
 
@@ -269,6 +263,10 @@ boundary_conditions=None, fluctuation_field=False):
     trial_functions = TrialFunction(monolithic_functionSpace)
 
     monolithic_solution = Function(monolithic_functionSpace)
+
+    solution_functions = []
+
+    variation_functions = []
 
     if len(fields_names)>1:
 

@@ -9,6 +9,8 @@ import source.tool_box.boundary_conditions_tools as BCs_tools
 
 import source.tool_box.variational_tools as variational_tools
 
+import source.tool_box.functional_tools as functional_tools
+
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
 import source.tool_box.programming_tools as programming_tools
@@ -46,32 +48,26 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     #                          Function space                          #
     ####################################################################
 
-    # Constructs elements for the displacement and for the microrotation
-    # fields
+    # Assembles a dictionary of finite elements for the two primal 
+    # fields: displacement and microrotation. Each field has a key and
+    # the corresponding value is another dictionary, which has keys for
+    # necessary information to create finite elements
 
-    displacement_element = VectorElement("CG", 
-    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeDisplacement)
+    elements_dictionary = {"displacement": {"field type": "vector", "i"+
+    "nterpolation function": "CG", "polynomial degree": 
+    polynomial_degreeDisplacement}, "microrotation": {"field type": "v"+
+    "ector", "interpolation function": "CG", "polynomial degree": 
+    polynomial_degreeMicrorotation}}
 
-    microrotation_element = VectorElement("CG", 
-    mesh_dataClass.mesh.ufl_cell(), polynomial_degreeMicrorotation)
+    # From the dictionary of elements, the finite elements are created,
+    # then, all the rest is created: the function spaces, trial and test 
+    # functions, solution function. Everything is split and named by ac-
+    # cording to the element's name
 
-    mixed_element = MixedElement([displacement_element, 
-    microrotation_element])
-
-    # Defines the finite element space for the monolithic solution
-
-    monolithic_functionSpace = FunctionSpace(mesh_dataClass.mesh, 
-    mixed_element)
-
-    # Sets the names for each field that will be used to retrive and 
-    # sort post-processes into a dictionary. The names are the keys and
-    # the values are the indexes in the monolithic function space
-
-    fields_names = {"displacement":0, "microrotation":1}
-
-    if verbose:
-
-        print("Finishes creating the function spaces\n")
+    (monolithic_functionSpace, solution_new, fields_names, 
+    solution_fields, variation_fields, delta_solution, fields_namesDict
+    ) = functional_tools.construct_monolithicFunctionSpace(
+    elements_dictionary, mesh_dataClass, verbose=verbose)
 
     ####################################################################
     #                        Boundary conditions                       #
@@ -112,23 +108,16 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     #                         Variational forms                        #
     ####################################################################
 
-    # Defines the trial and test functions
+    # Gets the individual solution fields and the individual variations
+    # of the fields
 
-    delta_solution = TrialFunction(monolithic_functionSpace) 
+    u_new = solution_fields["displacement"]
 
-    variation_solution = TestFunction(monolithic_functionSpace)
+    phi_new = solution_fields["microrotation"]
 
-    # Creates the function for the updated solution, i.e. the vector of 
-    # parameters
-
-    solution_new = Function(monolithic_functionSpace)
-
-    # Splits the solution and the test function. Splits the fields but 
-    # keeps each one with the global vector of parameters
-
-    u_new, phi_new = split(solution_new)
-
-    variation_u, variation_phi = split(variation_solution)
+    variation_u = variation_fields["displacement"]
+    
+    variation_phi = variation_fields["microrotation"]
 
     # Constructs the variational form for the inner work
 
@@ -141,9 +130,6 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     traction_VarForm = variational_tools.traction_work(
     traction_dictionary, variation_u, mesh_dataClass)
 
-    #traction_VarForm = (dot(as_vector([0.0, neumann_loads[0], 0.0]), 
-    #variation_u)*ds(6))
-
     # Constructs the variational forms for the moment work on the boun-
     # dary. Note that the function traction_work was reused, because the
     # variational construction is the same for traction and for moment
@@ -151,22 +137,18 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     moment_VarForm = variational_tools.traction_work(
     moment_dictionary, variation_phi, mesh_dataClass)
 
-    # Assembles the residual, takes the Gateaux derivative and assembles
-    # the nonlinear problem object
+    ####################################################################
+    #              Problem and solver parameters setting               #
+    ####################################################################
+
+    # Assembles the residual and the nonlinear problem object. Sets the
+    # solver parameters too
 
     residual_form = internal_VarForm-traction_VarForm-moment_VarForm
 
-    residual_derivative = derivative(residual_form, solution_new, 
-    delta_solution)
-
-    Res = NonlinearVariationalProblem(residual_form, solution_new, bc, 
-    J=residual_derivative)
-
-    ####################################################################
-    #                    Solver parameters setting                     #
-    ####################################################################
-
-    solver = NonlinearVariationalSolver(Res)
+    solver = functional_tools.set_nonlinearProblem(residual_form, 
+    solution_new, delta_solution, bc, solver_parameters=
+    solver_parameters)
 
     ####################################################################
     #                 Solution and pseudotime stepping                 #
@@ -176,15 +158,14 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     if len(solution_name)==0:
 
-        for field_name in fields_names:
+        for field_name in fields_namesDict:
 
             solution_name.append([field_name, "DNS"])
 
-    newton_raphson_tools.newton_raphsonMultipleFields(
-    maximum_loadingSteps, solver, solution_new, fields_names,
-    mixed_element, mesh_dataClass, constitutive_model, 
+    newton_raphson_tools.newton_raphsonMultipleFields(solver, 
+    solution_new, fields_namesDict, mesh_dataClass, constitutive_model, 
     post_processesList=post_processes, post_processesSubmeshList=
-    post_processesSubmesh, dirichlet_loads=dirichlet_loads, 
-    neumann_loads=neumann_loads, solver_parameters=solver_parameters, 
-    volume_physGroupsSubmesh=volume_physGroupsSubmesh, solution_name=
-    solution_name, t=t, t_final=t_final)
+    post_processesSubmesh, dirichlet_loads=dirichlet_loads, neumann_loads
+    =neumann_loads, volume_physGroupsSubmesh=volume_physGroupsSubmesh, 
+    solution_name=solution_name, t=t, t_final=t_final, 
+    maximum_loadingSteps=maximum_loadingSteps)

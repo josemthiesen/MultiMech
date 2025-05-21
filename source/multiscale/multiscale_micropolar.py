@@ -6,6 +6,8 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 
 import source.tool_box.variational_tools as variational_tools
 
+import source.tool_box.functional_tools as functional_tools
+
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
 import source.tool_box.programming_tools as programming_tools
@@ -22,10 +24,10 @@ lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: []})
 def micropolar_microscale(displacement_multiscaleBC, 
 microrotation_multiscaleBC, macro_displacementFileName, 
 macro_gradDisplacementFileName, macro_microrotationFileName, 
-macro_gradMicrorotationFileName, constitutive_model, maximum_loadingSteps, 
-post_processes, mesh_fileName, solver_parameters, 
-polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2,
-solution_name=None, verbose=False, fluctuation_field=False):
+macro_gradMicrorotationFileName, constitutive_model, post_processes, 
+mesh_fileName, solver_parameters, polynomial_degreeDisplacement=2, 
+polynomial_degreeMicrorotation=2, solution_name=None, verbose=False, 
+fluctuation_field=False):
 
     ####################################################################
     #                               Mesh                               #
@@ -81,7 +83,8 @@ solution_name=None, verbose=False, fluctuation_field=False):
     (bilinear_form, linear_form, boundary_conditions, 
     macro_quantitiesClasses, fields_namesDict, solution_fields, 
     variation_fields, trial_functions, monolithic_solution, 
-    mixed_element, volume_inverse, fields_corrections) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
+    mixed_element, volume_inverse, fields_corrections
+    ) = multiscale_BCsTools.select_multiscaleBoundaryConditions(
     multiscale_BCsDict, elements_dictionary, mesh_dataClass, 
     fluctuation_field=fluctuation_field)
 
@@ -105,27 +108,19 @@ solution_name=None, verbose=False, fluctuation_field=False):
     u_new, phi_new, variation_u, variation_phi, constitutive_model, 
     mesh_dataClass)
 
-    # Constructs the residual and evaluates its derivative w.r.t. the
-    # trial solution
+    ####################################################################
+    #              Problem and solver parameters setting               #
+    ####################################################################
+
+    # Assembles the residual and the nonlinear problem object. Sets the
+    # solver parameters too
 
     residual_form = ((volume_inverse*internal_VarForm)+bilinear_form-
     linear_form)
 
-    residual_derivative = derivative(residual_form, monolithic_solution, 
-    trial_functions)
-
-    # Makes the boundary condition an empty list, because the macrosca-
-    # le boundary conditions are applied directly onto the variational
-    # form, using Lagrange multipliers
-
-    Res = NonlinearVariationalProblem(residual_form, monolithic_solution,
-    boundary_conditions, J=residual_derivative)
-
-    ####################################################################
-    #                    Solver parameters setting                     #
-    ####################################################################
-
-    solver = NonlinearVariationalSolver(Res)
+    solver = functional_tools.set_nonlinearProblem(residual_form, 
+    monolithic_solution, trial_functions, boundary_conditions, 
+    solver_parameters=solver_parameters)
 
     ####################################################################
     #                 Solution and pseudotime stepping                 #
@@ -143,10 +138,8 @@ solution_name=None, verbose=False, fluctuation_field=False):
     # blem (displacement and microrotation fields). Thus, there is no 
     # need to test whether the solution has multiple fields in it
 
-    newton_raphson_tools.newton_raphsonMultipleFields(
-    maximum_loadingSteps, solver, monolithic_solution, fields_namesDict, 
-    mixed_element, mesh_dataClass, constitutive_model, 
-    post_processesList=post_processes, solver_parameters=
-    solver_parameters, solution_name=solution_name, 
-    macro_quantitiesClasses=macro_quantitiesClasses, fields_corrections=
-    fields_corrections)
+    newton_raphson_tools.newton_raphsonMultipleFields(solver, 
+    monolithic_solution, fields_namesDict, mesh_dataClass, 
+    constitutive_model, post_processesList=post_processes, solution_name=
+    solution_name, macro_quantitiesClasses=macro_quantitiesClasses, 
+    fields_corrections=fields_corrections)

@@ -57,6 +57,11 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
     # Initializes the properties
 
     def __init__(self, material_properties):
+
+        # Sets the names of the fields that are necessary to compute 
+        # this model
+
+        self.required_fieldsNames = ["displacement"]
         
         self.c = Constant(material_properties["c"])
 

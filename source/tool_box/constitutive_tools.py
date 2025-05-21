@@ -13,6 +13,84 @@ import source.tool_box.tensor_tools as tensor_tools
 i, j, k, l = ufl.indices(4)
 
 ########################################################################
+#                     Field checking and retrieving                    #
+########################################################################
+
+# Defines a function to retrieve from the constitutive tools the neces-
+# sary fields' names
+
+def get_constitutiveModelFields(constitutive_models):
+
+    # If the constitutive_models is a dictionary
+
+    if isinstance(constitutive_models, dict):
+
+        # Initializes a list of required fields' names
+
+        required_fieldsNames = []
+
+        # Iterates through the constitutive models (classes)
+
+        for subdomain, constitutive_class in constitutive_models.items():
+
+            required_names = []
+
+            try:
+
+                # Gets the required names
+
+                required_names = constitutive_class.required_fieldsNames
+
+            except:
+
+                raise AttributeError("The constitutive model in the su"+
+                "bdomain given by "+str(subdomain)+" does not have the"+
+                " variable (attribute) of required fields' names (requ"+
+                "ired_fieldsNames). This constitutive model's class mu"+
+                "st be corrected")
+
+            # Adds the required names to the list without creating du-
+            # plicates
+
+            for name in required_names:
+
+                if not (name in required_fieldsNames):
+
+                    required_fieldsNames.append(name)
+
+        # Returns the list of required fields' names
+
+        return required_fieldsNames
+
+    # If the constitutive models variable is not a dictionary, just take
+    # the names
+
+    else:
+
+        required_names = []
+
+        try:
+
+            # Gets the required names
+
+            required_names = constitutive_class.required_fieldsNames
+
+        except AttributeError:
+
+            raise AttributeError("The constitutive model in the subdom"+
+            "ain given by "+str(subdomain)+" does not have the variabl"+
+            "e (attribute) of required fields' names (required_fieldsN"+
+            "ames). This constitutive model's class must be corrected")
+
+        except:
+
+            raise TypeError("The constitutive model "+str(
+            constitutive_models)+" is not a class. Select a proper con"+
+            "stitutive class")
+
+        return required_names
+
+########################################################################
 #                    Cauchy-continuum stress tensors                   #
 ########################################################################
 

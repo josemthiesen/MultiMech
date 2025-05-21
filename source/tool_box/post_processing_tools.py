@@ -110,41 +110,8 @@ context_class, fields_names):
         # Gets the number of the field to which this post process be-
         # longs
 
-        try:
-
-            field_number = fields_names[copy.deepcopy(
-            post_processesUnifield[i][0])]
-
-        except IndexError:
-
-            raise IndexError("The post-processes list for multiple fie"+
-            "ld physics must be a list of lists, i.e. each process is "+
-            "a sublist with the first component being the number or th"+
-            "e name of the field that is used for this particular post"+
-            "-process and the second value is the dictionary of the pr"+
-            "ocess")
-        
-        except KeyError:
-
-            if isinstance(post_processesUnifield[i][0], int):
-
-                field_number = copy.deepcopy(post_processesUnifield[i][
-                0])
-        
-            else:
-
-                valid_names = ""
-
-                valid_set = list(fields_names.keys())
-
-                for valid_name in valid_set:
-
-                    valid_names += "'"+valid_name+"', "
-
-                raise KeyError("'"+str(copy.deepcopy(
-                post_processesUnifield[i][0]))+"' is not a valid name "+
-                "for a field in the setting of post-processes in this "+
-                "problem. Check out the valid names: "+valid_names)
+        field_number = get_fieldNumbers(post_processesUnifield[i][0], 
+        fields_names)
 
         # Transforms the component dictionary into a live dictionary wi-
         # th proper methods and stuff
@@ -171,3 +138,71 @@ context_class, fields_names):
     # Returns the new live list of dictionaries
 
     return post_processesUnifield, post_processesNamesList
+
+# Defines a function to get the numbers of the fields that will be used
+# by the post-process
+
+def get_fieldNumbers(fields_identification, fields_names):
+        
+    # Verifies if the field identification is not a list
+
+    if not isinstance(fields_identification, list):
+
+        # Transforms into a list
+
+        fields_identification = [fields_identification]
+
+    # Initializes a list of fields numbers
+
+    fields_numbers = []
+
+    # Iterates through the number of required fields in this post-process
+
+    for field_identification in fields_identification:
+
+        # Gets the number of the field to which this post process be-
+        # longs
+
+        try:
+
+            fields_numbers.append(fields_names[copy.deepcopy(
+            field_identification)])
+
+        except IndexError:
+
+            raise IndexError("The post-processes list for multiple fie"+
+            "ld physics must be a list of lists, i.e. each process is "+
+            "a sublist with the first component being the number or th"+
+            "e name of the field that is used for this particular post"+
+            "-process and the second value is the dictionary of the pr"+
+            "ocess")
+        
+        except KeyError:
+
+            if isinstance(field_identification, int):
+
+                fields_numbers.append(copy.deepcopy(field_identification
+                ))
+        
+            else:
+
+                valid_names = ""
+
+                valid_set = list(fields_names.keys())
+
+                for valid_name in valid_set:
+
+                    valid_names += "'"+valid_name+"', "
+
+                raise KeyError("'"+str(copy.deepcopy(field_identification
+                ))+"' is not a valid name for a field in the setting o"+
+                "f post-processes in this problem. Check out the valid"+
+                " names: "+valid_names)
+            
+    # Returns the list of fields' numbers
+
+    if len(fields_numbers)==1:
+
+        return fields_numbers[0]
+
+    return fields_numbers

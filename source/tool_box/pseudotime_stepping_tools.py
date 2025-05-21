@@ -27,17 +27,16 @@ import source.tool_box.functional_tools as functional_tools
 
 @programming_tools.optional_argumentsInitializer({'post_processesDict': 
 lambda: dict(), 'post_processesSubmeshDict': lambda: dict(), 
-'dirichlet_loads': lambda: [], 'neumann_loads': lambda: [],
-'solver_parameters': lambda: dict(), 'solution_name': lambda: [
-"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], ('macro_qu'+
-'antitiesClasses'): lambda: []})
+'dirichlet_loads': lambda: [], 'neumann_loads': lambda: [], ('solution'+
+'_name'): lambda: ["solution", "DNS"], 'volume_physGroupsSubmesh': 
+lambda: [], 'macro_quantitiesClasses': lambda: []})
 
-def newton_raphsonSingleField(maximum_loadingSteps, solver, 
-solution_field, mesh_dataClass, constitutive_model, post_processesDict=
-None, post_processesSubmeshDict=None, dirichlet_loads=None, 
-neumann_loads=None, solver_parameters=None, solution_name=None, 
-volume_physGroupsSubmesh=None, macro_quantitiesClasses=None, t=None, 
-t_final=None):
+def newton_raphsonSingleField(solver, solution_field, fields_namesDict,
+mesh_dataClass, constitutive_model, post_processesDict=None, 
+post_processesSubmeshDict=None, dirichlet_loads=None, neumann_loads=None, 
+solution_name=None, volume_physGroupsSubmesh=None, 
+macro_quantitiesClasses=None, t=None, t_final=None, maximum_loadingSteps=
+None):
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
@@ -153,10 +152,6 @@ t_final=None):
         post_process.additional_information, 
         post_process.code_providedInfo, True))
     
-    # Updates the solver parameters
-
-    solver = set_solverParameters(solver, solver_parameters)
-    
     # Verifies if there are no loads
 
     if len(dirichlet_loads)==0 and len(neumann_loads)==0:
@@ -187,6 +182,13 @@ t_final=None):
             raise ValueError("The final time value for the pseudotime "+
             "stepping algorithm was not given, even though no macro qu"+
             "antities with their respective time points were supplied")
+
+        if maximum_loadingSteps is None:
+
+            raise ValueError("The maximum number of loading steps for "
+            "the pseudotime stepping algorithm was not given, even tho"+
+            "ugh no macro quantities with their respective time points"+
+            " were supplied")
 
         time_keys = np.linspace(t, t_final, maximum_loadingSteps)
 
@@ -244,7 +246,7 @@ t_final=None):
 
             post_processingObjects[post_processName] = (
             post_process.update_function(post_processingObjects[
-            post_processName], solution_field, -1, t))
+            post_processName], solution_field, -1, t, fields_namesDict))
 
         # If a submesh is to be populated with part of the solution
 
@@ -296,8 +298,8 @@ t_final=None):
                         post_processingObjectsSubmesh[post_processName
                         ] = post_process.update_function(
                         post_processingObjectsSubmesh[post_processName], 
-                        solution_submesh, -1, t, flag_parentMeshReuse=
-                        True)
+                        solution_submesh, -1, t, fields_namesDict,
+                        flag_parentMeshReuse=True)
 
                         # Updates the flag to inform this process has
                         # been taken from the parent mesh
@@ -316,25 +318,23 @@ t_final=None):
                     post_processingObjectsSubmesh[post_processName] = (
                     post_process.update_function(
                     post_processingObjectsSubmesh[post_processName], 
-                    solution_submesh, -1, t))
+                    solution_submesh, -1, t, fields_namesDict))
 
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of multiple fields
 
 @programming_tools.optional_argumentsInitializer({'post_processesList': 
 lambda: [], 'post_processesSubmeshList': lambda: [], 'dirichlet_loads': 
-lambda: [], 'neumann_loads': lambda: [], 'solver_parameters': lambda: 
-dict(), 'solution_name': lambda: ["solution", "DNS"], ('volume_physGro'+
-'upsSubmesh'): lambda: [], 'macro_quantitiesClasses': lambda: [], 'fie'+
-'lds_corrections': lambda: dict()})
+lambda: [], 'neumann_loads': lambda: [], 'solution_name': lambda: ["so"+
+"lution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], ('macro_quan'+
+'titiesClasses'): lambda: [], 'fields_corrections': lambda: dict()})
 
-def newton_raphsonMultipleFields(maximum_loadingSteps, solver, 
-solution_field, fields_names, mixed_element, mesh_dataClass, 
-constitutive_model, post_processesList=None, post_processesSubmeshList=
-None, dirichlet_loads=None, neumann_loads=None, solver_parameters=None, 
-solution_name=None, volume_physGroupsSubmesh=None, 
-macro_quantitiesClasses=None, t=None, t_final=None, fields_corrections=
-None):
+def newton_raphsonMultipleFields(solver, solution_field, 
+fields_namesDict, mesh_dataClass, constitutive_model, post_processesList=
+None, post_processesSubmeshList=None, dirichlet_loads=None, 
+neumann_loads=None, solution_name=None, volume_physGroupsSubmesh=None, 
+macro_quantitiesClasses=None, t=None, t_final=None, maximum_loadingSteps=
+None, fields_corrections=None):
 
     # Verifies if the classes of macroscale quantities are indeed ins-
     # tances of some class
@@ -367,7 +367,9 @@ None):
 
     n_fields = 1
 
-    if solution_field.function_space().ufl_element().family()=="Mixed":
+    mixed_element = solution_field.function_space().ufl_element()
+
+    if mixed_element.family()=="Mixed":
 
         n_fields = mixed_element.num_sub_elements()
 
@@ -407,14 +409,14 @@ None):
         # Calls the appropriate function to iterate in a single-field 
         # problem
 
-        newton_raphsonSingleField(maximum_loadingSteps, solver, 
-        solution_field, mesh_dataClass, constitutive_model, 
-        post_processesDict=post_processesList, post_processesSubmeshDict
-        =post_processesSubmeshList, dirichlet_loads=dirichlet_loads, 
-        neumann_loads=neumann_loads, solver_parameters=solver_parameters, 
+        newton_raphsonSingleField(solver, solution_field, mesh_dataClass, 
+        constitutive_model, post_processesDict=post_processesList, 
+        post_processesSubmeshDict=post_processesSubmeshList, 
+        dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
         solution_name=solution_name, volume_physGroupsSubmesh=
         volume_physGroupsSubmesh, macro_quantitiesClasses=
-        macro_quantitiesClasses, t=t, t_final=t_final)
+        macro_quantitiesClasses, t=t, t_final=t_final, 
+        maximum_loadingSteps=maximum_loadingSteps)
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
@@ -460,7 +462,7 @@ None):
     
     (post_processes, post_processesNamesList
     ) = post_processing_tools.post_processingSelectionMultipleFields(
-    post_processesList, context_class, fields_names) 
+    post_processesList, context_class, fields_namesDict) 
     
     # Initializes the list of submesh post processes. It is a list, be-
     # cause each field will ocupy a component
@@ -500,7 +502,7 @@ None):
         # Initializes the post process for the submesh if there's any
 
         post_processesSubmesh, *_ = post_processing_tools.post_processingSelectionMultipleFields(
-        post_processesSubmeshList, context_classRVE, fields_names) 
+        post_processesSubmeshList, context_classRVE, fields_namesDict) 
     
     # Initializes a dictionary of post processes objects, files for e-
     # xample, for each field
@@ -547,10 +549,6 @@ None):
                 post_process.additional_information, 
                 post_process.code_providedInfo, True))
     
-    # Updates the solver parameters
-
-    solver = set_solverParameters(solver, solver_parameters)
-    
     # Verifies if there are no loads
 
     if len(dirichlet_loads)==0 and len(neumann_loads)==0:
@@ -581,6 +579,13 @@ None):
             raise ValueError("The final time value for the pseudotime "+
             "stepping algorithm was not given, even though no macro qu"+
             "antities with their respective time points were supplied")
+
+        if maximum_loadingSteps is None:
+
+            raise ValueError("The maximum number of loading steps for "
+            "the pseudotime stepping algorithm was not given, even tho"+
+            "ugh no macro quantities with their respective time points"+
+            " were supplied")
 
         time_keys = np.linspace(t, t_final, maximum_loadingSteps)
 
@@ -637,14 +642,14 @@ None):
 
             try:
 
-                field_index = fields_names[field_name]
+                field_index = fields_namesDict[field_name]
 
             except:
 
                 raise KeyError("The field correction of the '"+str(
                 field_name)+"' cannot be added to the solution for thi"+
                 "s name was not found in the dictionary of fields' nam"+
-                "es':\n"+str(list(fields_names.keys())))
+                "es':\n"+str(list(fields_namesDict.keys())))
 
             # Interpolates the correction of the field by the given 
             # function space, and, then, adds the resulting vector of
@@ -682,7 +687,7 @@ None):
                     post_processingObjects[i][post_processName] = (
                     post_process.update_function(post_processingObjects[
                     i][post_processName], split_solution, field_number, 
-                    t))
+                    t, fields_namesDict))
 
         # If a submesh is to be populated with part of the solution
 
@@ -775,8 +780,8 @@ None):
                                 post_processName] = post_process.update_function(
                                 post_processingObjectsSubmesh[i][
                                 post_processName], split_solutionSubmesh, 
-                                field_number, t, flag_parentMeshReuse=
-                                True)
+                                field_number, t, fields_namesDict, 
+                                flag_parentMeshReuse=True)
 
                                 # Updates the flag to inform this process
                                 # has been taken from the parent mesh
@@ -792,97 +797,11 @@ None):
                             post_processName] = post_process.update_function(
                             post_processingObjectsSubmesh[i][
                             post_processName], split_solutionSubmesh, 
-                            field_number, t)
+                            field_number, t, fields_namesDict)
 
 ########################################################################
 #                              Utilities                               #
 ########################################################################
-
-# Defines a function to update solver parameters
-
-def set_solverParameters(solver, solver_parameters):
-
-    # Sets a list of implemented solver parameters
-
-    admissible_keys = ["nonlinear_solver", "linear_solver", "newton_re"+
-    "lative_tolerance", "newton_absolute_tolerance", "newton_maximum_i"+
-    "terations", "preconditioner", "krylov_absolute_tolerance", "krylo"+
-    "v_relative_tolerance", "krylov_maximum_iterations", "krylov_monit"+
-    "or_convergence"]
-
-    # Gets the keys of the solver parameters dictionary
-
-    parameter_types = solver_parameters.keys()
-
-    # Iterates the keys of the solver parameters to verify if any of 
-    # them is not admissible
-
-    for key in parameter_types:
-
-        if not (key in admissible_keys):
-
-            raise NameError("The key "+str(key)+" is not an admissible"+
-            " key to set solver parameters.")
-        
-    # Sets the solver parameters
-
-    if "nonlinear_solver" in parameter_types:
-
-        solver.parameters["nonlinear_solver"] = solver_parameters["non"+
-        "linear_solver"]
-
-    else:
-
-        solver.parameters["nonlinear_solver"] = "newton"
-
-    if "linear_solver" in parameter_types:
-
-        solver.parameters["newton_solver"]["linear_solver"] = (
-        solver_parameters["linear_solver"])
-
-    if "newton_relative_tolerance" in parameter_types:
-
-        solver.parameters["newton_solver"]["relative_tolerance"] = (
-        solver_parameters["newton_relative_tolerance"])
-
-    if "newton_absolute_tolerance" in parameter_types:
-
-        solver.parameters["newton_solver"]["absolute_tolerance"] = (
-        solver_parameters["newton_absolute_tolerance"])
-
-    if "newton_maximum_iterations" in parameter_types:
-
-        solver.parameters["newton_solver"]["maximum_iterations"] = (
-        solver_parameters["newton_maximum_iterations"])
-
-    if "preconditioner" in parameter_types:
-
-        solver.parameters["newton_solver"]["preconditioner"] = (
-        solver_parameters["preconditioner"])
-
-    if "krylov_absolute_tolerance" in parameter_types:
-
-        solver.parameters['newton_solver']['krylov_solver']['absolute_'+
-        'tolerance'] = solver_parameters["krylov_absolute_tolerance"]
-
-    if "krylov_relative_tolerance" in parameter_types:
-
-        solver.parameters['newton_solver']['krylov_solver']['relative_'+
-        'tolerance'] = solver_parameters["krylov_relative_tolerance"]
-
-    if "krylov_maximum_iterations" in parameter_types:
-
-        solver.parameters['newton_solver']['krylov_solver']['maximum_i'+
-        'terations'] = solver_parameters["krylov_maximum_iterations"]
-
-    if "krylov_monitor_convergence" in parameter_types:
-
-        solver.parameters['newton_solver']['krylov_solver']['monitor_c'+
-        'onvergence'] = solver_parameters["krylov_monitor_convergence"]
-
-    # Returns the updated solver
-
-    return solver
 
 # Defines a function to print the stepping information
 

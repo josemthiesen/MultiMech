@@ -35,6 +35,10 @@ post_processes = dict()
 post_processes["SaveField"] = {"directory path":results_path, 
 "file name":displacement_fileName}
 
+post_processes["SaveCauchyStressField"] = {"directory path": 
+results_path, "file name": "cauchy_stress.xdmf", "polynomia"+
+"l degree": 1}
+
 ########################################################################
 #                         Material properties                          #
 ########################################################################
@@ -74,7 +78,7 @@ mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"
 
 # Defines the shape functions degree
 
-polynomial_degree = 1
+polynomial_degree = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -120,7 +124,7 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = -2E6#1E-1
+maximum_load = -2E5#1E-1
 
 load = Expression("(t/t_final)*maximum_load", t=0.0, t_final=t_final,
 maximum_load=maximum_load, degree=0)
@@ -137,7 +141,7 @@ traction_boundary = as_vector([0.0, load, 0.0])
 
 traction_dictionary = dict()
 
-traction_dictionary["bottom"] = traction_boundary
+traction_dictionary["lower"] = traction_boundary
 
 # Defines a load expression for prescribed displacement
 
