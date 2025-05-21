@@ -225,8 +225,6 @@ class PeriodicCubicBoundary(SubDomain):
             "is probably not a cube and periodic boundary condition ca"+
             "nnot be used")
 
-        self.mapped_points = 0
-
     # Redefines the inside method to give all True for points on the 
     # master facets, which are conveined here as x=-0.5*length_x, y=-0.5
     # *length_y, and z=-0.5*length_z planes. The slave facets are falsi-
@@ -243,11 +241,6 @@ class PeriodicCubicBoundary(SubDomain):
         flag_zFacet = near(self.z_centroid-self.semi_lengthZ, x[2], 
         self.tolerance)
 
-        if bool ((flag_xFacet or flag_yFacet or flag_zFacet) and
-        on_boundary):
-
-            print("The point x="+str(x)+" is in a master face")
-
         return bool ((flag_xFacet or flag_yFacet or flag_zFacet) and
         on_boundary)
 
@@ -255,121 +248,14 @@ class PeriodicCubicBoundary(SubDomain):
 
     def map(self, x, y):
 
-        flag_mapped = False
+        y[0] = x[0] - self.length_x if near(x[0], self.x_centroid+
+        self.semi_lengthX, self.tolerance) else x[0]
 
-        """# If the point x is on the vertex of the three facets, maps it 
-        # to the opposite point
-
-        if (near(x[0], self.x_centroid-self.semi_lengthX, self.tolerance
-        ) and near(x[1], self.y_centroid-self.semi_lengthY, 
-        self.tolerance) and near(x[2], self.z_centroid-self.semi_lengthZ, 
-        self.tolerance)):
-
-            y[0] = x[0]+self.length_x
-
-            y[1] = x[1]+self.length_y
-
-            y[2] = x[2]+self.length_z
-
-            flag_mapped = True
-
-        # If the point x is in the edge along the X axis
-
-        elif (near(x[1], self.y_centroid-self.semi_lengthY, 
-        self.tolerance) and near(x[2], self.z_centroid-self.semi_lengthZ,
-        self.tolerance)):
-
-            y[0] = x[0]
-
-            y[1] = x[1]+self.length_y
-
-            y[2] = x[2]+self.length_z
-
-            flag_mapped = True
-
-        # If the point x is in the edge along the Y axis
-
-        elif (near(x[0], self.x_centroid-self.semi_lengthX, 
-        self.tolerance) and near(x[2], self.z_centroid-self.semi_lengthZ, 
-        self.tolerance)):
-
-            y[0] = x[0]+self.length_x
-
-            y[1] = x[1]
-
-            y[2] = x[2]+self.length_z
-
-            flag_mapped = True
-
-        # If the point x is in the edge along the Z axis
-
-        elif (near(x[0], self.x_centroid-self.semi_lengthX, 
-        self.tolerance) and near(x[1], self.y_centroid-self.semi_lengthY, 
-        self.tolerance)):
-
-            y[0] = x[0]+self.length_x
-
-            y[1] = x[1]+self.length_y
-
-            y[2] = x[2]
-
-            flag_mapped = True
-
-        # If the point x is on the plane X=x_centroid-semi_lengthX
-
-        elif (near(x[0], self.x_centroid-self.semi_lengthX, 
-        self.tolerance)):
-
-            y[0] = x[0]+self.length_x
-
-            y[1] = x[1]
-
-            y[2] = x[2]
-
-            flag_mapped = True
-
-        # If the point x is on the plane Y=y_centroid-semi_lengthY
-
-        elif (near(x[1], self.y_centroid-self.semi_lengthY, 
-        self.tolerance)):
-
-            y[0] = x[0]
-
-            y[1] = x[1]+self.length_y
-
-            y[2] = x[2]
-
-            flag_mapped = True
-
-        # If the point x is on the plane Z=z_centroid-semi_lengthZ
-
-        elif (near(x[2], self.z_centroid-self.semi_lengthZ, 
-        self.tolerance)):
-
-            y[0] = x[0]
-
-            y[1] = x[1]
-
-            y[2] = x[2]+self.length_z
-
-            flag_mapped = True
-
-        if not flag_mapped:
-
-            raise ValueError("The point x="+str(x)+" could not be mapp"+
-            "ed in the boundary periodically. Consider adjusting the t"+
-            "olerance or verify the mesh's periodicity")
-
-        else:
-
-            self.mapped_points += 1
-
-            print("Mapped the "+str(self.mapped_points)+"-th point, x="+
-            str(x)+", correctly")"""
-
-        y[0] = x[0] - self.length_x if near(x[0], self.x_centroid + self.semi_lengthX, self.tolerance) else x[0]
-        y[1] = x[1] - self.length_y if near(x[1], self.y_centroid + self.semi_lengthY, self.tolerance) else x[1]
-        y[2] = x[2] - self.length_z if near(x[2], self.z_centroid + self.semi_lengthZ, self.tolerance) else x[2]
+        y[1] = x[1] - self.length_y if near(x[1], self.y_centroid+
+        self.semi_lengthY, self.tolerance) else x[1]
+        
+        y[2] = x[2] - self.length_z if near(x[2], self.z_centroid+
+        self.semi_lengthZ, self.tolerance) else x[2]
 
 ########################################################################
 #                            Field updating                            #

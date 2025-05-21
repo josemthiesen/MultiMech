@@ -141,6 +141,10 @@ polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, t=
 
             solution_name.append([field_name, "Microscale"])
 
+    # The micropolar microscale problem is by definition a mixed pro-
+    # blem (displacement and microrotation fields). Thus, there is no 
+    # need to test whether the solution has multiple fields in it
+
     newton_raphson_tools.newton_raphsonMultipleFields(
     maximum_loadingSteps, solver, monolithic_solution, fields_namesDict, 
     mixed_element, mesh_dataClass, constitutive_model, 

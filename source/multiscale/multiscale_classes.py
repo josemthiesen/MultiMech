@@ -272,15 +272,11 @@ class LinearFirstOrderBC(BCsClassTemplate):
         self.constrained_fieldName], ["macro field gradient file",
         self.constrained_gradientFieldName]])))
 
-        # Saves the number of fields
-
-        self.n_fields = len(fields_names)
-
         # Finds the index of this field to be constrained
 
         self.field_index = 0
 
-        for i in range(self.n_fields):
+        for i in range(len(fields_names)):
 
             if fields_names[i]==self.constrained_fieldName:
 
@@ -324,7 +320,7 @@ class LinearFirstOrderBC(BCsClassTemplate):
         # Adds the zero fluctuation boundary condtion. Checks first if
         # the formulation has multiple fields
 
-        if self.n_fields>1:
+        if monolithic_functionSpace.ufl_element().family()=="Mixed":
 
             boundary_conditions.append(DirichletBC(
             monolithic_functionSpace.sub(self.field_index), 
@@ -387,15 +383,11 @@ class PeriodicFirstOrderBC(BCsClassTemplate):
         self.constrained_fieldName], ["macro field gradient file",
         self.constrained_gradientFieldName]])))
 
-        # Saves the number of fields
-
-        self.n_fields = len(fields_names)
-
         # Finds the index of this field to be constrained
 
         self.field_index = 0
 
-        for i in range(self.n_fields):
+        for i in range(len(fields_names)):
 
             if fields_names[i]==self.constrained_fieldName:
 
@@ -453,7 +445,7 @@ class PeriodicFirstOrderBC(BCsClassTemplate):
         
         # Checks first if the formulation has multiple fields
 
-        if self.n_fields>1:
+        if monolithic_functionSpace.ufl_element().family()=="Mixed":
 
             boundary_conditions.append(DirichletBC(
             monolithic_functionSpace.sub(self.field_index), 

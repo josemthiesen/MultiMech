@@ -14,6 +14,159 @@ import source.tool_box.variational_tools as variational_tools
 import source.tool_box.programming_tools as programming_tools
 
 ########################################################################
+#                       Finite element creation                        #
+########################################################################
+
+# Defines a function to construct a dictionary of elements from a dic-
+# tionary of finite elements' instructions
+
+def construct_elementsDictionary(elements_dictionary, mesh_dataClass):
+
+    # Sets a list of allowed interpolation functions
+
+    allowed_interpolationFunction = ["CG", "DG", "Lagrange"]
+
+    # Iterates through the dictionary of elements
+    
+    for field_name, element_dictionary in elements_dictionary.items():
+
+        # Verifies if this is already a fenics element. Tests by veri-
+        # fying if has a cell attribute
+
+        try:
+
+            cell = element_dictionary.cell()
+
+        # If not, it must be a dictionary with finite element's informa-
+        # tion
+
+        except:
+
+            # Verifies if the element is in fact a function space
+
+            if isinstance(element_dictionary, FunctionSpace):
+
+                # Gets the element from the function space
+
+                elements_dictionary[field_name] = (
+                element_dictionary.ufl_element())
+
+            # Otherwise, creates the element
+
+            else:
+
+                if not isinstance(element_dictionary, dict):
+
+                    raise TypeError("The dictionary to construct the f"+
+                    "inite element of the field '"+str(field_name)+"' "
+                    "is not a dictionary. Check out: "+str(
+                    element_dictionary))
+                
+                # Gets the polynomial degree. Uses second degree polyno-
+                # mial as default
+
+                polynomial_degree = 2
+
+                if "polynomial degree" in element_dictionary:
+
+                    polynomial_degree = element_dictionary["polynomial"+
+                    " degree"]
+                
+                # Gets the interpolation function
+
+                interpolation_function = ""
+
+                if "interpolation function" in element_dictionary:
+
+                    interpolation_function = element_dictionary["inter"+
+                    "polation function"]
+
+                    # Verifies if this interpolation function is one of 
+                    # the admissible ones
+
+                    if not (interpolation_function in (
+                    allowed_interpolationFunction)):
+                        
+                        raise NameError("The interpolation function '"+
+                        str(interpolation_function)+"' is not one of t"+
+                        "he admissible functions. Check the list ahead"+
+                        ": "+str(allowed_interpolationFunction))
+                    
+                elif "shape function" in element_dictionary:
+
+                    interpolation_function = element_dictionary["shape"+
+                    " function"]
+
+                    # Verifies if this interpolation function is one of 
+                    # the admissible ones
+
+                    if not (interpolation_function in (
+                    allowed_interpolationFunction)):
+                        
+                        raise NameError("The interpolation function '"+
+                        str(interpolation_function)+"' is not one of t"+
+                        "he admissible functions. Check the list ahead"+
+                        ": "+str(allowed_interpolationFunction))
+                    
+                else:
+
+                    # Uses continuous Galerkin as default
+
+                    interpolation_function = "CG"
+
+                # Gets the element type (scalar, vector, tensor...)
+
+                if "field type" in element_dictionary:
+
+                    element_type = element_dictionary["field type"]
+
+                    # If the field is a scalar-valued field
+
+                    if element_type=="scalar":
+
+                        # Creates the element
+
+                        elements_dictionary[field_name] = FiniteElement(
+                        interpolation_function, 
+                        mesh_dataClass.mesh.ufl_cell(), polynomial_degree)
+
+                    # If the field is a vector-valued field
+
+                    elif element_type=="vector":
+
+                        # Creates the element
+
+                        elements_dictionary[field_name] = VectorElement(
+                        interpolation_function, 
+                        mesh_dataClass.mesh.ufl_cell(), polynomial_degree)
+
+                    # If the field is a tensor-valued field
+
+                    elif element_type=="tensor":
+
+                        # Creates the element
+
+                        elements_dictionary[field_name] = TensorElement(
+                        interpolation_function, 
+                        mesh_dataClass.mesh.ufl_cell(), polynomial_degree)
+
+                    else:
+
+                        raise NameError("There is no '"+str(element_type
+                        )+"' field implemented. A field can be either "+
+                        "'scalar', 'vector', or 'tensor' for the eleme"+
+                        "nt to be dynamically generated")
+                    
+                else:
+
+                    raise KeyError("There is no key 'field type' in th"+
+                    "e dictionary to create finite elements.")
+        
+    # Returns the finite elements dictionary
+
+    return elements_dictionary
+
+########################################################################
 #                        Time stepping classes                         #
 ########################################################################
 
