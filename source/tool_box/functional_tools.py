@@ -592,7 +592,7 @@ def convert_stringToASCII(string_toConvert):
 # Defines a function to get, project and save a stress field
 
 def save_stressField(output_object, field, time, flag_parentMeshReuse,
-stress_solutionPlotNames, stress_name, stress_method):
+stress_solutionPlotNames, stress_name, stress_method, fields_namesDict):
 
     # If the flag to reuse parent mesh information is true, just save 
     # the information given in the output object
@@ -606,6 +606,15 @@ stress_solutionPlotNames, stress_name, stress_method):
         output_object.parent_toChildMeshResult, time)
 
         return output_object
+    
+    # Verifies if the output object has the attribute with the names of 
+    # the required fields
+
+    if not hasattr(output_object, "required_fieldsNames"):
+
+        raise AttributeError("The class of data for the post-process o"+
+        "f saving the stress field does not have the attribute 'requir"+
+        "ed_fieldsNames'. This class must have it")
 
     # Verifies if the domain is homogeneous
 
@@ -621,10 +630,17 @@ stress_solutionPlotNames, stress_name, stress_method):
 
         for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
 
+            # Gets the fields for this constitutive model
+
+            retrieved_fields = select_fields(field, 
+            output_object.required_fieldsNames[subdomain], 
+            fields_namesDict)
+
             # Gets the stress field
 
             stress_field = programming_tools.get_result(getattr(
-            local_constitutiveModel, stress_method)(field), stress_name)
+            local_constitutiveModel, stress_method)(retrieved_fields), 
+            stress_name)
 
             # Verifies if more than one physical group is given for the
             # same constitutive model
@@ -689,6 +705,11 @@ stress_solutionPlotNames, stress_name, stress_method):
         output_object.result.write(stress_fieldFunction, time)
 
     else:
+
+        # Gets the fields for this constitutive model
+
+        retrieved_fields = select_fields(field, 
+        output_object.required_fieldsNames, fields_namesDict)
 
         # Gets the stress field
 

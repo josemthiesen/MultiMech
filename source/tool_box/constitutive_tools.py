@@ -25,9 +25,9 @@ def get_constitutiveModelFields(constitutive_models):
 
     if isinstance(constitutive_models, dict):
 
-        # Initializes a list of required fields' names
+        # Initializes a dcitionary of required fields' names
 
-        required_fieldsNames = []
+        required_fieldsNames = dict()
 
         # Iterates through the constitutive models (classes)
 
@@ -49,14 +49,9 @@ def get_constitutiveModelFields(constitutive_models):
                 "ired_fieldsNames). This constitutive model's class mu"+
                 "st be corrected")
 
-            # Adds the required names to the list without creating du-
-            # plicates
+            # Adds the required names to the dictionary
 
-            for name in required_names:
-
-                if not (name in required_fieldsNames):
-
-                    required_fieldsNames.append(name)
+            required_fieldsNames[subdomain] = required_names
 
         # Returns the list of required fields' names
 

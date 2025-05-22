@@ -337,10 +337,10 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     constitutive_model = dict()
 
-    constitutive_model["Matrix"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    constitutive_model["RVE matrix"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
     material_propertiesMatrix)
 
-    constitutive_model["Fiber"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
+    constitutive_model["RVE fiber"] = micropolar_constitutiveModels.Micropolar_Neo_Hookean(
     material_propertiesFiber)
 
     ####################################################################
@@ -360,7 +360,9 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
         beam_gmsh.case_1(RVE_width, RVE_length, fiber_radius, n_RVEsX, 
         n_RVEsY, n_RVEsZ, RVE_localizationX, RVE_localizationY, 
         RVE_localizationZ, mesh_fileName=mesh_fileName, file_directory=
-        file_directory, transfinite_directions=transfinite_directions)
+        file_directory, transfinite_directions=transfinite_directions,
+        translation=[RVE_length*(RVE_localizationX-1), RVE_width*(
+        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)])
 
     ####################################################################
     #                          Function space                          #

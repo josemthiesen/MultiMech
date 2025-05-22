@@ -584,4 +584,4 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
     post_processesSubmesh, verbose=verbose)
 
-case1_varyingMicropolarNumber(flag_newMesh=False)
+case1_varyingMicropolarNumber(flag_newMesh=True)

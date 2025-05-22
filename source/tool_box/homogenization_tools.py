@@ -10,6 +10,8 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.programming_tools as programming_tools
 
+import source.tool_box.functional_tools as functional_tools
+
 # Defines a function to homogenize a generic field
 
 def homogenize_genericField(field, homogenized_fieldList, time, 
@@ -116,7 +118,7 @@ inverse_volume, dx, subdomain, file_name):
 def homogenize_stressTensor(field, constitutive_model, stress_name,
 stress_method, homogenized_firstPiolaList, time, inverse_volume, dx, 
 homogenization_subdomain, file_name, physical_groupsList, 
-physical_groupsNamesToTags):
+physical_groupsNamesToTags, fields_namesDict, required_fieldsNames):
     
     # Converts the homogenization subdomain to the physical groups tags
 
@@ -178,11 +180,16 @@ physical_groupsNamesToTags):
 
         for local_subdomain, local_constitutiveModel in constitutive_model.items():
 
+            # Gets the fields for this constitutive model
+
+            retrieved_fields = functional_tools.select_fields(field, 
+            required_fieldsNames[local_subdomain], fields_namesDict)
+
             # Gets the stress tensor field
 
             stress_field = programming_tools.get_result(
-            getattr(local_constitutiveModel, stress_method)(field), 
-            stress_name)
+            getattr(local_constitutiveModel, stress_method)(
+            retrieved_fields), stress_name)
 
             # Verifies if more than one physical group is given for 
             # the same constitutive model
@@ -239,10 +246,15 @@ physical_groupsNamesToTags):
 
     else:
 
+        # Gets the fields for this constitutive model
+
+        retrieved_fields = functional_tools.select_fields(field, 
+        required_fieldsNames, fields_namesDict)
+
         # Gets the stress tensor field
 
-        stress_field = programming_tools.get_result(
-        getattr(local_constitutiveModel, stress_method)(field), 
+        stress_field = programming_tools.get_result(getattr(
+        local_constitutiveModel, stress_method)(retrieved_fields), 
         stress_name)
 
         # Adds the contribution of this domain
