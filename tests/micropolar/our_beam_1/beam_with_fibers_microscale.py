@@ -26,11 +26,19 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 def case1_varyingMicropolarNumber(flag_newMesh=False):
 
+    # Sets the mesh refinement
+
+    transfinite_directions = [12, 12, 6, 6, 6]
+
     # Sets the multiscale boundary conditions for each one of the fields
 
-    displacement_multiscaleBC = "MinimallyConstrainedFirstOrderBC"#"PeriodicFirstOrderBC""LinearFirstOrderBC"
+    displacement_multiscaleBC = "PeriodicFirstOrderBC"#"MinimallyConstrainedFirstOrderBC"#"PeriodicFirstOrderBC""LinearFirstOrderBC"
     
     microrotation_multiscaleBC = "MinimallyConstrainedFirstOrderBC"
+
+    multiscale_BCsSets = [["PeriodicFirstOrderBC", "PeriodicFirstOrder"+
+    "BC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"], ["MinimallyCo"+
+    "nstrainedFirstOrderBC", "MinimallyConstrainedFirstOrderBC"]]
 
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
@@ -68,28 +76,36 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     # 13. RVE length
     # 14. radius of the fiber
 
-    # Iterates through the simulations
+    counter = 0
 
-    for i in range(min([len(parameters_sets),len(simulations_names)])):
+    for multiscale_BCs in multiscale_BCsSets:
 
-        # Makes a new mesh just for the first test and if a new mesh is
-        # asked for
+        # Makes a new mesh just for the first test and if a new mesh 
+        # is asked for
 
         flag_mesh = False
 
-        if flag_newMesh and i==0:
+        if flag_newMesh and counter==0:
 
             flag_mesh = True
 
-        # Calls the simulation for bending 
+        counter += 1
 
-        beam_case_1(displacement_multiscaleBC, 
-        microrotation_multiscaleBC,base_path, *parameters_sets[i][0:10], 
-        gamma_matrix=parameters_sets[i][10], gamma_fiber=parameters_sets[
-        i][11], RVE_width=parameters_sets[i][12], RVE_length=
-        parameters_sets[i][13], fiber_radius=parameters_sets[i][14], 
-        flag_newMesh=flag_mesh, subfolder_name=simulations_names[i],
-        fluctuation_field=fluctuation_field)
+        # Iterates through the simulations
+
+        for i in range(min([len(parameters_sets),len(simulations_names)]
+        )):
+
+            # Calls the simulation for bending 
+
+            beam_case_1(multiscale_BCs[0], multiscale_BCs[1], base_path, 
+            *parameters_sets[i][0:10], gamma_matrix=parameters_sets[i][
+            10], gamma_fiber=parameters_sets[i][11], RVE_width=
+            parameters_sets[i][12], RVE_length=parameters_sets[i][13], 
+            fiber_radius=parameters_sets[i][14], flag_newMesh=flag_mesh, 
+            subfolder_name=[simulations_names[i], multiscale_BCs[0]+"_"+
+            multiscale_BCs[1]], fluctuation_field=fluctuation_field, 
+            transfinite_directions=transfinite_directions)
 
 # Defines a function to try different parameters
 
@@ -99,8 +115,8 @@ N_micropolarFiber, characteristic_lengthMatrix,
 characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
-1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation",
-fluctuation_field=False):
+1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name=["simulation"],
+fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     ####################################################################
     ####################################################################
@@ -114,9 +130,15 @@ fluctuation_field=False):
 
     # Defines the path to the results directory 
 
-    results_pathGraphics = base_path+"//graphics//"+subfolder_name
+    results_pathGraphics = base_path+"//graphics"
 
-    results_pathText = base_path+"//text//"+subfolder_name
+    results_pathText = base_path+"//text"
+
+    for name in subfolder_name:
+
+        results_pathGraphics += "//"+name
+
+        results_pathText += "//"+name
 
     if fluctuation_field:
 
@@ -338,7 +360,7 @@ fluctuation_field=False):
         beam_gmsh.case_1(RVE_width, RVE_length, fiber_radius, n_RVEsX, 
         n_RVEsY, n_RVEsZ, RVE_localizationX, RVE_localizationY, 
         RVE_localizationZ, mesh_fileName=mesh_fileName, file_directory=
-        file_directory)
+        file_directory, transfinite_directions=transfinite_directions)
 
     ####################################################################
     #                          Function space                          #
@@ -360,9 +382,9 @@ fluctuation_field=False):
 
     solver_parameters["linear_solver"] = "mumps"#"mumps"
 
-    solver_parameters["newton_relative_tolerance"] = 1e-8#1e-8
+    solver_parameters["newton_relative_tolerance"] = 1e-9#1e-8
 
-    solver_parameters["newton_absolute_tolerance"] = 1e-5#1e-8
+    solver_parameters["newton_absolute_tolerance"] = 1e-7#1e-8
 
     solver_parameters["newton_maximum_iterations"] = 30
 
@@ -384,17 +406,17 @@ fluctuation_field=False):
 
     # Defines the paths to the macro quantities files
 
-    macro_displacementName = (results_pathText+"//homogenized_displace"+
-    "ment")
+    macro_displacementName = (base_path+"//text//"+subfolder_name[0]+
+    "//homogenized_displacement")
 
-    macro_gradDisplacementName= (results_pathText+"//homogenized_displ"+
-    "acement_gradient") 
+    macro_gradDisplacementName= (base_path+"//text//"+subfolder_name[0]+
+    "//homogenized_displacement_gradient") 
 
-    macro_microrotationName = (results_pathText+"//homogenized_microro"+
-    "tation") 
+    macro_microrotationName = (base_path+"//text//"+subfolder_name[0]+
+    "//homogenized_microrotation") 
 
-    macro_gradMicrorotationName = (results_pathText+"//homogenized_mic"+
-    "rorotation_grad")
+    macro_gradMicrorotationName = (base_path+"//text//"+subfolder_name[0
+    ]+"//homogenized_microrotation_grad")
 
     ####################################################################
     ####################################################################

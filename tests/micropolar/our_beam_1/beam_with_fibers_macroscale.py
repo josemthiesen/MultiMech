@@ -63,7 +63,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     RVE_localizationX = np.ceil(0.5*n_RVEsX)
 
-    RVE_localizationY = n_RVEsY#np.ceil(0.5*n_RVEsY)
+    RVE_localizationY = 6#n_RVEsY#np.ceil(0.5*n_RVEsY)
 
     RVE_localizationZ = np.ceil(0.5*n_RVEsZ)
 
@@ -200,25 +200,27 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Sets the data of the simulation in a txt file
 
-    file_tools.list_toTxt(["E_matrix:", E_matrix, "E_fiber:", E_fiber, 
-    "nu_matrix:", nu_matrix, "nu_fiber:", nu_fiber, "N_micropolarMatri"+
-    "x:", N_micropolarMatrix, "N_micropolarFiber:", N_micropolarFiber, 
-    "characteristic_lengthMatrix:", characteristic_lengthMatrix, "char"+
-    "acteristic_lengthFiber:", characteristic_lengthFiber, "flag_bendi"+
-    "ng:", flag_bending, "load_factor:", load_factor, "gamma_matrix:", 
-    gamma_matrix, "gamma_fiber:", gamma_fiber, "RVE_width:", RVE_width, 
-    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "00_par"+
-    "ameters", parent_path=base_path+"//graphics//"+subfolder_name)
+    file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
+    "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
+    "N_micropolarMatrix:": N_micropolarMatrix, "N_micropolarFiber:": 
+    N_micropolarFiber, "characteristic_lengthMatrix:": 
+    characteristic_lengthMatrix, "characteristic_lengthFiber:": 
+    characteristic_lengthFiber, "flag_bending:": flag_bending, "load_f"+
+    "actor:": load_factor, "gamma_matrix:": gamma_matrix, "gamma_fiber:": 
+    gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
+    "fiber_radius:": fiber_radius}), "00_parameters", parent_path=
+    base_path+"//graphics//"+subfolder_name)
 
-    file_tools.list_toTxt(["E_matrix:", E_matrix, "E_fiber:", E_fiber, 
-    "nu_matrix:", nu_matrix, "nu_fiber:", nu_fiber, "N_micropolarMatri"+
-    "x:", N_micropolarMatrix, "N_micropolarFiber:", N_micropolarFiber, 
-    "characteristic_lengthMatrix:", characteristic_lengthMatrix, "char"+
-    "acteristic_lengthFiber:", characteristic_lengthFiber, "flag_bendi"+
-    "ng:", flag_bending, "load_factor:", load_factor, "gamma_matrix:", 
-    gamma_matrix, "gamma_fiber:", gamma_fiber, "RVE_width:", RVE_width, 
-    "RVE_length:", RVE_length, "fiber_radius:", fiber_radius], "00_par"+
-    "ameters", parent_path=base_path+"//text//"+subfolder_name)
+    file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
+    "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
+    "N_micropolarMatrix:": N_micropolarMatrix, "N_micropolarFiber:": 
+    N_micropolarFiber, "characteristic_lengthMatrix:": 
+    characteristic_lengthMatrix, "characteristic_lengthFiber:": 
+    characteristic_lengthFiber, "flag_bending:": flag_bending, "load_f"+
+    "actor:": load_factor, "gamma_matrix:": gamma_matrix, "gamma_fiber:": 
+    gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
+    "fiber_radius:": fiber_radius}), "00_parameters", parent_path=
+    base_path+"//text//"+subfolder_name)
 
     ####################################################################
     #                        Simulation results                        #
