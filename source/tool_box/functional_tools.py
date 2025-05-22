@@ -137,6 +137,14 @@ def set_solverParameters(solver, solver_parameters):
 
 def select_fields(split_fieldsList, required_fieldsNames, 
 fields_namesDict):
+    
+    # Tests the solution is a list
+
+    if not isinstance(split_fieldsList, list):
+
+        # If not, simply gives the field
+
+        return split_fieldsList
 
     # Initializes a list of fields that will be used
 

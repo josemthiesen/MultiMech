@@ -73,7 +73,7 @@ def get_constitutiveModelFields(constitutive_models):
 
             # Gets the required names
 
-            required_names = constitutive_class.required_fieldsNames
+            required_names = constitutive_models.required_fieldsNames
 
         except AttributeError:
 

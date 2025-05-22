@@ -9,6 +9,8 @@ import source.tool_box.boundary_conditions_tools as BCs_tools
 
 import source.tool_box.variational_tools as variational_tools
 
+import source.tool_box.functional_tools as functional_tools
+
 import source.tool_box.pseudotime_stepping_tools as newton_raphson_tools
 
 import source.tool_box.programming_tools as programming_tools
@@ -44,12 +46,24 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
     #                          Function space                          #
     ####################################################################
 
-    # Defines the finite element spaces for the displacement field, u
+    # Assembles a dictionary of finite elements for the two primal 
+    # fields: displacement and microrotation. Each field has a key and
+    # the corresponding value is another dictionary, which has keys for
+    # necessary information to create finite elements
 
-    print("Polynomial degree:", polynomial_degree, "\n")
+    elements_dictionary = {"displacement": {"field type": "vector", "i"+
+    "nterpolation function": "CG", "polynomial degree": 
+    polynomial_degree}}
 
-    U = VectorFunctionSpace(mesh_dataClass.mesh, "Lagrange", 
-    polynomial_degree)
+    # From the dictionary of elements, the finite elements are created,
+    # then, all the rest is created: the function spaces, trial and test 
+    # functions, solution function. Everything is split and named by ac-
+    # cording to the element's name
+
+    (solution_functionSpace, solution_new, fields_names, solution_fields, 
+    variation_fields, delta_solution, fields_namesDict
+    ) = functional_tools.construct_monolithicFunctionSpace(
+    elements_dictionary, mesh_dataClass, verbose=verbose)
 
     ####################################################################
     #                        Boundary conditions                       #
@@ -57,66 +71,52 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
 
     # Defines the boundary conditions for fixed facets
 
-    bc = BCs_tools.fixed_supportDirichletBC(U, mesh_dataClass, 
-    boundary_physicalGroups=fixed_supportPhysicalGroups,
+    bc = BCs_tools.fixed_supportDirichletBC(solution_functionSpace, 
+    mesh_dataClass, boundary_physicalGroups=fixed_supportPhysicalGroups,
     boundary_conditions=[])
 
     # Adds boundary conditions for simply supported facets
 
-    bc = BCs_tools.simple_supportDirichletBC(U, mesh_dataClass,
-    simple_supportPhysicalGroups, boundary_conditions=bc)
+    bc = BCs_tools.simple_supportDirichletBC(solution_functionSpace, 
+    mesh_dataClass, simple_supportPhysicalGroups, boundary_conditions=bc)
 
     # Adds prescribed displacement using the Dirichlet loads
 
-    bc = BCs_tools.prescribed_DirichletBC(prescribed_displacement, U,
-    mesh_dataClass, boundary_conditions=bc)
+    bc = BCs_tools.prescribed_DirichletBC(prescribed_displacement, 
+    solution_functionSpace, mesh_dataClass, boundary_conditions=bc)
 
     ####################################################################
     #                         Variational forms                        #
     ####################################################################
 
-    # Defines the trial and test functions
+    # Gets the functions for the solution and for its variation
 
-    delta_u = TrialFunction(U) 
+    u_new = solution_fields["displacement"]
 
-    v = TestFunction(U)
-
-    # Creates the function for the updated solution, i.e. the vector of 
-    # parameters
-
-    u_new = Function(U)
+    v = variation_fields["displacement"]
 
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
     u_new, v, constitutive_model, mesh_dataClass)
 
-    #Piola = constitutive_model.first_piolaStress(u_new)
-
-    #internal_VarForm = (inner(Piola, grad(v))*dx)
-
     # Constructs the variational forms for the traction work
 
     traction_VarForm = variational_tools.traction_work(
     traction_dictionary, v, mesh_dataClass)
 
-    #traction_VarForm = dot(as_vector([0.0, neumann_loads[0], 0.0]), v)*ds(6)
+    ####################################################################
+    #              Problem and solver parameters setting               #
+    ####################################################################
 
-    # Assembles the residual, takes the Gateaux derivative and assembles
-    # the nonlinear problem object
+    # Assembles the residual and the nonlinear problem object. Sets the
+    # solver parameters too
 
     residual_form = internal_VarForm-traction_VarForm
 
-    residual_derivative = derivative(residual_form , u_new, delta_u)
-
-    Res = NonlinearVariationalProblem(residual_form, u_new, bc, J=
-    residual_derivative)
-
-    ####################################################################
-    #                    Solver parameters setting                     #
-    ####################################################################
-
-    solver = NonlinearVariationalSolver(Res)
+    solver = functional_tools.set_nonlinearProblem(residual_form, 
+    solution_new, delta_solution, bc, solver_parameters=
+    solver_parameters)
 
     ####################################################################
     #                 Solution and pseudotime stepping                 #
@@ -124,10 +124,10 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
 
     # Iterates through the pseudotime stepping algortihm 
 
-    newton_raphson_tools.newton_raphsonSingleField(maximum_loadingSteps, 
-    solver, u_new, mesh_dataClass, constitutive_model, 
+    newton_raphson_tools.newton_raphsonSingleField(solver, u_new, 
+    fields_namesDict, mesh_dataClass, constitutive_model, 
     post_processesDict=post_processes, post_processesSubmeshDict=
     post_processesSubmesh, neumann_loads=neumann_loads, dirichlet_loads=
-    dirichlet_loads, solver_parameters=solver_parameters, 
-    volume_physGroupsSubmesh=volume_physGroupsSubmesh, solution_name=
-    solution_name, t=t, t_final=t_final)
+    dirichlet_loads, solution_name=solution_name, 
+    volume_physGroupsSubmesh=volume_physGroupsSubmesh, t=t, t_final=
+    t_final, maximum_loadingSteps=maximum_loadingSteps)
