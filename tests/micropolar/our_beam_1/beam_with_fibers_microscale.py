@@ -32,13 +32,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets the multiscale boundary conditions for each one of the fields
 
-    displacement_multiscaleBC = "PeriodicFirstOrderBC"#"MinimallyConstrainedFirstOrderBC"#"PeriodicFirstOrderBC""LinearFirstOrderBC"
-    
-    microrotation_multiscaleBC = "MinimallyConstrainedFirstOrderBC"
-
-    multiscale_BCsSets = [["PeriodicFirstOrderBC", "PeriodicFirstOrder"+
-    "BC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"], ["MinimallyCo"+
-    "nstrainedFirstOrderBC", "MinimallyConstrainedFirstOrderBC"]]
+    multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
+    "llyConstrainedFirstOrderBC"], ["LinearFirstOrderBC", "LinearFirst"+
+    "OrderBC"], ["PeriodicFirstOrderBC", "PeriodicFirstOrderBC"]]
 
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
@@ -55,9 +51,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
 
-    simulations_names = ["simulation_11"]#, "simulation_12"]#, "simulation"+
-    #"_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
-    #"ion_31", "simulation_32", "simulation_33"]
+    simulations_names = ["simulation_11", "simulation_12", "simulation"+
+    "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
+    "ion_31", "simulation_32", "simulation_33"]
 
     # Defines a list of lists, each list is a set of material parameters:
     # 0.  Young modulus of the matrix
@@ -80,21 +76,21 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     for multiscale_BCs in multiscale_BCsSets:
 
-        # Makes a new mesh just for the first test and if a new mesh 
-        # is asked for
-
-        flag_mesh = False
-
-        if flag_newMesh and counter==0:
-
-            flag_mesh = True
-
-        counter += 1
-
         # Iterates through the simulations
 
         for i in range(min([len(parameters_sets),len(simulations_names)]
         )):
+
+            # Makes a new mesh just for the first test and if a new mesh 
+            # is asked for
+
+            flag_mesh = False
+
+            if flag_newMesh and counter==0:
+
+                flag_mesh = True
+
+            counter += 1
 
             # Calls the simulation for bending 
 
@@ -105,7 +101,10 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
             fiber_radius=parameters_sets[i][14], flag_newMesh=flag_mesh, 
             subfolder_name=[simulations_names[i], multiscale_BCs[0]+"_"+
             multiscale_BCs[1]], fluctuation_field=fluctuation_field, 
-            transfinite_directions=transfinite_directions)
+            transfinite_directions=transfinite_directions,
+            RVE_localizationX=parameters_sets[i][15], RVE_localizationY=
+            parameters_sets[i][16], RVE_localizationZ=parameters_sets[i
+            ][17])
 
 # Defines a function to try different parameters
 

@@ -106,8 +106,19 @@ quadrature_degree=2, verbose=False):
 
         # Gets a list of tags
 
-        list_ofTags = list(mesh_reading.cell_data_dict["gmsh:physical"][
-        element])
+        list_ofTags = []
+
+        try:
+
+            list_ofTags = list(mesh_reading.cell_data_dict["gmsh:physi"+
+            "cal"][element])
+
+        except:
+
+            raise KeyError("The required element '"+str(element)+"' ha"+
+            "s not been found. Check out the mesh you are providing. P"+
+            "robably, either the volume or the boundary hadn't been sa"+
+            "ved")
 
         # Iterates through the domain physical groups
         

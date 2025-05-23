@@ -208,13 +208,33 @@ None):
 
         for dirichlet_load in dirichlet_loads:
 
-            dirichlet_load.t = t
+            # Tests whether this load is a dolfin Constant
+
+            if isinstance(dirichlet_load, Constant):
+
+                dirichlet_load.assign(t)
+
+            # Otherwise, updates it as a class (Expressions are classes)
+
+            else:
+
+                dirichlet_load.t = t
 
         # Updates the Neumann boundary conditions 
 
         for neumann_load in neumann_loads:
 
-            neumann_load.t = t
+            # Tests whether this load is a dolfin Constant
+
+            if isinstance(neumann_load, Constant):
+
+                neumann_load.assign(t)
+
+            # Otherwise, updates it as a class (Expressions are classes)
+
+            else:
+
+                neumann_load.t = t
 
         # Updates the classes of macroscale quantities
 
@@ -319,6 +339,11 @@ None):
                     post_process.update_function(
                     post_processingObjectsSubmesh[post_processName], 
                     solution_submesh, -1, t, fields_namesDict))
+
+        end_postProcessingTime = time.time()
+
+        print("\n\nThe post-processing phase took "+str(
+        end_postProcessingTime-end_time)+" seconds\n\n")
 
 # Defines a function to iterate through a Newton-Raphson loop of a vari-
 # ational problem of multiple fields
@@ -605,13 +630,33 @@ None, fields_corrections=None):
 
         for dirichlet_load in dirichlet_loads:
 
-            dirichlet_load.t = t
+            # Tests whether this load is a dolfin Constant
+
+            if isinstance(dirichlet_load, Constant):
+
+                dirichlet_load.assign(t)
+
+            # Otherwise, updates it as a class (Expressions are classes)
+
+            else:
+
+                dirichlet_load.t = t
 
         # Updates the Neumann boundary conditions 
 
         for neumann_load in neumann_loads:
 
-            neumann_load.t = t
+            # Tests whether this load is a dolfin Constant
+
+            if isinstance(neumann_load, Constant):
+
+                neumann_load.assign(t)
+
+            # Otherwise, updates it as a class (Expressions are classes)
+
+            else:
+
+                neumann_load.t = t
 
         # Updates the classes of macroscale quantities
 
@@ -798,6 +843,11 @@ None, fields_corrections=None):
                             post_processingObjectsSubmesh[i][
                             post_processName], split_solutionSubmesh, 
                             field_number, t, fields_namesDict)
+
+        end_postProcessingTime = time.time()
+
+        print("\n\nThe post-processing phase took "+str(
+        end_postProcessingTime-end_time)+" seconds\n\n")
 
 ########################################################################
 #                              Utilities                               #

@@ -8,6 +8,8 @@ import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.programming_tools as programming_tools
 
+import source.tool_box.loading_tools as loading_tools
+
 ########################################################################
 #                            Internal work                             #
 ########################################################################
@@ -284,6 +286,12 @@ def traction_work(traction_dictionary, field_variation, mesh_dataClass):
     # Iterates through the dictionary
 
     for physical_group, traction in traction_dictionary.items():
+
+        # Checks if this traction is a dictionary with instructions
+
+        if isinstance(traction, dict):
+
+            raise TypeError("Dictionary tractions have not been implemented yet")
 
         # Verifies if this physical group is indeed in ds
             
