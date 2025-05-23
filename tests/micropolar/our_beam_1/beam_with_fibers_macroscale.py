@@ -296,21 +296,23 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
             post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
             "ry path": results_pathText, "file name": 
-            homogenized_piolaFileName[0], "subdomain":["RVE matrix", 
+            homogenized_piolaFileName[0], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
 
             post_processes[-1][-1]["HomogenizeCoupleFirstPiola"] = {"d"+
             "irectory path": results_pathText, "file name": 
-            homogenized_piolaFileName[1], "subdomain":["RVE matrix", 
+            homogenized_piolaFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
 
             post_processes[-1][-1]["HomogenizeCauchy"] = {"directo"+
             "ry path": results_pathText, "file name": 
-            homogenized_cauchyFileName[0], "subdomain":""}
+            homogenized_cauchyFileName[0], "subdomain": ["RVE matrix", 
+            "RVE fiber"]}
 
             post_processes[-1][-1]["HomogenizeCoupleCauchy"] = {
             "directory path": results_pathText, "file name": 
-            homogenized_cauchyFileName[1], "subdomain":""}
+            homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
+            "RVE fiber"]}
 
             """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
             "ory path": results_pathGraphics, "file name": 
