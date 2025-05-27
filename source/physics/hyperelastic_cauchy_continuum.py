@@ -102,8 +102,8 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
 
     # Constructs the variational forms for the traction work
 
-    traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, v, mesh_dataClass)
+    traction_VarForm, neumann_loads = variational_tools.traction_work(
+    traction_dictionary, u_new, v, mesh_dataClass, neumann_loads)
 
     ####################################################################
     #              Problem and solver parameters setting               #

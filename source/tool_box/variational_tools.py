@@ -2,13 +2,15 @@
 
 from dolfin import *
 
+import ufl_legacy
+
 import copy
 
 import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.programming_tools as programming_tools
 
-import source.tool_box.loading_tools as loading_tools
+import source.tool_box.surface_loading_tools as surface_loading_tools
 
 ########################################################################
 #                            Internal work                             #
@@ -272,7 +274,8 @@ constitutive_modelDictionary, mesh_dataClass):
 # nary of traction loads, where the keys are the corresponding boundary
 # physical groups and the values are the traction loads
 
-def traction_work(traction_dictionary, field_variation, mesh_dataClass):
+def traction_work(traction_dictionary, field, field_variation, 
+mesh_dataClass, neumann_loads):
 
     # Gets the physical groups tags
 
@@ -283,41 +286,49 @@ def traction_work(traction_dictionary, field_variation, mesh_dataClass):
 
     traction_form = 0.0
 
+    # Initializes a dictionary of load-generating functions from the 
+    # surface_loading_tools file
+
+    methods_functionsDict = None
+
+    methods_functionsDict = programming_tools.dispatch_functions([], 
+    surface_loading_tools, methods_functionsDict=methods_functionsDict)[1]
+
+    # Initializes the dictionary of fixed arguments for the loading 
+    # functions
+
+    fixed_arguments = {"field": field, "mesh_dataClass": mesh_dataClass,
+    "field_variation": field_variation}
+
     # Iterates through the dictionary
 
     for physical_group, traction in traction_dictionary.items():
 
-        # Checks if this traction is a dictionary with instructions
+        # Verifies if the traction is a list, to add multiple loads to a
+        # single physical group
 
-        if isinstance(traction, dict):
+        if isinstance(traction, list):
 
-            raise TypeError("Dictionary tractions have not been implemented yet")
+            # Iterates through the loads
 
-        # Verifies if this physical group is indeed in ds
-            
-        physical_group = verify_physicalGroups(physical_group, 
-        physical_groupsTags, physical_groupsNamesToTags=
-        mesh_dataClass.boundary_physicalGroupsNameToTag)
+            for load in traction:
 
-        if isinstance(physical_group, list):
+                # Updates the traction form
 
-            for sub_physicalGroup in physical_group:
+                traction_form, neumann_loads = set_tractionIntegration(
+                traction_form, traction, physical_group, 
+                physical_groupsTags, mesh_dataClass, fixed_arguments, 
+                methods_functionsDict, field_variation, neumann_loads)
 
-                print("The physical group "+str(sub_physicalGroup)+" h"+
-                "as an area of "+str(assemble(1*mesh_dataClass.ds(
-                sub_physicalGroup)))+"\n")
-
-                traction_form += (dot(traction, field_variation)*
-                mesh_dataClass.ds(sub_physicalGroup))
+        # If the traction is not a list, updates the variational form 
+        # directly
 
         else:
-
-            print("The physical group "+str(physical_group)+" has an a"+
-            "rea of "+str(assemble(1*mesh_dataClass.ds(physical_group)))
-            +"\n")
-
-            traction_form += (dot(traction, field_variation)*
-            mesh_dataClass.ds(physical_group))
+            
+            traction_form, neumann_loads = set_tractionIntegration(
+            traction_form, traction, physical_group, physical_groupsTags, 
+            mesh_dataClass, fixed_arguments, methods_functionsDict, 
+            field_variation, neumann_loads)
 
     # Returns the variational form
 
@@ -326,7 +337,92 @@ def traction_work(traction_dictionary, field_variation, mesh_dataClass):
         print("Finishes creating the variational form of the work done"+
         " by the traction on the boundary\n")
 
-    return traction_form
+    return traction_form, neumann_loads
+
+# Defines a function to integrate the traction variational form
+
+def set_tractionIntegration(traction_form, traction, physical_group,
+physical_groupsTags, mesh_dataClass, fixed_arguments, 
+methods_functionsDict, field_variation, neumann_loads):
+
+    # Checks if this traction is a dictionary with instructions
+
+    if isinstance(traction, dict):
+
+        # Checks if there is a load case name
+
+        if not ("load case" in traction):
+
+            raise KeyError("There is no key 'load case' in the diction"+
+            "ary of traction for the physical group '"+str(
+            physical_group)+"'. This key must be in to signal which au"+
+            "tomatically-generated load case must be used. The followi"+
+            "ng keys have been found though: "+str(traction.keys()))
+
+        # Assembles the input of arguments for the traction vector
+        # building method. Adds first the values given in fixed_ar-
+        # guments
+
+        method_arguments = {key: value for key, value in (
+        fixed_arguments.items())}
+
+        for key, value in traction.items():
+
+            if key!="load case":
+
+                method_arguments[key] = value
+
+        # Dispatches the function and calls it right away
+
+        traction, neumann_load = programming_tools.dispatch_functions(
+        traction["load case"], None, fixed_inputVariablesDict=
+        method_arguments, methods_functionsDict=methods_functionsDict, 
+        return_list=True, return_singleFunction=True, all_argumentsFixed=
+        True)[0]()
+
+        # Appends the neumann_load to the list of time controls
+
+        neumann_loads.append(neumann_load)
+
+    # Verifies if the traction is, then, a fenics format
+
+    elif ((not isinstance(traction, Expression)) and (not isinstance(
+    traction, Constant)) and (not isinstance(traction, 
+    ufl_legacy.core.expr.Expr))):
+
+        raise TypeError("The traction vector, if not defined as a dict"+
+        "ionary of instructions to use built-in load cases, must be de"+
+        "fined as a dolfin format, either a Constant, an Expression, o"+
+        "r as_vector. In the physical group '"+str(physical_group)+"',"+
+        " the traction provided was: "+str(traction))
+
+    # Verifies if this physical group is indeed in ds
+        
+    physical_group = verify_physicalGroups(physical_group, 
+    physical_groupsTags, physical_groupsNamesToTags=
+    mesh_dataClass.boundary_physicalGroupsNameToTag)
+
+    if isinstance(physical_group, list):
+
+        for sub_physicalGroup in physical_group:
+
+            print("The physical group "+str(sub_physicalGroup)+" h"+
+            "as an area of "+str(assemble(1*mesh_dataClass.ds(
+            sub_physicalGroup)))+"\n")
+
+            traction_form += (dot(traction, field_variation)*
+            mesh_dataClass.ds(sub_physicalGroup))
+
+    else:
+
+        print("The physical group "+str(physical_group)+" has an a"+
+        "rea of "+str(assemble(1*mesh_dataClass.ds(physical_group)))
+        +"\n")
+
+        traction_form += (dot(traction, field_variation)*
+        mesh_dataClass.ds(physical_group))
+
+    return traction_form, neumann_loads
 
 ########################################################################
 #                              Utilities                               #

@@ -131,7 +131,11 @@ neumann_loads = [load]
 
 # Assemble the traction vector using this load expression
 
-traction_boundary = as_vector([0.0, load, 0.0])
+#traction_boundary = as_vector([0.0, load, 0.0])
+
+traction_boundary = {"load case": "UniformReferentialTraction", "maximum"+
+"_tractionX": 0.0, "maximum_tractionY": maximum_load, "maximum_tractio"+
+"nZ": 0.0}
 
 # Defines a dictionary of tractions
 

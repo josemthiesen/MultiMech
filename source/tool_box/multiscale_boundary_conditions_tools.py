@@ -182,9 +182,9 @@ boundary_conditions=None, fluctuation_field=False):
         # Retrieves at last just the boundary condition because the dis-
         # patch functions returns a dictionary of methods
 
-        multiscale_BCsDict[field_name] = programming_tools.dispatch_processes(
-        field_BC["boundary condition"], multiscale_classes, 
-        multiscale_classes.BCsClassTemplate, reserved_classes=[
+        multiscale_BCsDict[field_name] = programming_tools.dispatch_classes(
+        field_BC["boundary condition"], multiscale_classes, parent_class=
+        multiscale_classes.BCsClassTemplate, reserved_entities=[
         multiscale_classes.BCsClassTemplate], class_input=(field_name,
         fields_names, elements_dictionary, mesh_dataClass, field_BC["m"+
         "acro information"], macro_quantitiesClasses, volume_inverse,

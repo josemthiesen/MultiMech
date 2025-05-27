@@ -23,10 +23,11 @@ def post_processingSelectionSingleField(post_processes, context_class):
     # If you implement any new post-processing tool, the code will auto-
     # matically retrieve it using the inspect functionality
 
-    available_processes = programming_tools.dispatch_processes(
-    post_processes, post_classes, post_classes.PostProcessMethod, 
-    reserved_classes=[post_classes.PostProcessMethod, 
-    post_classes.PostProcessContext], class_input=context_class)
+    available_processes = programming_tools.dispatch_classes(
+    post_processes, post_classes, parent_class=
+    post_classes.PostProcessMethod, reserved_entities=[
+    post_classes.PostProcessMethod, post_classes.PostProcessContext], 
+    class_input=context_class)
 
     # Iterates through the dictionary of wanted processes
     

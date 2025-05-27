@@ -3,6 +3,35 @@
 from dolfin import *
 
 ########################################################################
+#                          Referential forces                          #
+########################################################################
+
+# Defines a function to construct a uniform traction on a surface in the
+# referential configuration
+
+def UniformReferentialTraction(maximum_tractionX, maximum_tractionY,
+maximum_tractionZ, t=0.0, t_max=1.0, amplitude_curve=lambda x: x):
+
+    # Creates the time constants
+
+    time_constant = Constant(t)
+
+    maximum_time = Constant(t_max)
+
+    # Evaluates the traction vector at the referential configuration
+
+    T = as_vector([amplitude_curve(time_constant/maximum_time)*
+    maximum_tractionX, amplitude_curve(time_constant/maximum_time)*
+    maximum_tractionY, amplitude_curve(time_constant/maximum_time)*
+    maximum_tractionZ])
+
+    print("Cria")
+
+    # Returns the traction and the time constant
+
+    return T, time_constant
+
+########################################################################
 #                           Follower forces                            #
 ########################################################################
 
@@ -12,7 +41,7 @@ from dolfin import *
 # ted between the initial and final time points; the default value is a
 # linear curve
 
-def normal_uniformForce(mesh_dataClass, displacement_field, 
+def NormalUniformFollowerTraction(field, mesh_dataClass,
 maximum_traction, t=0.0, t_max=1.0, amplitude_curve=lambda x: x):
 
     # Creates the time constants
@@ -25,7 +54,7 @@ maximum_traction, t=0.0, t_max=1.0, amplitude_curve=lambda x: x):
 
     I = Identity(3)
 
-    F = grad(displacement_field)+I
+    F = grad(field)+I
 
     J = det(F)
 

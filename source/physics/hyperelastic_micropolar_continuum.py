@@ -127,15 +127,17 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
 
     # Constructs the variational forms for the traction work
 
-    traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, variation_u, mesh_dataClass)
+    traction_VarForm, neumann_loads = variational_tools.traction_work(
+    traction_dictionary, u_new, variation_u, mesh_dataClass, 
+    neumann_loads)
 
     # Constructs the variational forms for the moment work on the boun-
     # dary. Note that the function traction_work was reused, because the
     # variational construction is the same for traction and for moment
 
-    moment_VarForm = variational_tools.traction_work(
-    moment_dictionary, variation_phi, mesh_dataClass)
+    moment_VarForm, neumann_loads = variational_tools.traction_work(
+    moment_dictionary, phi_new, variation_phi, mesh_dataClass, 
+    neumann_loads)
 
     ####################################################################
     #              Problem and solver parameters setting               #

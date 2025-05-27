@@ -106,8 +106,9 @@ None):
 
     # Constructs the variational forms for the traction work
 
-    traction_VarForm = variational_tools.traction_work(
-    traction_dictionary, variation_u, mesh_dataClass)
+    traction_VarForm, neumann_loads = variational_tools.traction_work(
+    traction_dictionary, u_new, variation_u, mesh_dataClass, 
+    neumann_loads)
 
     ####################################################################
     #              Problem and solver parameters setting               #
