@@ -1,12 +1,8 @@
 # Routine to test a hyperelastic disc
 
-from dolfin import *
-
 import os
 
-from mpi4py import MPI
-
-from mshr import *
+import numpy as np
 
 #import periodic_structure as mesher
 
@@ -74,7 +70,7 @@ mesh_fileName = "tests//test_meshes//intervertebral_disc"
 
 # Defines the shape functions degree
 
-polynomial_degree = 1
+polynomial_degree = 2
 
 ########################################################################
 #                           Solver parameters                          #
@@ -84,23 +80,25 @@ polynomial_degree = 1
 
 solver_parameters = dict()
 
-solver_parameters["linear_solver"] = "minres"
-
 solver_parameters["newton_relative_tolerance"] = 1e-4
 
 solver_parameters["newton_absolute_tolerance"] = 1e-4
 
-solver_parameters["newton_maximum_iterations"] = 50
+solver_parameters["newton_maximum_iterations"] = 15
+
+"""
+
+solver_parameters["linear_solver"] = "minres"
 
 solver_parameters["preconditioner"] = "petsc_amg"
 
-solver_parameters["krylov_absolute_tolerance"] = 1e-6
+solver_parameters["krylov_absolute_tolerance"] = 1e-7
 
-solver_parameters["krylov_relative_tolerance"] = 1e-6
+solver_parameters["krylov_relative_tolerance"] = 1e-7
 
 solver_parameters["krylov_maximum_iterations"] = 15000
 
-solver_parameters["krylov_monitor_convergence"] = False
+solver_parameters["krylov_monitor_convergence"] = False"""
 
 # Sets the initial time
 
@@ -112,7 +110,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 11
+maximum_loadingSteps = 5
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -120,22 +118,24 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = -2E7
-
-load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
-maximum_load=maximum_load, degree=0)
-
-# Assembles this load into the list of Neumann boundary conditions
-
-neumann_loads = [load]
+maximum_load = 2E7
 
 # Assemble the traction vector using this load expression
 
-#traction_boundary = as_vector([0.0, load, 0.0])
+"""
+traction_boundary = {"load case": "UniformReferentialTraction", "ampli"+
+"tude_tractionX": 0.0, "amplitude_tractionY": maximum_load, "amplitude"+
+"_tractionZ": 0.0, "parametric_load_curve": lambda x: np.sqrt(x), "t":
+t, "t_final": t_final}"""
 
-traction_boundary = {"load case": "UniformReferentialTraction", "maximum"+
-"_tractionX": 0.0, "maximum_tractionY": maximum_load, "maximum_tractio"+
-"nZ": 0.0}
+"""
+traction_boundary = {"load case": "NormalUniformFollowerTraction", "am"+
+"plitude_traction": 3.6*maximum_load, "parametric_load_curve": lambda x:
+np.sqrt(x), "t": t, "t_final": t_final}"""
+
+traction_boundary = {"load case": "NormalFollowerTorsion", "amplitude_"+
+"torsion": 0.0045*maximum_load, "parametric_load_curve": lambda x:
+np.sqrt(x), "t": t, "t_final": t_final}
 
 # Defines a dictionary of tractions
 
@@ -159,6 +159,6 @@ fixed_supportPhysicalGroups = "bottom"
 
 variational_framework.hyperelasticity_displacementBased(
 constitutive_model, traction_dictionary, maximum_loadingSteps, t_final, 
-post_processes, mesh_fileName, solver_parameters, neumann_loads=
-neumann_loads, polynomial_degree=polynomial_degree, t=t, 
-fixed_supportPhysicalGroups=fixed_supportPhysicalGroups, verbose=True)
+post_processes, mesh_fileName, solver_parameters, polynomial_degree=
+polynomial_degree, t=t, fixed_supportPhysicalGroups=
+fixed_supportPhysicalGroups, verbose=True)

@@ -4,9 +4,9 @@ from dolfin import *
 
 import meshio
 
-import source.tool_box.programming_tools as programming_tools
+from scipy.spatial import KDTree
 
-import source.tool_box.variational_tools as variational_tools
+import source.tool_box.programming_tools as programming_tools
 
 # Defines a class for the mesh data
 
@@ -662,3 +662,163 @@ sub_meshMapping=None, parent_meshMapping=None, field_submesh=None):
     # Returns the submesh field
 
     return field_submesh
+        
+########################################################################
+#                             Node finding                             #
+########################################################################
+
+# Defines a function to find a node of the mesh nearest to a given point
+
+def find_nodeClosestToPoint(mesh_dataClass, point_coordinates, 
+node_number, node_coordinates, set_ofNodes=None):
+
+    # Tests if the node has already been found
+
+    if (node_number is None) or (node_coordinates is None):
+
+        # Gets the coordinates of the mesh
+
+        mesh_coordinates = 0
+
+        # If a special set of nodes has been required
+
+        if set_ofNodes is None:
+
+            mesh_coordinates = mesh_dataClass.mesh.coordinates()
+
+        elif isinstance(set_ofNodes, list):
+
+            mesh_coordinates = mesh_dataClass.mesh.coordinates()[
+            set_ofNodes]
+
+        else:
+
+            raise TypeError("The set of nodes to find a node closest t"+
+            "o a point from must be a list. The provided set of nodes,"+
+            " however, is not a list: "+str(set_ofNodes))
+
+        # Gets a tree of these coordinates
+
+        coordinates_tree = KDTree(mesh_coordinates)
+
+        # Gets the number of the node that is closest to the given coor-
+        # dinates
+
+        _, node_number = coordinates_tree.query(point_coordinates)
+
+        # Returns the node number
+
+        if set_ofNodes is None:
+
+            node_number = int(node_number)
+
+            return node_number, mesh_coordinates[node_number]
+
+        else:
+
+            # The node number given by the query is not the actual node
+            # number, rather the index inside the point coordinates list.
+            # Hence, this index must be mapped back to the global index
+            # system
+
+            global_nodeNumber = set_ofNodes[int(node_number)]
+
+            return global_nodeNumber, mesh_coordinates[int(node_number)]
+    
+    else:
+
+        # Returns the node number as it's been given
+
+        return node_number, node_coordinates
+    
+# Defines a function to create a list of nodes indexes that lie on the
+# boundary of surface
+
+def find_nodesOnSurfaceBoundary(mesh_dataClass, physical_group):
+
+    # Verifies if the physical group is a string
+
+    if isinstance(physical_group, str):
+
+        # Tests if it is in the dictionary of physical groups of the 
+        # boundary
+
+        if physical_group in mesh_dataClass.boundary_physicalGroupsNameToTag:
+
+            # Converts it
+
+            physical_group = mesh_dataClass.boundary_physicalGroupsNameToTag[
+            physical_group]
+
+        else:
+
+            raise KeyError("The physical group '"+str(physical_group)+
+            "' is not in the dictionary of boundary physical groups. T"+
+            "hus, cannot be used to find the nodes in the boundary of "+
+            "surface. Check out the available options of physical grou"+
+            "ps in the boundary: "+str(
+            mesh_dataClass.boundary_physicalGroupsNameToTag.keys()))
+        
+    # Do not accept other formats than integer
+
+    elif not isinstance(physical_group, int):
+
+        raise TypeError("The physical group "+str(physical_group)+" is"+
+        " not an integer, thus cannot be used to find the nodes in the"+
+        " boundary of a surface")
+    
+    # Gets the 2D elements in the mesh that lie on this physical group
+
+    bidimensional_elements = [element for element in facets(
+    mesh_dataClass.mesh) if mesh_dataClass.boundary_meshFunction[
+    element.index()]==physical_group]
+
+    # Initializes a dictionary of element contours to count the number 
+    # of elements where they appear in
+
+    element_contoursCounter = dict()
+
+    # Iterates through the 2D elements
+
+    for element in bidimensional_elements:
+
+        # Iterates through the contour lines
+
+        for contour_line in edges(element):
+
+            # Gets the index of the contour
+
+            contour_index = contour_line.index()
+
+            # Adds this to the counter. Uses the get function to avoid
+            # key error, thus, get 0 if the key is not found
+
+            element_contoursCounter[contour_index] = element_contoursCounter.get(
+            contour_index, 0)+1
+
+    # Initializes a set to guard the set of nodes that lie on the boun-
+    # dary
+
+    boundary_nodes = set()
+
+    # Harvests just the contour lines that appear only once, because the
+    # lines that appear more than one are shared between elements and,
+    # hence, are inside the region
+
+    for contour_index, elements_count in element_contoursCounter.items():
+
+        if elements_count==1:
+
+            # Iterates through the nodes at the edges of this line
+
+            for node in vertices(Edge(mesh_dataClass.mesh, contour_index
+            )):
+                
+                # Adds this element to the set
+
+                boundary_nodes.add(node.index())
+
+    # Returns the set of nodes' indices at the boundary and converts to
+    # a list
+
+    return list(boundary_nodes)

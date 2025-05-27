@@ -366,6 +366,12 @@ methods_functionsDict, field_variation, neumann_loads):
         method_arguments = {key: value for key, value in (
         fixed_arguments.items())}
 
+        # Adds the physical group too
+
+        method_arguments["physical_group"] = physical_group
+
+        # Adds the user-given data
+
         for key, value in traction.items():
 
             if key!="load case":

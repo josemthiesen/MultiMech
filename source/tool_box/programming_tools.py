@@ -496,8 +496,6 @@ return_list=False, return_singleFunction=False, all_argumentsFixed=False):
                     # Sets the new function as a driver, i.e. fixing so-
                     # me arguments given by the fixed arguments dictio-
                     # nary
-
-                    print(methods_functionsDict[method_name])
                     
                     methods_functions[method_name] = driver_maker(
                     methods_functionsDict[method_name], method_name, 
@@ -521,7 +519,7 @@ return_list=False, return_singleFunction=False, all_argumentsFixed=False):
 
     if return_list:
 
-        methods_functions = list(methods_functions.keys())
+        methods_functions = list(methods_functions.values())
 
         if return_singleFunction and len(methods_functions)==1:
 
@@ -548,7 +546,10 @@ all_argumentsFixed=False):
     keyword_arguments = [name for name, param in arguments_names.items(
     ) if param.default is not inspect.Parameter.empty]
 
-    print(positional_arguments, keyword_arguments)
+    # Initializes a dictionary of fixed arguments that are really argu-
+    # ments of the function
+
+    functions_fixedArguments = dict()
 
     # If more fixed arguments were provided, thus, enabling all the ar-
     # guments to be picked from a larger pool of arguments
@@ -566,8 +567,15 @@ all_argumentsFixed=False):
                 "' was not provided in the list of fixed arguments. Ch"+
                 "eck the list of fixed arguments: "+str(
                 fixed_arguments.keys()))
+    
+            # If this argument's name is in the general dictionary of 
+            # fixed arguments, updates the functions own dictionary of
+            # this kind
             
-        #fixed_arguments = {for paipositional_arguments}
+            else:
+                
+                functions_fixedArguments[fixed_argument] = (
+                fixed_arguments[fixed_argument])
 
     else:
 
@@ -582,29 +590,25 @@ all_argumentsFixed=False):
                 fixed_argument)+"' is not an argument of the function "+
                 "'"+str(method_name)+"'. Did you mean any of the follo"+
                 "wing arguments? "+str(arguments_names))
+    
+            # If this argument's name is in the general dictionary of 
+            # fixed arguments, updates the functions own dictionary of
+            # this kind
+            
+            else:
+                
+                functions_fixedArguments[fixed_argument] = (
+                fixed_arguments[fixed_argument])
 
     # Gets the free arguments from the difference with the list of fixed 
     # arguments. Again differentiates the positional from the keyword 
     # arguments
 
     free_positionalNames = [free_name for free_name in (
-    positional_arguments) if free_name not in fixed_arguments]
+    positional_arguments) if free_name not in functions_fixedArguments]
 
     free_keywordNames = [free_name for free_name in (keyword_arguments
-    ) if free_name not in fixed_arguments]
-
-    print(free_positionalNames)
-
-    print(free_keywordNames)
-
-    print(fixed_arguments)
-
-    """# Sets a lambda function to fix some parameters and 
-    # let the rest as true arguments
-
-    methods_functions[method_name] = lambda *arguments: methods_functionsDict[
-    method_name](**{free_names[i]: arguments[i] for i in range(
-    len(free_names))}, **fixed_arguments)"""
+    ) if free_name not in functions_fixedArguments]
 
     # Creates the driver of the function using a wrapper to keep the o-
     # riginal function's information
@@ -637,6 +641,6 @@ all_argumentsFixed=False):
 
         return method_function(**{free_positionalNames[i]: arguments[i
         ] for i in range(len(free_positionalNames))}, **key_arguments, 
-        **fixed_arguments)
+        **functions_fixedArguments)
     
     return driver_function

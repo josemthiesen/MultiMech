@@ -214,6 +214,12 @@ None):
 
                 dirichlet_load.assign(t)
 
+            # If the load is a class and has an attribute "update"
+
+            elif hasattr(dirichlet_load, "update_load"):
+
+                dirichlet_load.update_load(t)
+
             # Otherwise, updates it as a class (Expressions are classes)
 
             else:
@@ -229,6 +235,12 @@ None):
             if isinstance(neumann_load, Constant):
 
                 neumann_load.assign(t)
+
+            # If the load is a class and has an attribute "update"
+
+            elif hasattr(neumann_load, "update_load"):
+
+                neumann_load.update_load(t)
 
             # Otherwise, updates it as a class (Expressions are classes)
 
@@ -636,6 +648,12 @@ None, fields_corrections=None):
 
                 dirichlet_load.assign(t)
 
+            # If the load is a class and has an attribute "update"
+
+            elif hasattr(dirichlet_load, "update_load"):
+
+                dirichlet_load.update_load(t)
+
             # Otherwise, updates it as a class (Expressions are classes)
 
             else:
@@ -651,6 +669,12 @@ None, fields_corrections=None):
             if isinstance(neumann_load, Constant):
 
                 neumann_load.assign(t)
+
+            # If the load is a class and has an attribute "update"
+
+            elif hasattr(neumann_load, "update_load"):
+
+                neumann_load.update_load(t)
 
             # Otherwise, updates it as a class (Expressions are classes)
 

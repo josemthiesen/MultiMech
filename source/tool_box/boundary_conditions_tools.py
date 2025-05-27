@@ -4,9 +4,9 @@ from dolfin import *
 
 import numpy as np
 
-from scipy.spatial import KDTree
-
 import source.tool_box.programming_tools as programming_tools
+
+import source.tool_box.mesh_handling_tools as mesh_tools
 
 ########################################################################
 #              Heterogeneous Dirichlet boundary conditions             #
@@ -513,44 +513,6 @@ None):
         print("Finishes creating fixed support boundary conditions.\n")
 
     return boundary_conditions
-        
-########################################################################
-#                             Node finding                             #
-########################################################################
-
-# Defines a function to find a node of the mesh nearest to a given point
-
-def find_node(mesh_dataClass, point_coordinates, node_number, 
-node_coordinates):
-
-    # Tests if the node has already been found
-
-    if (node_number is None) or (node_coordinates is None):
-
-        # Gets the coordinates of the mesh
-
-        mesh_coordinates = mesh_dataClass.mesh.coordinates()
-
-        # Gets a tree of these coordinates
-
-        coordinates_tree = KDTree(mesh_coordinates)
-
-        # Gets the number of the node that is closest to the given coor-
-        # dinates
-
-        _, node_number = coordinates_tree.query(point_coordinates)
-
-        # Returns the node number
-
-        node_number = int(node_number)
-
-        return node_number, mesh_coordinates[node_number]
-    
-    else:
-
-        # Returns the node number as it's been given
-
-        return node_number, node_coordinates
 
 ########################################################################
 #                          Subdomain classes                           #
@@ -564,8 +526,8 @@ def generate_nodeSubdomain(point_coordinates, mesh_dataClass, tolerance=
 
     # Gets the coordinates of the node closest to the point required
 
-    _, node_coordinates = find_node(mesh_dataClass, point_coordinates,
-    None, None)
+    _, node_coordinates = mesh_tools.find_nodeClosestToPoint(
+    mesh_dataClass, point_coordinates, None, None)
 
     # Defines the class
 
