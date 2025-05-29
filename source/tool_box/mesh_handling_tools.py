@@ -671,7 +671,9 @@ sub_meshMapping=None, parent_meshMapping=None, field_submesh=None):
 #                             Node finding                             #
 ########################################################################
 
-# Defines a function to find a node of the mesh nearest to a given point
+# Defines a function to find a node of the mesh nearest to a given point.
+# You can provide a class with a .mesh attribute or you can provide the
+# mesh proper
 
 def find_nodeClosestToPoint(mesh_dataClass, point_coordinates, 
 node_number, node_coordinates, set_ofNodes=None):
@@ -698,12 +700,29 @@ node_number, node_coordinates, set_ofNodes=None):
 
         if set_ofNodes is None:
 
-            mesh_coordinates = mesh_dataClass.mesh.coordinates()
+            # Verifies if the object is already the mesh
+
+            if hasattr(mesh_dataClass, "coordinates"):
+
+                mesh_coordinates = mesh_dataClass.coordinates()
+
+            else:
+
+                mesh_coordinates = mesh_dataClass.mesh.coordinates()
 
         elif isinstance(set_ofNodes, list):
 
-            mesh_coordinates = mesh_dataClass.mesh.coordinates()[
-            set_ofNodes]
+            # Verifies if the object is already the mesh
+
+            if hasattr(mesh_dataClass, "coordinates"):
+
+                mesh_coordinates = mesh_dataClass.coordinates()[
+                set_ofNodes]
+
+            else:
+
+                mesh_coordinates = mesh_dataClass.mesh.coordinates()[
+                set_ofNodes]
 
         else:
 

@@ -72,7 +72,7 @@ def post_processingSelectionSingleField(post_processes, context_class):
                 raise NameError("The additional information '"+str(
                 available_processes[process_name
                 ].additional_information[i])+"' has not been found for"+
-                "the "+str(process_name)+" process.")
+                " the "+str(process_name)+" process.")
             
         # Verifies if any keys have been left out in the original dic-
         # tionary of additional information

@@ -373,7 +373,8 @@ class_input=None, reserved_entities=None):
 
 def dispatch_functions(methods_names, searched_file, reserved_entities=
 None, fixed_inputVariablesDict=None, methods_functionsDict=None, 
-return_list=False, return_singleFunction=False, all_argumentsFixed=False):
+return_list=False, return_singleFunction=False, all_argumentsFixed=False,
+second_sourceFixedArguments=None):
 
     # Assures methods_names is a list, or a tuple or a dictionary
 
@@ -398,7 +399,8 @@ return_list=False, return_singleFunction=False, all_argumentsFixed=False):
 
     # Iterates through the methods names
 
-    if fixed_inputVariablesDict is None:
+    if (fixed_inputVariablesDict is None) and (
+    second_sourceFixedArguments is None):
 
         # Iterates through the methods
 
@@ -483,7 +485,8 @@ return_list=False, return_singleFunction=False, all_argumentsFixed=False):
 
                 # If there is no fixed arguments, just gets the function
 
-                if len(fixed_arguments.keys())==0:
+                if (len(fixed_arguments.keys())==0) and (
+                second_sourceFixedArguments is None):
 
                     methods_functions[method_name] = methods_functionsDict[
                     method_name]
@@ -500,7 +503,8 @@ return_list=False, return_singleFunction=False, all_argumentsFixed=False):
                     methods_functions[method_name] = driver_maker(
                     methods_functionsDict[method_name], method_name, 
                     fixed_arguments, all_argumentsFixed=
-                    all_argumentsFixed)
+                    all_argumentsFixed, second_sourceFixedArguments=
+                    second_sourceFixedArguments)
 
             else:
 
@@ -531,7 +535,7 @@ return_list=False, return_singleFunction=False, all_argumentsFixed=False):
 # other function
 
 def driver_maker(method_function, method_name, fixed_arguments, 
-all_argumentsFixed=False):
+all_argumentsFixed=False, second_sourceFixedArguments=None):
 
     # Gets the names of the arguments of the function that is being as-
     # signed
@@ -556,37 +560,116 @@ all_argumentsFixed=False):
 
     if all_argumentsFixed:
 
-        # Verifies if any of the positional arguments was not provided 
-        # in the fixed arguments
+        # Verifies if the additional dictionary of arguments is None. 
+        # This additional dictionary is used to set up input that comes
+        # from other source
 
-        for fixed_argument in positional_arguments:
+        if second_sourceFixedArguments is None:
 
-            if not (fixed_argument in fixed_arguments):
+            # Verifies if any of the positional arguments was not provi-
+            # ded in the fixed arguments
 
-                raise NameError("The argument '"+str(fixed_argument)+
-                "' was not provided in the list of fixed arguments. Ch"+
-                "eck the list of fixed arguments: "+str(
-                fixed_arguments.keys())+"\n\nCheck the list of require"+
-                "d positional arguments: "+str(positional_arguments))
-    
-            # If this argument's name is in the general dictionary of 
-            # fixed arguments, updates the functions own dictionary of
-            # this kind
-            
-            else:
+            for fixed_argument in positional_arguments:
+
+                if not (fixed_argument in fixed_arguments):
+
+                    raise NameError("The argument '"+str(fixed_argument
+                    )+"' was not provided in the list of fixed argumen"+
+                    "ts. Check the list of fixed arguments: "+str(
+                    fixed_arguments.keys())+"\n\nCheck the list of req"+
+                    "uired positional arguments: "+str(
+                    positional_arguments))
+        
+                # If this argument's name is in the general dictionary 
+                # of fixed arguments, updates the functions own dictio-
+                # nary of this kind
                 
-                functions_fixedArguments[fixed_argument] = (
-                fixed_arguments[fixed_argument])
+                else:
+                    
+                    functions_fixedArguments[fixed_argument] = (
+                    fixed_arguments[fixed_argument])
 
-        # Verifies if any of the keyword arguments was not provided in 
-        # the fixed arguments
+            # Verifies if any of the keyword arguments was not provided 
+            # in the fixed arguments
 
-        for fixed_argument in keyword_arguments:
+            for fixed_argument in keyword_arguments:
 
-            if fixed_argument in fixed_arguments:
+                if fixed_argument in fixed_arguments:
+                    
+                    functions_fixedArguments[fixed_argument] = (
+                    fixed_arguments[fixed_argument])
+
+        elif isinstance(second_sourceFixedArguments, dict):
+
+            # Verifies if any of the positional arguments was not provi-
+            # ded in the fixed arguments
+
+            for fixed_argument in positional_arguments:
+        
+                # If this argument's name is in the general dictionary 
+                # of fixed arguments, updates the functions own dictio-
+                # nary of this kind
                 
-                functions_fixedArguments[fixed_argument] = (
-                fixed_arguments[fixed_argument])
+                if fixed_argument in fixed_arguments:
+                    
+                    functions_fixedArguments[fixed_argument] = (
+                    fixed_arguments[fixed_argument])
+
+                # Or in the second source of arguments
+
+                elif fixed_argument in second_sourceFixedArguments:
+                    
+                    functions_fixedArguments[fixed_argument] = (
+                    second_sourceFixedArguments[fixed_argument])
+
+                # Otherwise, throws an error
+
+                else:
+
+                    raise NameError("The argument '"+str(fixed_argument
+                    )+"' was not provided in the dictionary of fixed a"+
+                    "rguments nor in. Check the list of fixed argument"+
+                    "s: "+str(fixed_arguments.keys())+"\nCheck the lis"+
+                    "t of second source arguments"+str(
+                    second_sourceFixedArguments.keys())+"\n\nCheck the"+
+                    " list of required positional arguments: "+str(
+                    positional_arguments))
+
+            # Verifies if any of the keyword arguments was not provided 
+            # in the fixed arguments
+
+            for fixed_argument in keyword_arguments:
+
+                if fixed_argument in fixed_arguments:
+                    
+                    functions_fixedArguments[fixed_argument] = (
+                    fixed_arguments[fixed_argument])
+
+                elif fixed_argument in second_sourceFixedArguments:
+                    
+                    functions_fixedArguments[fixed_argument] = (
+                    second_sourceFixedArguments[fixed_argument])
+
+            # If any information of the second source is not in the list
+            # of keyword arguments, throw an error
+
+            for fixed_argument in second_sourceFixedArguments:
+
+                if ((not (fixed_argument in keyword_arguments)) and (
+                not (fixed_argument in positional_arguments))):
+
+                    raise KeyError("The keyword argument '"+str(
+                    fixed_argument)+"' was given by the second source "+
+                    "of arguments, but was not found in the function's"+
+                    " keyword arguments. Check the list of available k"+
+                    "eyword arguments of this function: "+str(
+                    keyword_arguments))
+
+        else:
+
+            raise TypeError("The second source fixed arguments must be"+
+            " a dictionary or None, whereas the provided one is "+str(
+            second_sourceFixedArguments))
 
     else:
 

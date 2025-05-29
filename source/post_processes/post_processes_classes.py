@@ -145,6 +145,22 @@ class SaveCoupleFirstPiolaStressField(PostProcessMethod):
         context.constitutive_model, context.dx, 
         context.physical_groupsList, context.domain_physGroupsNamesToTags])
 
+# Sets a class for the method to save the pressure field in a point
+
+class SavePressureAtPoint(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_pressureAtPointSaving, 
+        post_functions.update_pressureAtPointSaving, ["directory path", 
+        "file name", "polynomial degree", "point coordinates", "flag p"+
+        "lotting"], [context.mesh, context.constitutive_model, context.dx,  
+        context.physical_groupsList, context.domain_physGroupsNamesToTags])
+
 # Sets a class for the method to homogenize a field
 
 class HomogenizeField(PostProcessMethod):

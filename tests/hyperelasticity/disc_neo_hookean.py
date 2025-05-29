@@ -24,10 +24,16 @@ results_path = os.getcwd()+"//tests//hyperelasticity//results"
 
 displacement_fileName = "displacement.xdmf"
 
+pressure_fileName = "pressure_points.txt"
+
 post_processes = dict()
 
 post_processes["SaveField"] = {"directory path":results_path, 
 "file name":displacement_fileName}
+
+post_processes["SavePressureAtPoint"] = {"directory path":results_path, 
+"file name":pressure_fileName, "polynomial degree": 1, "point coordina"+
+"tes": [0.0, 0.0, 0.0], "flag plotting": True}
 
 ########################################################################
 #                         Material properties                          #
@@ -134,7 +140,7 @@ traction_boundary = {"load case": "NormalUniformFollowerTraction", "am"+
 #"""
 traction_boundary = {"load case": "NormalFollowerTorsion", "amplitude_"+
 "torsion": 0.0045*maximum_load, "parametric_load_curve": "square root", 
-"t": t, "t_final": t_final, "influence_radius": 0.15}#"""
+"t": t, "t_final": t_final, "influence_radius": 0.10}#"""
 
 """
 traction_boundary = {"load case": "NormalFollowerMoment", "amplitude_b"+
