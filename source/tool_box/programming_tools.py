@@ -566,13 +566,24 @@ all_argumentsFixed=False):
                 raise NameError("The argument '"+str(fixed_argument)+
                 "' was not provided in the list of fixed arguments. Ch"+
                 "eck the list of fixed arguments: "+str(
-                fixed_arguments.keys()))
+                fixed_arguments.keys())+"\n\nCheck the list of require"+
+                "d positional arguments: "+str(positional_arguments))
     
             # If this argument's name is in the general dictionary of 
             # fixed arguments, updates the functions own dictionary of
             # this kind
             
             else:
+                
+                functions_fixedArguments[fixed_argument] = (
+                fixed_arguments[fixed_argument])
+
+        # Verifies if any of the keyword arguments was not provided in 
+        # the fixed arguments
+
+        for fixed_argument in keyword_arguments:
+
+            if fixed_argument in fixed_arguments:
                 
                 functions_fixedArguments[fixed_argument] = (
                 fixed_arguments[fixed_argument])

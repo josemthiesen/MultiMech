@@ -2,8 +2,6 @@
 
 import os
 
-import numpy as np
-
 #import periodic_structure as mesher
 
 import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as constitutive_models
@@ -125,17 +123,24 @@ maximum_load = 2E7
 """
 traction_boundary = {"load case": "UniformReferentialTraction", "ampli"+
 "tude_tractionX": 0.0, "amplitude_tractionY": maximum_load, "amplitude"+
-"_tractionZ": 0.0, "parametric_load_curve": lambda x: np.sqrt(x), "t":
-t, "t_final": t_final}"""
+"_tractionZ": 0.0, "parametric_load_curve": "square root", "t": t, "t_"+
+"final": t_final}"""
 
 """
 traction_boundary = {"load case": "NormalUniformFollowerTraction", "am"+
-"plitude_traction": 3.6*maximum_load, "parametric_load_curve": lambda x:
-np.sqrt(x), "t": t, "t_final": t_final}"""
+"plitude_traction": 3.6*maximum_load, "parametric_load_curve": "square"+
+" root", "t": t, "t_final": t_final}"""
 
+#"""
 traction_boundary = {"load case": "NormalFollowerTorsion", "amplitude_"+
-"torsion": 0.0045*maximum_load, "parametric_load_curve": lambda x:
-np.sqrt(x), "t": t, "t_final": t_final}
+"torsion": 0.0045*maximum_load, "parametric_load_curve": "square root", 
+"t": t, "t_final": t_final, "influence_radius": 0.15}#"""
+
+"""
+traction_boundary = {"load case": "NormalFollowerMoment", "amplitude_b"+
+"endingMoment": 0.015*maximum_load, "parametric_load_curve": "square r"+
+"oot", "t": t, "t_final": t_final, "influence_radius": 0.1, "bending"+
+"_axis": [1.0, 0.0, 0.0], "no_parasiticForcesCorrection": False}"""
 
 # Defines a dictionary of tractions
 

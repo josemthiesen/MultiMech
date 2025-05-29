@@ -70,6 +70,17 @@ def rotation_tensorEulerRodrigues(phi, I=Identity(3)):
     return R_bar
 
 ########################################################################
+#                              Projection                              #
+########################################################################
+
+# Defines a function to get the projection tensor onto a plane given its
+# normal vector
+
+def projection_tensor(n_vector, I=Identity(3)):
+
+    return I-tensor_productVectorVector(n_vector, n_vector)
+
+########################################################################
 #                           Tensor products                            #
 ########################################################################
 

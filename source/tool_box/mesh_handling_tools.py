@@ -4,6 +4,10 @@ from dolfin import *
 
 import meshio
 
+import numpy as np
+
+from copy import copy
+
 from scipy.spatial import KDTree
 
 import source.tool_box.programming_tools as programming_tools
@@ -676,6 +680,16 @@ node_number, node_coordinates, set_ofNodes=None):
 
     if (node_number is None) or (node_coordinates is None):
 
+        # Verifies if the node coordinates is a list
+
+        if (not isinstance(point_coordinates, list)) and (not 
+        isinstance(point_coordinates, np.ndarray)):
+
+            raise TypeError("point_coordinates must be a list to find "+
+            "a node near this coordinates, whereas it is: "+str(
+            point_coordinates)+", whose type is: "+str(type(
+            point_coordinates)))
+
         # Gets the coordinates of the mesh
 
         mesh_coordinates = 0
@@ -822,3 +836,228 @@ def find_nodesOnSurfaceBoundary(mesh_dataClass, physical_group):
     # a list
 
     return list(boundary_nodes)
+
+# Defines a function to create a list of nodes indexes that lie on the 
+# vertices of elements around a node
+
+def find_nodesOnSurfaceAroundNode(mesh_dataClass, physical_group, 
+node_number=None, node_coordinates=None):
+
+    # Verifies if the physical group is a string
+
+    if isinstance(physical_group, str):
+
+        # Tests if it is in the dictionary of physical groups of the 
+        # boundary
+
+        if physical_group in mesh_dataClass.boundary_physicalGroupsNameToTag:
+
+            # Converts it
+
+            physical_group = mesh_dataClass.boundary_physicalGroupsNameToTag[
+            physical_group]
+
+        else:
+
+            raise KeyError("The physical group '"+str(physical_group)+
+            "' is not in the dictionary of boundary physical groups. T"+
+            "hus, cannot be used to find the nodes around a node on a "+
+            "surface. Check out the available options of physical grou"+
+            "ps in the boundary: "+str(
+            mesh_dataClass.boundary_physicalGroupsNameToTag.keys()))
+        
+    # Do not accept other formats than integer
+
+    elif not isinstance(physical_group, int):
+
+        raise TypeError("The physical group "+str(physical_group)+" is"+
+        " not an integer, thus cannot be used to find the nodes around"+
+        " a node on a surface")
+
+    # Verifies if both the node number and the node coordinates are None
+
+    if (node_number is None) and (node_coordinates is None):
+
+        raise ValueError("The node_number and the node_coordinates can"+
+        "not be both None, at least one must be provided to find the a"+
+        "djacent nodes to a node on a surface")
+
+    elif not (node_coordinates is None):
+
+        # Finds the node closest to the given coordinates
+
+        node_number, node_coordinates = find_nodeClosestToPoint(
+        mesh_dataClass, node_coordinates, None, None)
+
+    else:
+
+        # Checks if the node number is an integer
+
+        if not isinstance(node_number, int):
+
+            raise TypeError("The number of the node given to find the"+
+            " adjacent nodes to itself on a boundary surface is not a"+
+            "n integer")
+
+        # Checks if the number of the node is inbound with the number of
+        # nodes in the mesh
+
+        elif node_number>(len(mesh_dataClass.mesh.coordinates())-1):
+
+            raise ValueError("The number of the node given to find the"+
+            " adjacent nodes to itself on a boundary surface is larger"+
+            " than the number of nodes in the mesh")
+    
+    # Gets the 2D elements in the mesh that lie on this physical group
+
+    bidimensional_elements = [element for element in facets(
+    mesh_dataClass.mesh) if mesh_dataClass.boundary_meshFunction[
+    element.index()]==physical_group]
+
+    # Initializes a list of nodes' indices whose nodes lie on elements
+    # that are adjacent to the desired node
+
+    adjacent_nodes = set()
+
+    # Iterates through the 2D elements
+
+    for element in bidimensional_elements:
+
+        # Gets the nodes of this element
+
+        elements_nodes = element.entities(0)
+
+        # Verifies if the sought after node is inside this set
+
+        if node_number in elements_nodes:
+
+            # Adds them to the set
+
+            adjacent_nodes.update(elements_nodes)
+
+    # Transforms the adjacent nodes' numbers to a list and gets their 
+    # coordinates
+
+    adjacent_nodes = list(adjacent_nodes)
+
+    adjacent_nodesCoordinates = mesh_dataClass.mesh.coordinates()[
+    adjacent_nodes]
+
+    return adjacent_nodes, adjacent_nodesCoordinates
+
+########################################################################
+#                            Physical groups                           #
+########################################################################
+
+# Defines a function to convert a (possibly) string physical group to 
+# the corresponding integer physical group
+
+def convert_physicalGroup(physical_group, mesh_dataClass, region):
+
+    # Makes a copy of the physical group
+
+    original_physicalGroup = copy(physical_group)
+
+    # Verifies if region is either domain or boundary
+
+    if region=="boundary":
+
+        if isinstance(physical_group, str):
+
+            # Tests if it is in the dictionary of physical groups of the 
+            # boundary
+
+            if physical_group in mesh_dataClass.boundary_physicalGroupsNameToTag:
+
+                # Converts it
+
+                physical_group = mesh_dataClass.boundary_physicalGroupsNameToTag[
+                physical_group]
+
+            else:
+
+                raise KeyError("The physical group '"+str(physical_group
+                )+"' is not in the dictionary of boundary physical gro"+
+                "ups. Check out the available options of physical grou"+
+                "ps in the boundary: "+str(
+                mesh_dataClass.boundary_physicalGroupsNameToTag.keys()))
+            
+        # Does not accept any other formats than integer
+
+        elif not isinstance(physical_group, int):
+
+            raise TypeError("The physical group "+str(physical_group)+
+            " is not an integer nor a string. Thus, cannot be converte"+
+            "d into a numeric physical group")
+
+    elif region=="domain":
+
+        if isinstance(physical_group, str):
+
+            # Tests if it is in the dictionary of physical groups of the 
+            # domain
+
+            if physical_group in mesh_dataClass.domain_physicalGroupsNameToTag:
+
+                # Converts it
+
+                physical_group = mesh_dataClass.domain_physicalGroupsNameToTag[
+                physical_group]
+
+            else:
+
+                raise KeyError("The physical group '"+str(physical_group
+                )+"' is not in the dictionary of domain physical group"+
+                "s. Check out the available options of physical groups"+
+                " in the domain: "+str(
+                mesh_dataClass.domain_physicalGroupsNameToTag.keys()))
+            
+        # Does not accept any other formats than integer
+
+        elif not isinstance(physical_group, int):
+
+            raise TypeError("The physical group "+str(physical_group)+
+            " is not an integer nor a string. Thus, cannot be converte"+
+            "d into a numeric physical group")
+
+    else:
+
+        raise NameError("The region flag must be either 'domain' or 'b"+
+        "oundary' to be used to convert a physical group to its true n"+
+        "umerical counterpart")
+
+    return physical_group, original_physicalGroup
+
+# Defines a function to evaluate the centroid of a surface region given
+# by an integer physical group
+
+def evaluate_centroidSurface(physical_group, mesh_dataClass):
+
+    if not isinstance(physical_group, int):
+
+        # Tries to convert is
+
+        physical_group = convert_physicalGroup(physical_group, 
+        mesh_dataClass, "boundary")
+
+    # Gets the position vector from the mesh
+
+    position_vector = mesh_dataClass.x
+
+    # Evaluates the area of this physical group
+
+    area_inverse = (1.0/float(assemble(1.0*mesh_dataClass.ds(
+    physical_group))))
+
+    # Evaluates the centroid coordinates
+
+    centroid_x = (area_inverse*float(assemble(position_vector[0]*
+    mesh_dataClass.ds(physical_group))))
+
+    centroid_y = (area_inverse*float(assemble(position_vector[1]*
+    mesh_dataClass.ds(physical_group))))
+
+    centroid_z = (area_inverse*float(assemble(position_vector[2]*
+    mesh_dataClass.ds(physical_group))))
+
+    return [centroid_x, centroid_y, centroid_z], area_inverse

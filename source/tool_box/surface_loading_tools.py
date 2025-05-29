@@ -8,6 +8,10 @@ import numpy as np
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
+import source.tool_box.tensor_tools as tensor_tools
+
+import source.tool_box.numerical_tools as numerical_tools
+
 ########################################################################
 #                          Referential forces                          #
 ########################################################################
@@ -16,8 +20,15 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 # referential configuration
 
 def UniformReferentialTraction(amplitude_tractionX, amplitude_tractionY,
-amplitude_tractionZ, t=0.0, t_final=1.0, parametric_load_curve=lambda x: 
-x):
+amplitude_tractionZ, t=0.0, t_final=1.0, parametric_load_curve="linear"):
+    
+    # Verifies if the parametric load curve is a string and, then, uses
+    # it to convert to an actual function
+
+    if isinstance(parametric_load_curve, str):
+
+        parametric_load_curve = numerical_tools.generate_loadingParametricCurves(
+        parametric_load_curve)
 
     # Creates the time constants
 
@@ -47,8 +58,15 @@ x):
 # linear curve
 
 def NormalUniformFollowerTraction(field, mesh_dataClass,
-amplitude_traction, t=0.0, t_final=1.0, parametric_load_curve=lambda x: 
-x):
+amplitude_traction, t=0.0, t_final=1.0, parametric_load_curve="linear"):
+    
+    # Verifies if the parametric load curve is a string and, then, uses
+    # it to convert to an actual function
+
+    if isinstance(parametric_load_curve, str):
+
+        parametric_load_curve = numerical_tools.generate_loadingParametricCurves(
+        parametric_load_curve)
 
     # Creates the time constants
 
@@ -82,65 +100,31 @@ x):
 
 def NormalFollowerTorsion(field, mesh_dataClass, amplitude_torsion, 
 physical_group, center_point=None, influence_radius=None, t=0.0, t_final
-=1.0, parametric_load_curve=lambda x: x):
+=1.0, parametric_load_curve="linear", no_parasiticForcesCorrection=
+False):
     
-    # Verifies if the physical group is a string
+    # Verifies if the parametric load curve is a string and, then, uses
+    # it to convert to an actual function
 
-    if isinstance(physical_group, str):
+    if isinstance(parametric_load_curve, str):
 
-        # Tests if it is in the dictionary of physical groups of the 
-        # boundary
+        parametric_load_curve = numerical_tools.generate_loadingParametricCurves(
+        parametric_load_curve)
+    
+    # Verifies if the physical group is a string and converts it
 
-        if physical_group in mesh_dataClass.boundary_physicalGroupsNameToTag:
-
-            # Converts it
-
-            physical_group = mesh_dataClass.boundary_physicalGroupsNameToTag[
-            physical_group]
-
-        else:
-
-            raise KeyError("The physical group '"+str(physical_group)+
-            "' is not in the dictionary of boundary physical groups. T"+
-            "hus, cannot be used to find the nodes in the boundary of "+
-            "surface. Check out the available options of physical grou"+
-            "ps in the boundary: "+str(
-            mesh_dataClass.boundary_physicalGroupsNameToTag.keys()))
-        
-    # Does not accept any other formats than integer
-
-    elif not isinstance(physical_group, int):
-
-        raise TypeError("The physical group "+str(physical_group)+" is"+
-        " not an integer, thus cannot be used to find the nodes in the"+
-        " boundary of a surface")
+    physical_group, original_physicalGroup = mesh_tools.convert_physicalGroup(
+    physical_group, mesh_dataClass, "boundary")
 
     # Verifies if the center point is None, then, proceeds to evaluate
     # the centroid of the region
 
+    area_inverse = 0.0
+
     if center_point is None:
 
-        # Gets the position vector from the mesh
-
-        position_vector = mesh_dataClass.x
-
-        # Evaluates the area of this physical group
-
-        area_inverse = (1.0/float(assemble(1.0*mesh_dataClass.ds(
-        physical_group))))
-
-        # Evaluates the centroid coordinates
-
-        centroid_x = (area_inverse*float(assemble(position_vector[0]*ds(
-        physical_group))))
-
-        centroid_y = (area_inverse*float(assemble(position_vector[1]*ds(
-        physical_group))))
-
-        centroid_z = (area_inverse*float(assemble(position_vector[2]*ds(
-        physical_group))))
-
-        center_point = [centroid_x, centroid_y, centroid_z]
+        center_point, area_inverse = mesh_tools.evaluate_centroidSurface(
+        physical_group, mesh_dataClass)
 
     # Otherwise, verifies if it is a list
 
@@ -150,52 +134,80 @@ physical_group, center_point=None, influence_radius=None, t=0.0, t_final
         "er torsion must be a list. The following was given though: "+
         str(center_point))
 
+    else:
+
+        area_inverse = (1.0/float(assemble(1.0*mesh_dataClass.ds(
+        physical_group))))
+
     # Gets the node closest to the center point
 
-    node_number, center_point = mesh_tools.find_nodeClosestToPoint(
+    center_nodeNumber, center_point = mesh_tools.find_nodeClosestToPoint(
     mesh_dataClass, center_point, None, None)
 
-    # If the radius of influence was not given, evaluate it as the mini-
-    # mum distance from the center point to the edge of the surface
+    # Sets the centroid vector as constant
 
-    if influence_radius is None:
+    centroid_point = Constant(center_point)
 
-        # Gets the nodes on the boundary of the surface
+    # Sets the relative position vector on the surface
 
-        boundary_nodesSet = mesh_tools.find_nodesOnSurfaceBoundary(
-        mesh_dataClass, physical_group)
+    relative_position = mesh_dataClass.x-centroid_point
 
-        # Gets the node number and its coordinates where is closest to
-        # the center point
+    # Sets the localization parameter as a scalar value that is 1 inside
+    # a circle of influence of the traction around the center point where 
+    # the torsion axis passes through, and 0 everywhere else. If the in-
+    # fluence radius is None, this parameter will be 1 everywhere
 
-        node_number, node_coordinates = mesh_tools.find_nodeClosestToPoint(
-        mesh_dataClass, center_point, None, None, set_ofNodes=
-        boundary_nodesSet)
+    localization_parameter = Constant(1.0)
 
-        # Gets the radius 
+    if not (influence_radius is None):
 
-        influence_radius = np.sqrt(((node_coordinates[0]-center_point[0]
-        )**2)+((node_coordinates[1]-center_point[1])**2)+((
-        node_coordinates[2]-center_point[2])**2))
+        # Checks if it is a float
 
-    # Otherwise, checks if it is a float
-
-    elif not (isinstance(influence_radius, int) or isinstance(
-    influence_radius, float)):
+        if not (isinstance(influence_radius, int) or isinstance(
+        influence_radius, float)):
+            
+            raise TypeError("The influence radius of the NormalFollowe"+
+            "rTorsion must be a float number, whereas the given value "+
+            "is "+str(influence_radius))
         
-        raise TypeError("The influence radius of the NormalFollowerTor"+
-        "sion must be a float number, whereas the given value is "+str(
-        influence_radius))
+        localization_parameter = ufl.conditional(gt(dot(
+        relative_position, relative_position), influence_radius**2), 0.0, 
+        1.0)
     
-    # Updates the amplitude torsion to be the linear coefficient of the
-    # radially linear distribution of shearing traction. This ensures 
-    # that the amplitude torsion is indeed the moment applied to the 
-    # surface
+    # Looks for the nodes coordinates that are on elements adjacent to 
+    # the center point
 
-    #amplitude_torsion = ((2.0*amplitude_torsion)/(np.pi*(
-    #influence_radius**4)))
+    adjacent_centerNodes, adjacent_centerNodesCoord = (
+    mesh_tools.find_nodesOnSurfaceAroundNode(mesh_dataClass, 
+    physical_group, node_number=center_nodeNumber))
 
-    amplitude_torsion = Constant(amplitude_torsion)
+    # Evaluates the distance between the center point and the adjacent 
+    # nodes
+
+    adjacent_distances = []
+
+    for node_coordinate in adjacent_centerNodesCoord:
+
+        adjacent_distances.append(np.sqrt(((node_coordinate[0]-
+        center_point[0])**2)+((node_coordinate[1]-center_point[1])**2)+
+        ((node_coordinate[2]-center_point[2])**2)))
+
+    # Finds the greatest distance between the center node and its imme-
+    # diately close nodes
+
+    adjacent_distance = max(adjacent_distances)
+
+    # Defines a scalar parameter to integrate the normal only over the 
+    # elements that are adjacent to the center point, where the torsion
+    # axis passes through. It throws zero when the point is out of these
+    # elements and 1 otherwise
+
+    adjacency_parameter = ufl.conditional(gt(dot(relative_position,
+    relative_position), adjacent_distance**2), 0.0, 1.0)
+
+    # Sets the average normal vector as constant
+
+    average_normalVector = Constant([0.0, 0.0, 0.0])
 
     # Creates the time constants
 
@@ -217,14 +229,6 @@ physical_group, center_point=None, influence_radius=None, t=0.0, t_final
 
     normal_vector = (inv(F).T)*mesh_dataClass.n
 
-    # Sets the centroid vector as constant
-
-    centroid_point = Constant(center_point)
-
-    # Sets the relative position vector
-
-    relative_position = mesh_dataClass.x-centroid_point
-
     # Gets the relative displacement (subtracting the displacement at 
     # the center point)
 
@@ -237,40 +241,468 @@ physical_group, center_point=None, influence_radius=None, t=0.0, t_final
     # Gets the traction direction as the cross product of the relative
     # position translated by the displacement with the normal vector
 
-    traction_direction = cross(normal_vector, relative_position+
-    relative_displacement)
+    displaced_relativePosition = relative_position+relative_displacement
+
+    traction_direction = cross(normal_vector, displaced_relativePosition)
 
     # Gets the norm of this vector. Multiplies by the magnitude of the 
     # relative position vector squared and divided by the influence ra-
     # dius squared to get a radially increasing traction profile
 
-    norm_traction = (dot(relative_position, relative_position)/
-    ufl.conditional(gt(sqrt(dot(traction_direction, traction_direction)
-    ), 1E-5), sqrt(dot(traction_direction, traction_direction)), 1.0))
+    norm_traction = (sqrt(dot(displaced_relativePosition, 
+    displaced_relativePosition))/ufl.conditional(gt(sqrt(dot(
+    traction_direction, traction_direction)), 1E-5), sqrt(dot(
+    traction_direction, traction_direction)), 1.0))
 
-    # Creates the traction vector. Multiplies by a correction factor to
-    # account for the pull back to the referential configuration
+    # Initializes the calculation of the traction amplitude
 
-    T_unscaled = (norm_traction*traction_direction*J*sqrt(dot(normal_vector, 
-    normal_vector)))
+    traction_amplitude = Constant(amplitude_torsion)
 
-    # Gets the average normal vector of the facet
+    # Creates the traction vector. Multiplies by the traction amplitude,
+    # which is FOR NOW given by the amplitude torsion itself; this value
+    # will be later corrected at each loading step to assure that the 
+    # traction field is indeed producing the desired moment in the nor-
+    # mal direction. Multiplies also by a correction factor to account
+    # for the pull back of the traction vector to the referential confi-
+    # guration
 
-    average_normalVector = [(area_inverse*normal_vector[0]*
-    mesh_dataClass.ds(physical_group)), (area_inverse*normal_vector[1]*
-    mesh_dataClass.ds(physical_group)), (area_inverse*normal_vector[2]*
-    mesh_dataClass.ds(physical_group))]
+    T_unscaled = (traction_amplitude*norm_traction*traction_direction*J*
+    sqrt(dot(normal_vector,normal_vector))*localization_parameter)
 
-    # Evaluates the resulting moment on the facet
+    # Creates the traction vector at the principal directions to balance
+    # out parasitic forces. This traction is not scaled by the deformed
+    # to referential configurations update because the parasitic forces
+    # are already integrated in the reference configuration
 
-    d_moment = cross(relative_position, T_unscaled)
-
-    moment = (sqrt(dot(d_moment, d_moment))*mesh_dataClass.ds(
-    physical_group))
+    T_parasiticBalance = Constant([0.0, 0.0, 0.0])
 
     # Scales the traction vector to give the actual moment
 
-    T = (parametric_load_curve(time_constant/maximum_time)*(
-    amplitude_torsion/moment)*T_unscaled)
+    T = (parametric_load_curve(time_constant/maximum_time)*(T_unscaled-
+    T_parasiticBalance))
 
-    return T, time_constant
+    # Defines a class to update the time constant and the traction am-
+    # plitude
+
+    class TimeUpdate:
+
+        def __init__(self):
+            
+            self.t = time_constant
+
+            self.average_normalVector = average_normalVector
+
+            self.traction_amplitude = traction_amplitude
+
+            self.T_parasiticBalance = T_parasiticBalance
+
+        # This class must have the update_load method to be called in 
+        # the stepping algorithm
+
+        def update_load(self, t):
+
+            # Updates the time constant
+
+            self.t.assign(Constant(t))
+
+            # Evaluates the average normal vector of the surface inte-
+            # grating over the elements adjacent to the node where the
+            # center of the torsion moment is applied
+
+            average_normal = [float(assemble(adjacency_parameter*
+            normal_vector[0]*mesh_dataClass.ds(physical_group))), float(
+            assemble(adjacency_parameter*normal_vector[1]*
+            mesh_dataClass.ds(physical_group))), float(assemble(
+            adjacency_parameter*normal_vector[2]*mesh_dataClass.ds(
+            physical_group)))]
+
+            # Normalizes this average vector
+
+            norm_vector = (1.0/np.sqrt((average_normal[0]**2)+(
+            average_normal[1]**2)+(average_normal[2]**2)))
+
+            average_normal = [norm_vector*average_normal[0], (norm_vector
+            *average_normal[1]), norm_vector*average_normal[2]]
+
+            self.average_normalVector.assign(Constant(average_normal))
+
+            # Gets the real moment done by this traction in the direc-
+            # tion of the average normal vector
+
+            real_momentTrial = float(assemble(dot(cross(
+            displaced_relativePosition, T_unscaled), 
+            self.average_normalVector)*mesh_dataClass.ds(physical_group)
+            ))
+
+            # Gets the signal and the absolute value of the moment
+
+            moment_signal = np.sign(real_momentTrial)
+
+            if moment_signal==0.0:
+
+                moment_signal = 1.0
+
+            moment_absoluteValue = np.abs(real_momentTrial)
+
+            # If the moment is too close to zero, gets it as the tole-
+            # rance
+
+            moment_absoluteValue = max(moment_absoluteValue, 1E-5)
+
+            # Reconstructs the moment
+
+            real_moment = moment_signal*moment_absoluteValue
+
+            # Updates the traction amplitude
+
+            correction_factor = amplitude_torsion/real_moment
+
+            self.traction_amplitude.assign(self.traction_amplitude*
+            correction_factor)
+
+            # Gets the parasitic values of traction in each one of the 
+            # directions of the space. Parasitic forces are resultant 
+            # forces that are not intended and must be balanced
+
+            parasitic_forceX = float(assemble(T_unscaled[0]*
+            mesh_dataClass.ds(physical_group)))
+
+            parasitic_forceY = float(assemble(T_unscaled[1]*
+            mesh_dataClass.ds(physical_group)))
+
+            parasitic_forceZ = float(assemble(T_unscaled[2]*
+            mesh_dataClass.ds(physical_group)))
+            
+            if not no_parasiticForcesCorrection:
+
+                # Adds this parasitic values to the correction
+
+                self.T_parasiticBalance.assign(Constant((area_inverse*
+                parasitic_forceX, area_inverse*parasitic_forceY, 
+                area_inverse*parasitic_forceZ)))
+
+            # Annuntiates the corrections
+
+            print("\nNormal follower torsion:\nThe real moment applied"+
+            " to the surface '"+str(original_physicalGroup)+"' by the "+
+            "current traction\nfield is "+str(real_moment)+".\nThe tr"+
+            "action amplitude is corrected to "+str(
+            self.traction_amplitude.values()[0])+"\nA correction facto"+
+            "r of "+str(correction_factor)+" was used\nThe current tra"+
+            "ction field induces a parasitic force of\nx direction: "+
+            str(parasitic_forceX)+"\ny direction: "+str(parasitic_forceY
+            )+"\nz direction: "+str(parasitic_forceZ)+"\n"+str(
+            float(parametric_load_curve(self.t/maximum_time)*100))+"% "+
+            "of the final load is applied using the parametric load cu"+
+            "rve\n")
+            
+            if not no_parasiticForcesCorrection:
+                
+                print("All of the parasitic forces are balanced out by"+
+                " opposite uniform tractions\n")
+
+    # Instantiates the loading class that was built and returns it as 
+    # well as the traction vector object
+
+    time_class = TimeUpdate()
+
+    return T, time_class
+
+# Defines a function to construct a bending moment on a surface. A point
+# must be supplied as well as a axis vector. The moment vector will be 
+# aligned with this axis vector and will pass through the given point. 
+# The amplitude is the correct bending moment at the deformed configura-
+# tion
+
+def NormalFollowerMoment(field, mesh_dataClass, amplitude_bendingMoment, 
+physical_group, bending_axis=None, center_point=None, influence_radius=
+None, final_referencePoint=None, t=0.0, t_final=1.0, 
+parametric_load_curve="linear", no_parasiticForcesCorrection=False):
+    
+    # Verifies if the parametric load curve is a string and, then, uses
+    # it to convert to an actual function
+
+    if isinstance(parametric_load_curve, str):
+
+        parametric_load_curve = numerical_tools.generate_loadingParametricCurves(
+        parametric_load_curve)
+    
+    # Verifies if the physical group is a string and converts it
+
+    physical_group, original_physicalGroup = mesh_tools.convert_physicalGroup(
+    physical_group, mesh_dataClass, "boundary")
+
+    # Verifies if the center point is None, then, proceeds to evaluate
+    # the centroid of the region
+
+    area_inverse = 0.0
+
+    if center_point is None:
+
+        center_point, area_inverse = mesh_tools.evaluate_centroidSurface(
+        physical_group, mesh_dataClass)
+
+    # Otherwise, verifies if it is a list
+
+    elif not (isinstance(center_point, list)):
+
+        raise TypeError("The center point of application of the follow"+
+        "er bending moment must be a list. The following was given tho"+
+        "ugh: "+str(center_point))
+
+    else:
+
+        area_inverse = (1.0/float(assemble(1.0*mesh_dataClass.ds(
+        physical_group))))
+
+    # Checks if the direction vector and if the final point were not gi-
+    # ven
+
+    if (bending_axis is None) and (final_referencePoint is None):
+
+        raise ValueError("In NormalFollowerMoment, the bending axis is"+
+        " None and also is the final_referencePoint. Hence, it's not p"+
+        "ossible to determine the direction of the bending axis")
+    
+    elif not (bending_axis is None):
+
+        # Checks if the bending axis is a list
+
+        if not isinstance(bending_axis, list):
+
+            raise TypeError("The bending_axis must be a list to set th"+
+            "e bending axis in NormalFollowerMoment")
+        
+    else:
+
+        # Checks if the final reference point is a list
+
+        if not isinstance(final_referencePoint, list):
+
+            raise TypeError("The final_referencePoint must be a list t"+
+            "o set the bending direction in NormalFollowerMoment")
+
+        # Gets the bending direction subtracting the center point from
+        # the final reference point
+
+        bending_axis = [final_referencePoint[0]-center_point[0],
+        final_referencePoint[1]-center_point[1], (final_referencePoint[2
+        ]-center_point[2])]
+
+    # Gets the node closest to the center point
+
+    center_nodeNumber, center_point = mesh_tools.find_nodeClosestToPoint(
+    mesh_dataClass, center_point, None, None)
+
+    # Sets the centroid vector as constant
+
+    centroid_point = Constant(center_point)
+
+    # Creates the time constants
+
+    time_constant = Constant(t)
+
+    maximum_time = Constant(t_final)
+    
+    # Evaluates the deformation gradient
+
+    I = Identity(3)
+
+    F = grad(field)+I
+
+    J = det(F)
+
+    # Gets the normal vector in the deformed configuration (but it does
+    # not have to be unitary because, later, the whole vector will be 
+    # rescaled)
+
+    normal_vector = (inv(F).T)*mesh_dataClass.n
+
+    # Sets the direction vector as a Constant and pushes it forward to
+    # the deformed configuration
+
+    bending_axis = F*Constant(bending_axis)
+
+    # With the bending axis, creates the projection tensor to project 
+    # the relative position onto a plane given by the bending axis
+
+    projection_tensor = tensor_tools.projection_tensor(bending_axis)
+
+    # Sets the relative position vector on the surface
+
+    relative_position = mesh_dataClass.x-centroid_point
+
+    # Gets the relative displacement (subtracting the displacement at 
+    # the center point)
+
+    centroid_displacement = field(Point(center_point))
+
+    relative_displacement = as_vector([field[0]-centroid_displacement[0],
+    field[1]-centroid_displacement[1], field[2]-centroid_displacement[2]
+    ])
+
+    # Translates the relative position with the relative displacement
+
+    displaced_relativePosition = relative_position+relative_displacement
+
+    # Sets the projected relative position
+
+    radial_distance = projection_tensor*displaced_relativePosition
+
+    # Sets the direction of the traction
+
+    traction_direction = cross(bending_axis, radial_distance)
+
+    # Initializes the calculation of the traction amplitude
+
+    traction_amplitude = Constant(amplitude_bendingMoment)
+
+    # Sets the localization parameter as a scalar value that is 1 inside
+    # a circle of influence of the traction around the center point where 
+    # the torsion axis passes through, and 0 everywhere else. If the in-
+    # fluence radius is None, this parameter will be 1 everywhere
+
+    localization_parameter = Constant(1.0)
+
+    if not (influence_radius is None):
+
+        # Checks if it is a float
+
+        if not (isinstance(influence_radius, int) or isinstance(
+        influence_radius, float)):
+            
+            raise TypeError("The influence radius of the NormalFollowe"+
+            "rMoment must be a float number, whereas the given value i"+
+            "s "+str(influence_radius))
+        
+        localization_parameter = ufl.conditional(gt(dot(
+        relative_position, relative_position), influence_radius**2), 0.0, 
+        1.0)
+
+    # Constructs the unscaled traction profile as a linearly increasing
+    # traction from the bending axis outwards. Multiplies also by a cor-
+    # rection factor to account for the pull back of the traction vector 
+    # to the referential configuration
+
+    T_unscaled = (traction_amplitude*(sqrt(dot(radial_distance, 
+    radial_distance))/ufl.conditional(gt(sqrt(dot(traction_direction, 
+    traction_direction)), 1E-5), sqrt(dot(traction_direction, 
+    traction_direction)), 1.0))*traction_direction*J*sqrt(dot(
+    normal_vector, normal_vector))*localization_parameter)
+
+    # Creates the traction vector at the principal directions to balance
+    # out parasitic forces. This traction is not scaled by the deformed
+    # to referential configurations update because the parasitic forces
+    # are already integrated in the reference configuration
+
+    T_parasiticBalance = Constant([0.0, 0.0, 0.0])
+
+    # Scales the traction vector to give the actual moment
+
+    T = (parametric_load_curve(time_constant/maximum_time)*(T_unscaled-
+    T_parasiticBalance))
+
+    # Defines a class to update the time constant and the traction am-
+    # plitude
+
+    class TimeUpdate:
+
+        def __init__(self):
+            
+            self.t = time_constant
+
+            self.traction_amplitude = traction_amplitude
+
+            self.T_parasiticBalance = T_parasiticBalance
+
+        # This class must have the update_load method to be called in 
+        # the stepping algorithm
+
+        def update_load(self, t):
+
+            # Updates the time constant
+
+            self.t.assign(Constant(t))
+
+            # Gets the real moment done by this traction in the direc-
+            # tion in the deformed configuration
+
+            real_localMoment = cross(radial_distance, T_unscaled)
+
+            real_momentTrial = float(np.sqrt(assemble(dot(
+            real_localMoment, real_localMoment)*mesh_dataClass.ds(
+            physical_group))))
+
+            # Gets the signal and the absolute value of the moment
+
+            moment_signal = np.sign(real_momentTrial)
+
+            if moment_signal==0.0:
+
+                moment_signal = 1.0
+
+            moment_absoluteValue = np.abs(real_momentTrial)
+
+            # If the moment is too close to zero, gets it as the tole-
+            # rance
+
+            moment_absoluteValue = max(moment_absoluteValue, 1E-5)
+
+            # Reconstructs the moment
+
+            real_moment = moment_signal*moment_absoluteValue
+
+            # Updates the traction amplitude
+
+            correction_factor = amplitude_bendingMoment/real_moment
+
+            self.traction_amplitude.assign(self.traction_amplitude*
+            correction_factor)
+
+            # Gets the parasitic values of traction in each one of the 
+            # directions of the space. Parasitic forces are resultant 
+            # forces that are not intended and must be balanced
+
+            parasitic_forceX = float(assemble(T_unscaled[0]*
+            mesh_dataClass.ds(physical_group)))
+
+            parasitic_forceY = float(assemble(T_unscaled[1]*
+            mesh_dataClass.ds(physical_group)))
+
+            parasitic_forceZ = float(assemble(T_unscaled[2]*
+            mesh_dataClass.ds(physical_group)))
+
+            if not no_parasiticForcesCorrection:
+
+                # Adds this parasitic values to the correction
+
+                self.T_parasiticBalance.assign(Constant((area_inverse*
+                parasitic_forceX, area_inverse*parasitic_forceY, 
+                area_inverse*parasitic_forceZ)))
+
+            # Annuntiates the corrections
+
+            print("\nNormal follower bending moment:\nThe real moment "+
+            "applied to the surface '"+str(original_physicalGroup)+"' "+
+            "by the current traction\nfield is "+str(real_moment)+".\n"+
+            "The traction amplitude is corrected to "+str(
+            self.traction_amplitude.values()[0])+"\nA correction facto"+
+            "r of "+str(correction_factor)+" was used\nThe current tra"+
+            "ction field induces a parasitic force of\nx direction: "+
+            str(parasitic_forceX)+"\ny direction: "+str(parasitic_forceY
+            )+"\nz direction: "+str(parasitic_forceZ)+"\n"+str(
+            float(parametric_load_curve(self.t/maximum_time)*100))+"% "+
+            "of the final load is applied using the parametric load cu"+
+            "rve\n")
+            
+            if not no_parasiticForcesCorrection:
+                
+                print("All of the parasitic forces are balanced out by"+
+                " opposite uniform tractions\n")
+
+    # Instantiates the loading class that was built and returns it as 
+    # well as the traction vector object
+
+    time_class = TimeUpdate()
+
+    return T, time_class
