@@ -521,7 +521,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     # Assemble the traction vector using this load expression
 
     traction_boundary = {"load case": "NormalReferentialTorsion", "amp"+
-    "litude_torsion": maximum_load, "parametric_load_curve": "l"+
+    "litude_torsion": 10*maximum_load, "parametric_load_curve": "l"+
     "inear", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
 
     # Defines a dictionary of tractions

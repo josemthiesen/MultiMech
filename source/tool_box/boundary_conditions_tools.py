@@ -417,14 +417,29 @@ None):
 lambda: [], 'sub_fieldsToApplyBC': lambda: []})
 
 def simple_supportDirichletBC(field_functionSpace, mesh_dataClass, 
-boundary_physicalGroups, sub_fieldsToApplyBC=None, boundary_conditions=
-None):
+boundary_physicalGroupsDict, sub_fieldsToApplyBC=None, boundary_conditions=
+None, boundary_physicalGroups=None):
     
-    # Verifies if the boundary physical groups is a dictionary
+    # Verifies if the boundary physical groups is a dictionary or a list
+    # if the physical group is given
 
-    if not isinstance(boundary_physicalGroups, dict):
+    if isinstance(boundary_physicalGroupsDict, list):
 
-        raise ValueError("The boundary_physicalGroups variable in the "+
+        if boundary_physicalGroups is None:
+
+            raise ValueError("To apply SimpleSupportDirichletBC, the b"+
+            "oundary_physicalGroups variables can be a list if and onl"+
+            "y if the boundary_physicalGroups is provided, but it's No"+
+            "ne")
+        
+        # Transforms in a dictionary
+        
+        boundary_physicalGroupsDict[boundary_physicalGroups
+        ] = boundary_physicalGroupsDict
+
+    elif not isinstance(boundary_physicalGroupsDict, dict):
+
+        raise ValueError("The boundary_physicalGroupsDict variable in the "+
         "simple_supportDirichletBC method must be a dictionary, where "+
         "the keys are the physical groups of the boundary regions and "+
         "values are the list of DOFs to be constrained.")
@@ -432,7 +447,7 @@ None):
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
 
-    if len(list(boundary_physicalGroups.keys()))==0:
+    if len(list(boundary_physicalGroupsDict.keys()))==0:
 
         if mesh_dataClass.verbose:
 
@@ -454,12 +469,12 @@ None):
 
     # Iterates through the regions
 
-    for physical_group, list_constrainedDOFs in boundary_physicalGroups.items():
+    for physical_group, list_constrainedDOFs in boundary_physicalGroupsDict.items():
 
         # Verifies if the physical group is a string
 
         physical_group = verify_stringPhysicalGroup(physical_group, 
-        mesh_dataClass.boundary_physicalGroupsNameToTag)
+        mesh_dataClass.boundary_physicalGroupsDictNameToTag)
 
         # Verifies if there is only one field
 

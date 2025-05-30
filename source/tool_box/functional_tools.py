@@ -29,14 +29,20 @@ import source.tool_box.boundary_conditions_tools as bc_tools
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
 lambda: []})
 
-def construct_DirichletBCs(boundary_conditionsDict, boundary_conditions=
-None):
+def construct_DirichletBCs(boundary_conditionsDict, field_name,
+monolithic_functionSpace, mesh_dataClass, boundary_conditions=None):
 
     # Initializes a dictionary of functions that generate boundary con-
     # ditions
 
     bcs_functionsDict = programming_tools.dispatch_functions([], 
     bc_tools)
+
+    # Initializes a dictionary with common arguments to the boundary 
+    # condition generation functions
+
+    method_arguments = {"field_functionSpace": monolithic_functionSpace[
+    field_name], "mesh_dataClass": mesh_dataClass}
 
     # Iterates through the physical groups
 
@@ -55,15 +61,43 @@ None):
 
                 if isinstance(nested_bcDict, dict):
 
-                    # Gets the function
+                    # Verifies if it has the key 'BC case'
+
+                    if not ("BC case" in nested_bcDict):
+
+                        raise KeyError("The dictionary of information "+
+                        "for constructing boundary conditions does not"+
+                        " have the key 'BC case'. It must have this ke"+
+                        "y to find the appropriate method to generate "+
+                        "the Dirichlet boundary condition")
+                    
+                    # Gets the BC case
+
+                    BC_case = nested_bcDict["BC case"]
+
+                    # Gets the user-given data
+
+                    user_data = dict()
+
+                    for key, value in nested_bcDict.items():
+
+                        if key!="BC case":
+
+                            user_data[key] = value
+
+                    # Adds the physical_group to the dictionary of argu-
+                    # emnts, and also the current list of boundary cond
+
+                    method_arguments["boundary_physicalGroups"] = physical_group
 
                     # Updates the traction form
 
                     boundary_conditions = programming_tools.dispatch_functions(
-                    load_case, None, fixed_inputVariablesDict=method_arguments,
-                    second_sourceFixedArguments=user_data, methods_functionsDict=
-                    methods_functionsDict, return_list=True, return_singleFunction=
-                    True, all_argumentsFixed=True)[0]()
+                    BC_case, None, fixed_inputVariablesDict=
+                    method_arguments, second_sourceFixedArguments=
+                    user_data, methods_functionsDict=bcs_functionsDict, 
+                    return_list=True, return_singleFunction=True,
+                    all_argumentsFixed=True)[0]()
 
                 # Verifies if it is a DirichletBC instance
 
