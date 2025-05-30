@@ -411,19 +411,26 @@ methods_functionsDict, field_variation, neumann_loads):
 
         method_arguments["physical_group"] = physical_group
 
-        # Gets the load case from the traction dictionary and pops out
-        # this key-value pair to use the rest of the dictionary as user
-        # information
+        # Gets the load case from the traction dictionary and copies the
+        # information apart of the load case. Does not pop the key be-
+        # cause this can alter the traction dictionary for other physi-
+        # cal groups
 
         load_case = traction["load case"]
 
-        traction.pop("load case")
+        user_data = dict()
+
+        for key, value in traction.items():
+
+            if key!="load case":
+
+                user_data[key] = value
 
         # Dispatches the function and calls it right away
 
         traction, neumann_load = programming_tools.dispatch_functions(
         load_case, None, fixed_inputVariablesDict=method_arguments,
-        second_sourceFixedArguments=traction, methods_functionsDict=
+        second_sourceFixedArguments=user_data, methods_functionsDict=
         methods_functionsDict, return_list=True, return_singleFunction=
         True, all_argumentsFixed=True)[0]()
 

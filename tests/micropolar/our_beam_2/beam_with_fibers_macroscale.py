@@ -522,17 +522,6 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     maximum_load = ((0.5*load_factor*E_matrix*((RVE_length*(RVE_width**3
     ))/12))/((n_RVEsZ*RVE_width)**3))
 
-    #maximum_load1 = 0.84E4
-
-    #maximum_load = 1E5
-
-    load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
-    maximum_load=maximum_load, degree=2)
-
-    # Assembles this load into the list of Neumann boundary conditions
-
-    neumann_loads = [load]
-
     # Assemble the traction vector using this load expression
 
     traction_boundary = {"load case": "NormalFollowerTorsion", "amplit"+
@@ -547,7 +536,10 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines a dictionary of moments on the boundary
 
-    moment_boundary = as_vector([0.0, 0.0, 0.0])
+    moment_boundary = {"load case": "UniformReferentialTraction", "amp"
+    "litude_tractionX": 0.0, "amplitude_tractionY": 0.0, "amplitude_tr"+
+    "actionZ": 0.0, "parametric_load_curve": "linear", "t": t, "t_final": 
+    t_final}
 
     moment_dictionary = dict()
 
@@ -577,15 +569,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     variational_framework.hyperelasticity_displacementMicrorotationBased(
     constitutive_model, traction_dictionary, moment_dictionary, 
     maximum_loadingSteps, t_final, post_processes, file_directory+"//"+
-    mesh_fileName, solver_parameters, neumann_loads=neumann_loads, 
-    polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
-    polynomial_degreeMicrorotation=polynomial_degreeMicrorotation,
-    t=t, fixed_supportDisplacementPhysicalGroups=
-    fixed_supportDisplacementPhysicalGroups, solution_name=[[
-    "displacement", "DNS"], ["microrotation", "DNS"]], 
-    volume_physGroupsSubmesh=volume_physGroupsSubmesh, 
-    fixed_supportMicrorotationPhysicalGroups=
+    mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
+    polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
+    polynomial_degreeMicrorotation, t=t, 
+    fixed_supportDisplacementPhysicalGroups=
+    fixed_supportDisplacementPhysicalGroups, solution_name=[["displace"+
+    "ment", "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
+    volume_physGroupsSubmesh, fixed_supportMicrorotationPhysicalGroups=
     fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
     post_processesSubmesh, verbose=verbose)
 
-case1_varyingMicropolarNumber(flag_newMesh=False)
+case1_varyingMicropolarNumber(flag_newMesh=True)
