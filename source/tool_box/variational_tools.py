@@ -24,8 +24,14 @@ import source.tool_box.surface_loading_tools as surface_loading_tools
 # are the constitutive model classes. This internal work is calculated 
 # using the first Piola-Kirchhoff stress tensor
 
-def hyperelastic_internalWorkFirstPiola(trial_function, test_function, 
-constitutive_modelDictionary, mesh_dataClass):
+def hyperelastic_internalWorkFirstPiola(field_name, solution_fields, 
+variation_fields, constitutive_modelDictionary, mesh_dataClass):
+    
+    # Gets the field and its variation
+    
+    trial_function = solution_fields[field_name]
+    
+    test_function = variation_fields[field_name]
     
     # Gets the physical groups from the domain mesh function
 
@@ -129,10 +135,19 @@ constitutive_modelDictionary, mesh_dataClass):
 # culated using the first Piola-Kirchhoff stress tensor and its couple
 # stress
 
-def hyperelastic_micropolarInternalWorkFirstPiola(
-displacement_trialFunction, microrotation_trialFunction, 
-displacement_testFunction, microrotation_testFunction,
+def hyperelastic_micropolarInternalWorkFirstPiola(displacement_name, 
+microrotation_name, solution_fields, variation_fields,
 constitutive_modelDictionary, mesh_dataClass):
+    
+    # Gets the fields and their variations 
+
+    displacement_trialFunction = solution_fields[displacement_name]
+    
+    microrotation_trialFunction = solution_fields[microrotation_name]
+
+    displacement_testFunction = variation_fields[displacement_name]
+    
+    microrotation_testFunction = variation_fields[microrotation_name]
     
     # Gets the physical groups from the domain mesh function
 
@@ -274,8 +289,15 @@ constitutive_modelDictionary, mesh_dataClass):
 # nary of traction loads, where the keys are the corresponding boundary
 # physical groups and the values are the traction loads
 
-def traction_work(traction_dictionary, field, field_variation, 
-mesh_dataClass, neumann_loads):
+def traction_work(traction_dictionary, field_name, solution_fields, 
+variation_fields, monolithic_solution, fields_namesDict, mesh_dataClass, 
+neumann_loads):
+    
+    # Gets the symbolic field and its variation
+
+    field = solution_fields[field_name]
+
+    field_variation = variation_fields[field_name]
 
     # Gets the physical groups tags
 
@@ -299,6 +321,25 @@ mesh_dataClass, neumann_loads):
 
     fixed_arguments = {"field": field, "mesh_dataClass": mesh_dataClass,
     "field_variation": field_variation}
+
+    # For evaluation of the value of the field at a point, the numerical
+    # information must be provided, which is trickier in mixed finite e-
+    # lements formulation
+
+    if len(fields_namesDict.keys())>1:
+
+        # Splits the solution and gets the current numerical format of
+        # the field
+
+        fixed_arguments["field_numerical"] = monolithic_solution.split()[
+        fields_namesDict[field_name]]
+
+    else:
+
+        # In single field formulations, the symbolic and numerical func-
+        # tions coincide
+
+        fixed_arguments["field_numerical"] = field
 
     # Iterates through the dictionary
 

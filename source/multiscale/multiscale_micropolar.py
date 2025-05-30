@@ -92,21 +92,11 @@ fluctuation_field=False):
     #                         Variational forms                        #
     ####################################################################
 
-    # Recovers the primal fields and their variations
-
-    u_new = solution_fields["displacement"]
-    
-    phi_new = solution_fields["microrotation"]
-
-    variation_u = variation_fields["displacement"]
-    
-    variation_phi = variation_fields["microrotation"]
-
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
-    u_new, phi_new, variation_u, variation_phi, constitutive_model, 
-    mesh_dataClass)
+    "displacement", "microrotation", solution_fields, variation_fields, 
+    constitutive_model, mesh_dataClass)
 
     ####################################################################
     #              Problem and solver parameters setting               #

@@ -1,8 +1,6 @@
 # Routine to store the variational form and other accessories for a hy-
 # perelastic Cauchy continuum in solid mechanics
 
-from dolfin import *
-
 import source.tool_box.mesh_handling_tools as mesh_tools
 
 import source.tool_box.boundary_conditions_tools as BCs_tools
@@ -89,21 +87,18 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
     #                         Variational forms                        #
     ####################################################################
 
-    # Gets the functions for the solution and for its variation
-
-    u_new = solution_fields["displacement"]
-
-    v = variation_fields["displacement"]
-
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    u_new, v, constitutive_model, mesh_dataClass)
+    "displacement", solution_fields, variation_fields, 
+    constitutive_model, mesh_dataClass)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm, neumann_loads = variational_tools.traction_work(
-    traction_dictionary, u_new, v, mesh_dataClass, neumann_loads)
+    traction_dictionary, "displacement", solution_fields, 
+    variation_fields, solution_new, fields_namesDict, mesh_dataClass, 
+    neumann_loads)
 
     ####################################################################
     #              Problem and solver parameters setting               #
@@ -124,7 +119,7 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
 
     # Iterates through the pseudotime stepping algortihm 
 
-    newton_raphson_tools.newton_raphsonSingleField(solver, u_new, 
+    newton_raphson_tools.newton_raphsonSingleField(solver, solution_new, 
     fields_namesDict, mesh_dataClass, constitutive_model, 
     post_processesDict=post_processes, post_processesSubmeshDict=
     post_processesSubmesh, neumann_loads=neumann_loads, dirichlet_loads=

@@ -52,18 +52,18 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the number of RVEs at each direction
 
-    n_RVEsX = 1
+    n_RVEsX = 7
 
-    n_RVEsY = 7
+    n_RVEsY = 5
 
-    n_RVEsZ = 25
+    n_RVEsZ = 5
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
 
     RVE_localizationX = int(np.ceil(0.5*n_RVEsX))
 
-    RVE_localizationY = 6#n_RVEsY#np.ceil(0.5*n_RVEsY)
+    RVE_localizationY = n_RVEsY#np.ceil(0.5*n_RVEsY)
 
     RVE_localizationZ = int(np.ceil(0.5*n_RVEsZ))
 
@@ -141,8 +141,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
     RVE_localizationX, RVE_localizationY, RVE_localizationZ]
 
-    parameters_sets = [test11, test12, test13, test21, test22, test23, 
-    test31, test32, test33]
+    parameters_sets = [test11]#, test12, test13, test21, test22, test23, 
+    #test31, test32, test33]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
@@ -153,9 +153,10 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Saves the parameters set
 
-    base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
+    base_path = os.getcwd()+"//tests//micropolar//our_beam_2//results"
 
-    file_tools.list_toTxt(parameters_sets, base_path+"//parameters_sets")
+    file_tools.list_toTxt(parameters_sets, "parameters_sets", 
+    parent_path=base_path)
 
     # Iterates through the simulations
 
@@ -461,7 +462,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     file_directory = os.getcwd()+"//tests//test_meshes"
 
-    mesh_fileName = "micropolar_beam_with_fibers_bending"
+    mesh_fileName = "micropolar_beam_with_fibers_torsion"
 
     if flag_newMesh:
 
@@ -492,7 +493,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     solver_parameters = dict()
 
-    solver_parameters["linear_solver"] = "mumps"
+    solver_parameters["linear_solver"] = "mumps"#"mumps"
 
     solver_parameters["newton_relative_tolerance"] = 1e-6#1e-8
 
@@ -534,15 +535,15 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Assemble the traction vector using this load expression
 
-    traction_boundary = as_vector([0.0, load, 0.0])
+    traction_boundary = {"load case": "NormalFollowerTorsion", "amplit"+
+    "ude_torsion": 0.0045*maximum_load, "parametric_load_curve": "squa"+
+    "re root", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
 
     # Defines a dictionary of tractions
 
     traction_dictionary = dict()
 
-    traction_dictionary["upper"] = traction_boundary
-
-    traction_dictionary["lower"] = traction_boundary
+    traction_dictionary["right"] = traction_boundary
 
     # Defines a dictionary of moments on the boundary
 
@@ -557,9 +558,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     # groups tags or simply a tag. Applies for both displacement and mi-
     # crorotation
 
-    fixed_supportDisplacementPhysicalGroups = "back"
+    fixed_supportDisplacementPhysicalGroups = "left"
 
-    fixed_supportMicrorotationPhysicalGroups = "back"
+    fixed_supportMicrorotationPhysicalGroups = "left"
 
     ####################################################################
     ####################################################################

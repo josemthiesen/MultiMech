@@ -700,7 +700,17 @@ None):
 
         file_name = file_name+".txt"
 
-    txt_file = open(file_name, "w")
+    txt_file = 0
+
+    try:
+
+        txt_file = open(file_name, "w")
+
+    except:
+
+        raise FileNotFoundError("The path to write the file '"+str(
+        file_name)+"' does not exist. It cannot be used to write the l"+
+        "ist")
 
     txt_file.write(saved_string)
 

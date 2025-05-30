@@ -57,7 +57,7 @@ amplitude_tractionZ, t=0.0, t_final=1.0, parametric_load_curve="linear"):
 # ted between the initial and final time points; the default value is a
 # linear curve
 
-def NormalUniformFollowerTraction(field, mesh_dataClass,
+def NormalUniformFollowerTraction(field, field_numerical, mesh_dataClass,
 amplitude_traction, t=0.0, t_final=1.0, parametric_load_curve="linear"):
     
     # Verifies if the parametric load curve is a string and, then, uses
@@ -98,10 +98,10 @@ amplitude_traction, t=0.0, t_final=1.0, parametric_load_curve="linear"):
 # gion, whose center is the center point; the radius can be given or e-
 # valuated by the minimum distance to the edge if not supplied
 
-def NormalFollowerTorsion(field, mesh_dataClass, amplitude_torsion, 
-physical_group, center_point=None, influence_radius=None, t=0.0, t_final
-=1.0, parametric_load_curve="linear", no_parasiticForcesCorrection=
-False):
+def NormalFollowerTorsion(field, field_numerical, mesh_dataClass, 
+amplitude_torsion, physical_group, center_point=None, influence_radius=
+None, t=0.0, t_final=1.0, parametric_load_curve="linear", 
+no_parasiticForcesCorrection=False):
     
     # Verifies if the parametric load curve is a string and, then, uses
     # it to convert to an actual function
@@ -232,7 +232,7 @@ False):
     # Gets the relative displacement (subtracting the displacement at 
     # the center point)
 
-    centroid_displacement = field(Point(center_point))
+    centroid_displacement = field_numerical(Point(center_point))
 
     relative_displacement = as_vector([field[0]-centroid_displacement[0],
     field[1]-centroid_displacement[1], field[2]-centroid_displacement[2]
@@ -414,10 +414,10 @@ False):
 # The amplitude is the correct bending moment at the deformed configura-
 # tion
 
-def NormalFollowerMoment(field, mesh_dataClass, amplitude_bendingMoment, 
-physical_group, bending_axis=None, center_point=None, influence_radius=
-None, final_referencePoint=None, t=0.0, t_final=1.0, 
-parametric_load_curve="linear", no_parasiticForcesCorrection=False):
+def NormalFollowerMoment(field, field_numerical, mesh_dataClass, 
+amplitude_bendingMoment, physical_group, bending_axis=None, center_point=
+None, influence_radius=None, final_referencePoint=None, t=0.0, t_final=
+1.0, parametric_load_curve="linear", no_parasiticForcesCorrection=False):
     
     # Verifies if the parametric load curve is a string and, then, uses
     # it to convert to an actual function
@@ -535,7 +535,7 @@ parametric_load_curve="linear", no_parasiticForcesCorrection=False):
     # Gets the relative displacement (subtracting the displacement at 
     # the center point)
 
-    centroid_displacement = field(Point(center_point))
+    centroid_displacement = field_numerical(Point(center_point))
 
     relative_displacement = as_vector([field[0]-centroid_displacement[0],
     field[1]-centroid_displacement[1], field[2]-centroid_displacement[2]

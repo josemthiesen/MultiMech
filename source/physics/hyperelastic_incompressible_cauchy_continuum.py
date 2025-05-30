@@ -1,8 +1,6 @@
 # Routine to store the variational form and other accessories for a hy-
 # perelastic Cauchy continuum in solid mechanics
 
-from dolfin import *
-
 import source.tool_box.mesh_handling_tools as mesh_tools
 
 import source.tool_box.boundary_conditions_tools as BCs_tools
@@ -88,26 +86,17 @@ None):
     #                         Variational forms                        #
     ####################################################################
 
-    # Gets the individual solution fields and the individual variations
-    # of the fields
-
-    u_new = solution_fields["displacement"]
-
-    p_new = solution_fields["pressure"]
-
-    variation_u = variation_fields["displacement"]
-    
-    variation_p = variation_fields["pressure"]
-
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    u_new, v, constitutive_model, mesh_dataClass)
+    "displacement", solution_fields, variation_fields, 
+    constitutive_model, mesh_dataClass)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm, neumann_loads = variational_tools.traction_work(
-    traction_dictionary, u_new, variation_u, mesh_dataClass, 
+    traction_dictionary, "displacement", solution_fields, 
+    variation_fields, solution_new, fields_namesDict, mesh_dataClass, 
     neumann_loads)
 
     ####################################################################

@@ -108,27 +108,17 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     #                         Variational forms                        #
     ####################################################################
 
-    # Gets the individual solution fields and the individual variations
-    # of the fields
-
-    u_new = solution_fields["displacement"]
-
-    phi_new = solution_fields["microrotation"]
-
-    variation_u = variation_fields["displacement"]
-    
-    variation_phi = variation_fields["microrotation"]
-
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
-    u_new, phi_new, variation_u, variation_phi, constitutive_model, 
-    mesh_dataClass)
+    "displacement", "microrotation", solution_fields, variation_fields, 
+    constitutive_model, mesh_dataClass)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm, neumann_loads = variational_tools.traction_work(
-    traction_dictionary, u_new, variation_u, mesh_dataClass, 
+    traction_dictionary, "displacement", solution_fields, 
+    variation_fields, solution_new, fields_namesDict, mesh_dataClass, 
     neumann_loads)
 
     # Constructs the variational forms for the moment work on the boun-
@@ -136,7 +126,8 @@ simple_supportMicrorotationPhysicalGroups=None, volume_physGroupsSubmesh
     # variational construction is the same for traction and for moment
 
     moment_VarForm, neumann_loads = variational_tools.traction_work(
-    moment_dictionary, phi_new, variation_phi, mesh_dataClass, 
+    moment_dictionary, "microrotation", solution_fields, 
+    variation_fields, solution_new, fields_namesDict, mesh_dataClass, 
     neumann_loads)
 
     ####################################################################
