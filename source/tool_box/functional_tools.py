@@ -15,6 +15,105 @@ import source.tool_box.programming_tools as programming_tools
 
 import source.tool_box.plotting_tools as plotting_tools
 
+import source.tool_box.boundary_conditions_tools as bc_tools
+
+########################################################################
+#                     Boundary conditions selector                     #
+########################################################################
+
+# Defines a function to get from a dictionary of dictionaries the boun-
+# dary conditions. The key is the physical group, whereas the value is a
+# dictionary of information to construct the boundary condition using o-
+# ne of the methods below
+
+@programming_tools.optional_argumentsInitializer({'boundary_conditions':
+lambda: []})
+
+def construct_DirichletBCs(boundary_conditionsDict, boundary_conditions=
+None):
+
+    # Initializes a dictionary of functions that generate boundary con-
+    # ditions
+
+    bcs_functionsDict = programming_tools.dispatch_functions([], 
+    bc_tools)
+
+    # Iterates through the physical groups
+
+    for physical_group, bc_dictionary in boundary_conditionsDict.items():
+
+        # Verifies if the bc_dictionary is in fact a list, thus, adding 
+        # multiple boundary conditions to a single physical group
+
+        if isinstance(bc_dictionary, list):
+
+            # Iterates through the boundary conditions
+
+            for nested_bcDict in bc_dictionary:
+                
+                # Checks if this component is a dictionary
+
+                if isinstance(nested_bcDict, dict):
+
+                    # Gets the function
+
+                    # Updates the traction form
+
+                    boundary_conditions = programming_tools.dispatch_functions(
+                    load_case, None, fixed_inputVariablesDict=method_arguments,
+                    second_sourceFixedArguments=user_data, methods_functionsDict=
+                    methods_functionsDict, return_list=True, return_singleFunction=
+                    True, all_argumentsFixed=True)[0]()
+
+                # Verifies if it is a DirichletBC instance
+
+                elif isinstance(nested_bcDict, DirichletBC):
+
+                    # Appends to the list of boundary conditions
+
+                    boundary_conditions.append(nested_bcDict)
+
+                else:
+
+                    raise TypeError("The information to construct a bo"+
+                    "undary condition must be a dictionary or a direct"+
+                    " instance of DirichletBC fenics class. Whereas th"+
+                    "e given value is "+str(nested_bcDict))
+
+        # If the bc_dictioanry is not a list, updates the boundary con-
+        # dition list directly
+
+        else:
+            
+            # Checks if this component is a dictionary
+
+            if isinstance(bc_dictionary, dict):
+
+                # Gets the function
+
+                # Updates the traction form
+
+                boundary_conditions = programming_tools.dispatch_functions(
+                load_case, None, fixed_inputVariablesDict=method_arguments,
+                second_sourceFixedArguments=user_data, methods_functionsDict=
+                methods_functionsDict, return_list=True, return_singleFunction=
+                True, all_argumentsFixed=True)[0]()
+
+            # Verifies if it is a DirichletBC instance
+
+            elif isinstance(bc_dictionary, DirichletBC):
+
+                # Appends to the list of boundary conditions
+
+                boundary_conditions.append(bc_dictionary)
+
+            else:
+
+                raise TypeError("The information to construct a bounda"+
+                "ry condition must be a dictionary or a direct instanc"+
+                "e of DirichletBC fenics class. Whereas the given valu"+
+                "e is "+str(bc_dictionary))
+
 ########################################################################
 #                            Solver setting                            #
 ########################################################################

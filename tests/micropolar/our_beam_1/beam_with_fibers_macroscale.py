@@ -8,10 +8,6 @@ import traceback
 
 import numpy as np
 
-from dolfin import *
-
-from mshr import *
-
 import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework

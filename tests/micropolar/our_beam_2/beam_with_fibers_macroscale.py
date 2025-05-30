@@ -8,10 +8,6 @@ import traceback
 
 import numpy as np
 
-from dolfin import *
-
-from mshr import *
-
 import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework
@@ -54,9 +50,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsX = 7
 
-    n_RVEsY = 5
+    n_RVEsY = 4
 
-    n_RVEsZ = 5
+    n_RVEsZ = 4
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
@@ -524,9 +520,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Assemble the traction vector using this load expression
 
-    traction_boundary = {"load case": "NormalFollowerTorsion", "amplit"+
-    "ude_torsion": 0.0045*maximum_load, "parametric_load_curve": "squa"+
-    "re root", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
+    traction_boundary = {"load case": "NormalReferentialTorsion", "amp"+
+    "litude_torsion": maximum_load, "parametric_load_curve": "l"+
+    "inear", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
 
     # Defines a dictionary of tractions
 
@@ -536,7 +532,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines a dictionary of moments on the boundary
 
-    moment_boundary = {"load case": "UniformReferentialTraction", "amp"
+    moment_boundary = {"load case": "UniformReferentialTraction", "amp"+
     "litude_tractionX": 0.0, "amplitude_tractionY": 0.0, "amplitude_tr"+
     "actionZ": 0.0, "parametric_load_curve": "linear", "t": t, "t_final": 
     t_final}
@@ -579,4 +575,4 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
     post_processesSubmesh, verbose=verbose)
 
-case1_varyingMicropolarNumber(flag_newMesh=True)
+case1_varyingMicropolarNumber(flag_newMesh=False)
