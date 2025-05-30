@@ -154,11 +154,15 @@ traction_dictionary = dict()
 
 traction_dictionary["top"] = traction_boundary
 
-# Defines the boundary physical groups to apply fixed support boundary
-# condition. This variable can be either a list of physical groups tags
-# or simply a tag
+# Defines a dictionary of boundary conditions. Each key is a physical
+# group and each value is another dictionary or a list of dictionaries 
+# with the boundary conditions' information. Each of these dictionaries
+# must have the key "BC case", which carries the name of the function 
+# that builds this boundary condition
 
-fixed_supportPhysicalGroups = "bottom"
+bcs_dictionary = dict()
+
+bcs_dictionary["bottom"] = {"BC case": "fixed_supportDirichletBC"}
 
 ########################################################################
 ########################################################################
@@ -171,5 +175,5 @@ fixed_supportPhysicalGroups = "bottom"
 variational_framework.hyperelasticity_displacementBased(
 constitutive_model, traction_dictionary, maximum_loadingSteps, t_final, 
 post_processes, mesh_fileName, solver_parameters, polynomial_degree=
-polynomial_degree, t=t, fixed_supportPhysicalGroups=
-fixed_supportPhysicalGroups, verbose=True)
+polynomial_degree, t=t, dirichlet_boundaryConditions=bcs_dictionary, 
+verbose=True)

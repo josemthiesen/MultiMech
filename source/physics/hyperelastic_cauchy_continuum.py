@@ -3,8 +3,6 @@
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
-import source.tool_box.boundary_conditions_tools as BCs_tools
-
 import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.functional_tools as functional_tools
@@ -18,17 +16,16 @@ import source.tool_box.programming_tools as programming_tools
 
 @programming_tools.optional_argumentsInitializer({'neumann_loads': 
 lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: [
-"solution", "DNS"], 'simple_supportPhysicalGroups': lambda: dict(), 
-'volume_physGroupsSubmesh': lambda: [], 'post_processesSubmesh': lambda: 
-dict(), 'prescribed_displacement': lambda: dict()})
+"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], ('post_pro'+
+'cessesSubmesh'): lambda: dict(), 'dirichlet_boundaryConditions': lambda: 
+dict()})
 
 def hyperelasticity_displacementBased(constitutive_model, 
 traction_dictionary, maximum_loadingSteps, t_final, post_processes, 
 mesh_fileName, solver_parameters, neumann_loads=None, dirichlet_loads=
-None, prescribed_displacement=None, polynomial_degree=2, 
-quadrature_degree=2, t=0.0, fixed_supportPhysicalGroups=0, 
-simple_supportPhysicalGroups=None, volume_physGroupsSubmesh=None, 
-post_processesSubmesh=None, solution_name=None, verbose=False):
+None, polynomial_degree=2, quadrature_degree=2, t=0.0, 
+volume_physGroupsSubmesh=None, post_processesSubmesh=None, 
+solution_name=None, verbose=False, dirichlet_boundaryConditions=None):
 
     ####################################################################
     #                               Mesh                               #
@@ -67,21 +64,13 @@ post_processesSubmesh=None, solution_name=None, verbose=False):
     #                        Boundary conditions                       #
     ####################################################################
 
-    # Defines the boundary conditions for fixed facets
+    # Defines the boundary conditions and the list of displacement loads
+    # using the dictionary of boundary conditions
 
-    bc = BCs_tools.fixed_supportDirichletBC(solution_functionSpace, 
-    mesh_dataClass, boundary_physicalGroups=fixed_supportPhysicalGroups,
-    boundary_conditions=[])
-
-    # Adds boundary conditions for simply supported facets
-
-    bc = BCs_tools.simple_supportDirichletBC(solution_functionSpace, 
-    mesh_dataClass, simple_supportPhysicalGroups, boundary_conditions=bc)
-
-    # Adds prescribed displacement using the Dirichlet loads
-
-    bc = BCs_tools.prescribed_DirichletBC(prescribed_displacement, 
-    solution_functionSpace, mesh_dataClass, boundary_conditions=bc)
+    bc, dirichlet_loads = functional_tools.construct_DirichletBCs(
+    dirichlet_boundaryConditions, fields_namesDict, 
+    solution_functionSpace, mesh_dataClass, dirichlet_loads=
+    dirichlet_loads)
 
     ####################################################################
     #                         Variational forms                        #

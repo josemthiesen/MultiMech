@@ -543,14 +543,17 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     moment_dictionary["lower"] = moment_boundary
 
-    # Defines the boundary physical groups to apply fixed support boun-
-    # dary condition. This variable can be either a list of physical 
-    # groups tags or simply a tag. Applies for both displacement and mi-
-    # crorotation
+    # Defines a dictionary of boundary conditions. Each key is a physi-
+    # cal group and each value is another dictionary or a list of dic-
+    # tionaries with the boundary conditions' information. Each of these 
+    # dictionaries must have the key "BC case", which carries the name 
+    # of the function that builds this boundary condition
 
-    fixed_supportDisplacementPhysicalGroups = "back"
+    bcs_dictionary = dict()
 
-    fixed_supportMicrorotationPhysicalGroups = "back"
+    bcs_dictionary["back"] = [{"BC case": "FixedSupportDirichletBC", 
+    "sub_fieldsToApplyBC": "displacement"}, {"BC case": "FixedSupportD"+
+    "irichletBC", "sub_fieldsToApplyBC": "microrotation"}]
 
     ####################################################################
     ####################################################################
@@ -569,12 +572,10 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     maximum_loadingSteps, t_final, post_processes, file_directory+"//"+
     mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
     polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
-    polynomial_degreeMicrorotation, t=t, 
-    fixed_supportDisplacementPhysicalGroups=
-    fixed_supportDisplacementPhysicalGroups, solution_name=[["displace"+
-    "ment", "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
-    volume_physGroupsSubmesh, fixed_supportMicrorotationPhysicalGroups=
-    fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
-    post_processesSubmesh, verbose=verbose)
+    polynomial_degreeMicrorotation, t=t, solution_name=[["displacement",
+    "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
+    volume_physGroupsSubmesh, post_processesSubmesh=
+    post_processesSubmesh, verbose=verbose, dirichlet_boundaryConditions=
+    bcs_dictionary)
 
 case1_varyingMicropolarNumber(flag_newMesh=False)

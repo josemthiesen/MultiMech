@@ -16,17 +16,16 @@ import source.tool_box.programming_tools as programming_tools
 
 @programming_tools.optional_argumentsInitializer({'neumann_loads': 
 lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: [
-"solution", "DNS"], 'simple_supportPhysicalGroups': lambda: dict(), 
-'volume_physGroupsSubmesh': lambda: [], 'post_processesSubmesh': lambda: 
-dict(), 'prescribed_displacement': lambda: dict()})
+"solution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], ('post_pro'+
+'cessesSubmesh'): lambda: dict(), 'prescribed_displacement': lambda: 
+dict(), 'dirichlet_boundaryConditions': lambda: dict()})
 
 def hyperelasticity_threeFields(constitutive_model, traction_dictionary, 
 maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
 solver_parameters, neumann_loads=None, dirichlet_loads=None,  
 polynomial_degreeDisplacement=2, polynomial_degreePressure=1, t=0.0, 
-fixed_supportPhysicalGroups=0, simple_supportPhysicalGroups=None, 
 volume_physGroupsSubmesh=None, post_processesSubmesh=None, solution_name=
-None):
+None, dirichlet_boundaryConditions=None):
 
     ####################################################################
     #                               Mesh                               #
@@ -67,20 +66,13 @@ None):
     #                        Boundary conditions                       #
     ####################################################################
 
-    # Defines the boundary conditions for fixed facets in terms of dis-
-    # placement
+    # Defines the boundary conditions and the list of displacement loads
+    # using the dictionary of boundary conditions
 
-    bc = BCs_tools.fixed_supportDirichletBC(monolithic_functionSpace, 
-    mesh_dataClass, boundary_physicalGroups=
-    fixed_supportDisplacementPhysicalGroups, sub_fieldsToApplyBC=[0])
-
-    # Adds boundary conditions for simply supported facets in terms of
-    # displacement
-
-    bc = BCs_tools.simple_supportDirichletBC(monolithic_functionSpace, 
-    mesh_dataClass, boundary_physicalGroups=
-    simple_supportDisplacementPhysicalGroups, boundary_conditions=bc,
-    sub_fieldsToApplyBC=[0])
+    bc, dirichlet_loads = functional_tools.construct_DirichletBCs(
+    dirichlet_boundaryConditions, fields_namesDict, 
+    monolithic_functionSpace, mesh_dataClass, dirichlet_loads=
+    dirichlet_loads)
 
     ####################################################################
     #                         Variational forms                        #

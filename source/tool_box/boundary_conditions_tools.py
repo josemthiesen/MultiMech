@@ -8,6 +8,8 @@ import source.tool_box.programming_tools as programming_tools
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
+import source.tool_box.numerical_tools as numerical_tools
+
 ########################################################################
 #              Heterogeneous Dirichlet boundary conditions             #
 ########################################################################
@@ -18,8 +20,9 @@ import source.tool_box.mesh_handling_tools as mesh_tools
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
 lambda: []})
 
-def prescribed_DirichletBC(prescribed_conditionsDict, 
-field_functionSpace, mesh_dataClass, boundary_conditions=None):
+def PrescribedDirichletBC(prescribed_conditionsDict, 
+field_functionSpace, mesh_dataClass, fields_namesDict, 
+boundary_conditions=None, dirichlet_loads=None, t_initial=0.0):
     
     # Tests if the element is mixed and gets the number of fields
 
@@ -40,6 +43,32 @@ field_functionSpace, mesh_dataClass, boundary_conditions=None):
     # be prescribed; and the load expression
 
     for physical_groups, load_info in prescribed_conditionsDict.items():
+
+        # Verifies if load info is a list
+
+        if not isinstance(load_info, list):
+
+            raise TypeError("The load_info for the prescribed Dirichle"+
+            "t boundary condition is not a list, but: "+str(load_info)+
+            "\nIt must be a list")
+        
+        # Verifies if the load itself is a string, which denotes that it
+        # comes from a loading curve
+
+        elif isinstance(load_info[-1], str):
+
+            # Initializes the initial time constant
+
+            time_constant = Constant(t_initial)
+
+            # Gets the loading curve
+
+            load_info[-1] = numerical_tools.generate_loadingParametricCurves(
+            load_info[-1])(time_constant)
+
+            # Adds the time constant to the dirichlet_loads
+
+            dirichlet_loads.append(time_constant)
 
         # Verifies whether the boundary physical groups is a list or not
 
@@ -217,6 +246,11 @@ field_functionSpace, mesh_dataClass, boundary_conditions=None):
 
             else:
 
+                # Verifies if the load info has string values
+
+                load_info[0] = convert_fieldsNamesToIndices(load_info[0], 
+                fields_namesDict, dont_convertToList=True)
+
                 for field in range(n_fields):
 
                     # Verifies if this field is to be constrained or 
@@ -273,9 +307,16 @@ field_functionSpace, mesh_dataClass, boundary_conditions=None):
 
     if mesh_dataClass.verbose:
 
-        print("Finishes creating fixed support boundary conditions.\n")
+        print("Finishes creating prescribed Dirichlet boundary conditi"+
+        "ons.\n")
 
-    return boundary_conditions
+    if dirichlet_loads is None:
+
+        return boundary_conditions
+    
+    else:
+
+        return boundary_conditions, dirichlet_loads
 
 ########################################################################
 #               Homogeneous Dirichlet boundary conditions              #
@@ -293,9 +334,9 @@ field_functionSpace, mesh_dataClass, boundary_conditions=None):
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
 lambda: [], 'sub_fieldsToApplyBC': lambda: []})
 
-def fixed_supportDirichletBC(field_functionSpace, mesh_dataClass, 
-boundary_physicalGroups=0, sub_fieldsToApplyBC=None, boundary_conditions=
-None):
+def FixedSupportDirichletBC(field_functionSpace, mesh_dataClass,
+fields_namesDict, boundary_physicalGroups=0, sub_fieldsToApplyBC=None, 
+boundary_conditions=None):
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
@@ -307,6 +348,14 @@ None):
             print("Creates no fixed support boundary condition.\n")
 
         return boundary_conditions
+    
+    # If subfields are required, use the dictionary of fields to convert
+    # the names to the numbers
+
+    if not (sub_fieldsToApplyBC is None):
+
+        sub_fieldsToApplyBC = convert_fieldsNamesToIndices(
+        sub_fieldsToApplyBC, fields_namesDict)
     
     # Tests if the element is mixed and gets the number of fields
 
@@ -416,9 +465,9 @@ None):
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
 lambda: [], 'sub_fieldsToApplyBC': lambda: []})
 
-def simple_supportDirichletBC(field_functionSpace, mesh_dataClass, 
-boundary_physicalGroupsDict, sub_fieldsToApplyBC=None, boundary_conditions=
-None, boundary_physicalGroups=None):
+def SimpleSupportDirichletBC(field_functionSpace, mesh_dataClass, 
+boundary_physicalGroupsDict, fields_namesDict, sub_fieldsToApplyBC=None, 
+boundary_conditions=None, boundary_physicalGroups=None):
     
     # Verifies if the boundary physical groups is a dictionary or a list
     # if the physical group is given
@@ -454,6 +503,14 @@ None, boundary_physicalGroups=None):
             print("Creates no simple support boundary condition.\n")
 
         return boundary_conditions
+    
+    # If subfields are required, use the dictionary of fields to convert
+    # the names to the numbers
+
+    if not (sub_fieldsToApplyBC is None):
+
+        sub_fieldsToApplyBC = convert_fieldsNamesToIndices(
+        sub_fieldsToApplyBC, fields_namesDict)
     
     # Tests if the element is mixed and gets the number of fields
 
@@ -525,7 +582,8 @@ None, boundary_physicalGroups=None):
 
     if mesh_dataClass.verbose:
 
-        print("Finishes creating fixed support boundary conditions.\n")
+        print("Finishes creating simply supported boundary conditions."+
+        "\n")
 
     return boundary_conditions
 
@@ -599,3 +657,74 @@ boundary_physGroupsNamesToTags):
             boundary_physGroupsNamesToTags))
         
     return physical_group
+
+# Defines a function to convert a list or a value of fields to a list of
+# their corresponding indices
+
+def convert_fieldsNamesToIndices(sub_fieldsToApplyBC, fields_namesDict,
+dont_convertToList=False):
+
+    if isinstance(sub_fieldsToApplyBC, list):
+
+        for i in range(len(sub_fieldsToApplyBC)):
+
+            if isinstance(sub_fieldsToApplyBC[i], str):
+
+                if sub_fieldsToApplyBC[i] in fields_namesDict:
+
+                    sub_fieldsToApplyBC[i] = fields_namesDict[
+                    sub_fieldsToApplyBC[i]]
+
+                else:
+
+                    raise KeyError("The field '"+str(sub_fieldsToApplyBC[
+                    i])+"' was not found in the dictionary of fields' "+
+                    "names. Hence, it is not possible to make a fixed "+
+                    "support for this field. Check out the list of ava"+
+                    "ilable fields names: "+str(fields_namesDict.keys()))
+                
+            elif not isinstance(sub_fieldsToApplyBC[i], int):
+
+                # If the field is not an integer, the index of the field,
+                # throws an error
+
+                raise ValueError("Only integer or strings can be used "+
+                "to recover fields to make fixed supports. The value "+
+                str(sub_fieldsToApplyBC[i])+" was given")
+            
+    elif isinstance(sub_fieldsToApplyBC, str):
+        
+        if sub_fieldsToApplyBC in fields_namesDict:
+
+            if dont_convertToList:
+
+                # Does not transform to a list
+
+                sub_fieldsToApplyBC = fields_namesDict[
+                sub_fieldsToApplyBC]
+
+            else:
+
+                # Transforms to a list also
+
+                sub_fieldsToApplyBC = [fields_namesDict[
+                sub_fieldsToApplyBC]]
+
+        else:
+
+            raise KeyError("The field '"+str(sub_fieldsToApplyBC)+"' w"+
+            "as not found in the dictionary of fields' names. Hence, i"+
+            "t is not possible to make a fixed support for this field."+
+            " Check out the list of available fields names: "+str(
+            fields_namesDict.keys()))
+        
+    elif not isinstance(sub_fieldsToApplyBC, int):
+
+        # If the field is not an integer, the index of the field, throws
+        # an error
+
+        raise ValueError("Only integer or strings can be used to recov"+
+        "er fields to make fixed supports. The value "+str(
+        sub_fieldsToApplyBC[i])+" was given")
+    
+    return sub_fieldsToApplyBC

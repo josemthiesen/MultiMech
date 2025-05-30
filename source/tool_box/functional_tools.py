@@ -27,22 +27,24 @@ import source.tool_box.boundary_conditions_tools as bc_tools
 # ne of the methods below
 
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
-lambda: []})
+lambda: [], 'dirichlet_loads': lambda: []})
 
-def construct_DirichletBCs(boundary_conditionsDict, field_name,
-monolithic_functionSpace, mesh_dataClass, boundary_conditions=None):
+def construct_DirichletBCs(boundary_conditionsDict, fields_namesDict,
+monolithic_functionSpace, mesh_dataClass, boundary_conditions=None,
+dirichlet_loads=None):
 
     # Initializes a dictionary of functions that generate boundary con-
     # ditions
 
     bcs_functionsDict = programming_tools.dispatch_functions([], 
-    bc_tools)
+    bc_tools)[1]
 
     # Initializes a dictionary with common arguments to the boundary 
     # condition generation functions
 
-    method_arguments = {"field_functionSpace": monolithic_functionSpace[
-    field_name], "mesh_dataClass": mesh_dataClass}
+    method_arguments = {"field_functionSpace": monolithic_functionSpace, 
+    "mesh_dataClass": mesh_dataClass, "fields_namesDict": 
+    fields_namesDict}
 
     # Iterates through the physical groups
 
@@ -86,18 +88,39 @@ monolithic_functionSpace, mesh_dataClass, boundary_conditions=None):
                             user_data[key] = value
 
                     # Adds the physical_group to the dictionary of argu-
-                    # emnts, and also the current list of boundary cond
+                    # emnts, and also the current list of boundary con-
+                    # ditions
 
                     method_arguments["boundary_physicalGroups"] = physical_group
 
-                    # Updates the traction form
+                    method_arguments["boundary_conditions"] = boundary_conditions
 
-                    boundary_conditions = programming_tools.dispatch_functions(
+                    # Adds the list of classes that control the applica-
+                    # tion of displacements along the time steps
+
+                    method_arguments["dirichtlet_loads"] = dirichlet_loads
+
+                    # Gets the boundary conditions list and (if necessa-
+                    # ry) the loading parameter
+
+                    result = programming_tools.dispatch_functions(
                     BC_case, None, fixed_inputVariablesDict=
                     method_arguments, second_sourceFixedArguments=
                     user_data, methods_functionsDict=bcs_functionsDict, 
                     return_list=True, return_singleFunction=True,
                     all_argumentsFixed=True)[0]()
+
+                    # Verifies if the result is a tuple
+
+                    if isinstance(result, tuple):
+
+                        boundary_conditions = result[0]
+
+                        dirichlet_loads = result[1]
+
+                    else:
+
+                        boundary_conditions = result
 
                 # Verifies if it is a DirichletBC instance
 
@@ -123,15 +146,63 @@ monolithic_functionSpace, mesh_dataClass, boundary_conditions=None):
 
             if isinstance(bc_dictionary, dict):
 
-                # Gets the function
+                # Verifies if it has the key 'BC case'
 
-                # Updates the traction form
+                if not ("BC case" in bc_dictionary):
 
-                boundary_conditions = programming_tools.dispatch_functions(
-                load_case, None, fixed_inputVariablesDict=method_arguments,
-                second_sourceFixedArguments=user_data, methods_functionsDict=
-                methods_functionsDict, return_list=True, return_singleFunction=
-                True, all_argumentsFixed=True)[0]()
+                    raise KeyError("The dictionary of information for "+
+                    "constructing boundary conditions does not have th"+
+                    "e key 'BC case'. It must have this key to find th"+
+                    "e appropriate method to generate the Dirichlet bo"+
+                    "undary condition")
+                
+                # Gets the BC case
+
+                BC_case = bc_dictionary["BC case"]
+
+                # Gets the user-given data
+
+                user_data = dict()
+
+                for key, value in bc_dictionary.items():
+
+                    if key!="BC case":
+
+                        user_data[key] = value
+
+                # Adds the physical_group to the dictionary of arguments,
+                # and also the current list of boundary conditions
+
+                method_arguments["boundary_physicalGroups"] = physical_group
+
+                method_arguments["boundary_conditions"] = boundary_conditions
+
+                # Adds the list of classes that control the applica-
+                # tion of displacements along the time steps
+
+                method_arguments["dirichtlet_loads"] = dirichlet_loads
+
+                # Gets the boundary conditions list and (if necessa-
+                # ry) the loading parameter
+
+                result = programming_tools.dispatch_functions(
+                BC_case, None, fixed_inputVariablesDict=
+                method_arguments, second_sourceFixedArguments=
+                user_data, methods_functionsDict=bcs_functionsDict, 
+                return_list=True, return_singleFunction=True,
+                all_argumentsFixed=True)[0]()
+
+                # Verifies if the result is a tuple
+
+                if isinstance(result, tuple):
+
+                    boundary_conditions = result[0]
+
+                    dirichlet_loads = result[1]
+
+                else:
+
+                    boundary_conditions = result
 
             # Verifies if it is a DirichletBC instance
 
@@ -147,6 +218,11 @@ monolithic_functionSpace, mesh_dataClass, boundary_conditions=None):
                 "ry condition must be a dictionary or a direct instanc"+
                 "e of DirichletBC fenics class. Whereas the given valu"+
                 "e is "+str(bc_dictionary))
+    
+    # Returns the boundary conditions' list and the list of controlling
+    # Dirichlet boundary conditions loads
+
+    return boundary_conditions, dirichlet_loads
 
 ########################################################################
 #                            Solver setting                            #
