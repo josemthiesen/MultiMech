@@ -551,9 +551,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     bcs_dictionary = dict()
 
-    bcs_dictionary["back"] = [{"BC case": "FixedSupportDirichletBC", 
-    "sub_fieldsToApplyBC": "displacement"}, {"BC case": "FixedSupportD"+
-    "irichletBC", "sub_fieldsToApplyBC": "microrotation"}]
+    bcs_dictionary["back"] = {"BC case": "FixedSupportDirichletBC", 
+    "sub_fieldsToApplyBC": ["displacement", "microrotation"]}
 
     ####################################################################
     ####################################################################

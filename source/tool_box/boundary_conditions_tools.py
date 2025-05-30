@@ -18,11 +18,12 @@ import source.tool_box.numerical_tools as numerical_tools
 # blem using an Expression as load prescriber
 
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
-lambda: []})
+lambda: [], 'dirichlet_loads': lambda: []})
 
 def PrescribedDirichletBC(prescribed_conditionsDict, 
 field_functionSpace, mesh_dataClass, fields_namesDict, 
-boundary_conditions=None, dirichlet_loads=None, t_initial=0.0):
+boundary_conditions=None, dirichlet_loads=None, t_initial=0.0, t_final=
+1.0):
     
     # Tests if the element is mixed and gets the number of fields
 
@@ -61,6 +62,8 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0):
 
             time_constant = Constant(t_initial)
 
+            maximum_time = Constant(t_final)
+
             # Gets the loading curve
 
             load_info[-1] = numerical_tools.generate_loadingParametricCurves(
@@ -68,7 +71,15 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0):
 
             # Adds the time constant to the dirichlet_loads
 
-            dirichlet_loads.append(time_constant)
+            dirichlet_loads.append(time_constant/maximum_time)
+
+        # Tests whether the laod is in the list of loads
+
+        else:
+
+            if not (load_info[-1] in dirichlet_loads):
+
+                dirichlet_loads.append(load_info[-1])
 
         # Verifies whether the boundary physical groups is a list or not
 
@@ -310,13 +321,10 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0):
         print("Finishes creating prescribed Dirichlet boundary conditi"+
         "ons.\n")
 
-    if dirichlet_loads is None:
-
-        return boundary_conditions
+    # Always retuns the dirichlet_loads because this list is, at least,
+    # verified
     
-    else:
-
-        return boundary_conditions, dirichlet_loads
+    return boundary_conditions, dirichlet_loads
 
 ########################################################################
 #               Homogeneous Dirichlet boundary conditions              #
