@@ -4,6 +4,8 @@ from dolfin import *
 
 import numpy as np
 
+from copy import copy
+
 import source.tool_box.programming_tools as programming_tools
 
 import source.tool_box.mesh_handling_tools as mesh_tools
@@ -20,10 +22,79 @@ import source.tool_box.numerical_tools as numerical_tools
 @programming_tools.optional_argumentsInitializer({'boundary_conditions':
 lambda: [], 'dirichlet_loads': lambda: []})
 
-def PrescribedDirichletBC(prescribed_conditionsDict, 
+def PrescribedDirichletBC(bc_informationsDict, 
 field_functionSpace, mesh_dataClass, fields_namesDict, 
-boundary_conditions=None, dirichlet_loads=None, t_initial=0.0, t_final=
-1.0):
+complex_bcsFunctionsDict, boundary_conditions=None, dirichlet_loads=None, 
+t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
+    
+    # Sets the method arguments as the dictionary for arguments to the
+    # more complex BC generators
+
+    method_arguments = {"mesh_dataClass": mesh_dataClass}
+    
+    # Verifies if the boundary physical groups is a dictionary or a list
+    # if the physical group is given
+
+    if isinstance(bc_informationsDict, list):
+
+        if boundary_physicalGroups is None:
+
+            raise ValueError("To apply PrescribedDirichletBC, the bc_i"+
+            "nformationsDict variable can be a list if and only if the"+
+            " boundary_physicalGroups is provided, but it's None")
+        
+        # Transforms in a dictionary
+        
+        bc_informationsDict[boundary_physicalGroups
+        ] = bc_informationsDict
+
+    # Verifies if the dictionary of boundary conditions' information has
+    # physical groups as keys
+
+    elif isinstance(bc_informationsDict, dict):
+
+        for key in bc_informationsDict.keys():
+
+            if isinstance(key, str):
+                
+                if not (key in mesh_dataClass.boundary_physicalGroupsNameToTag):
+
+                    # This dictionary does not have keys as physical 
+                    # groups, thus, makes this a value with the physical
+                    # group as key
+
+                    if boundary_physicalGroups is None:
+
+                        raise ValueError("The bc_informationsDict is n"+
+                        "ot a dictionary with physical groups as keys."+
+                        " Nevertheless, the boundary_physicalGroups va"+
+                        "riable is None, so no physical group informat"+
+                        "ion can be retrieved")
+                    
+                    else:
+
+                        bc_informationsDict = {boundary_physicalGroups:
+                        bc_informationsDict}
+
+                    break
+
+    elif not isinstance(bc_informationsDict, dict):
+
+        raise ValueError("The bc_informationsDict variable in the Pres"+
+        "cribedDirichletBC method must be a dictionary, where the keys"+
+        " are the physical groups of the boundary regions and values a"+
+        "re the information to prescribe the field.")
+
+    # If the physical groups variable is null, returns the empty list of
+    # boundary conditions
+
+    if len(list(bc_informationsDict.keys()))==0:
+
+        if mesh_dataClass.verbose:
+
+            print("Creates no prescribed boundary condition.\n")
+
+        return boundary_conditions, dirichlet_loads
     
     # Tests if the element is mixed and gets the number of fields
 
@@ -37,17 +108,254 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0, t_final=
 
         n_fields = field_functionSpace.ufl_element().num_sub_elements()
 
+    # Gets the default list of degrees of freedom to apply the prescribed
+    # value to all 
+
+    prescribed_dofs = []
+
+    if n_fields==1:
+
+        for i in range(field_functionSpace.ufl_element(
+        ).num_sub_elements()):
+
+            prescribed_dofs.append(i)
+
+    else:
+
+        counter = 0
+
+        for j in range(n_fields):
+
+            prescribed_dofs.append([])
+
+            for i in range(field_functionSpace.sub(j).ufl_element(
+            ).num_sub_elements()):
+
+                prescribed_dofs[-1].append(counter)
+
+                counter += 1
+
     # Iterates through the keys and values of the dictionary of prescri-
     # bed Dirichlet boundary conditions. The key is a physical group or
     # a tuple of physical groups, whereas the values are lists of: num-
     # ber of the field if there is more than one; degrees of freedom to
     # be prescribed; and the load expression
 
-    for physical_groups, load_info in prescribed_conditionsDict.items():
+    for physical_groups, load_info in bc_informationsDict.items():
+
+        # Verifies if load info is a dictionary and converts load info 
+        # to the list format
+
+        if isinstance(load_info, dict):
+
+            new_loadInfo = []
+
+            # Searches for the subfields to apply the boundary condition
+
+            if "sub_fieldsToApplyBC" in load_info:
+
+                new_loadInfo.append(load_info["sub_fieldsToApplyBC"])
+
+            elif n_fields>1:
+
+                raise KeyError("This simulation has "+str(n_fields)+" "+
+                "fields. Thus, you have to provide the field you want "+
+                "to prescribe Dirichlet boundary conditions to using t"+
+                "he key 'sub_fieldsToApplyBC'")
+
+            # Searches for the degrees of freedom to apply the boundary
+            # condition
+
+            if "degrees_ofFreedomList" in load_info:
+
+                new_loadInfo.append(load_info["degrees_ofFreedomList"])
+
+                if isinstance(new_loadInfo[-1], int):
+
+                    new_loadInfo[-1] = [new_loadInfo[-1]]
+
+                elif not isinstance(new_loadInfo[-1], list):
+
+                    raise TypeError("The degrees of freedom to apply p"+
+                    "rescribed Dirichlet boundary conditions must be a"+
+                    "n integer or a list. The given information is nei"+
+                    "ther, check it out: "+str(new_loadInfo[-1]))
+                
+            else:
+
+                # Checks whether the degrees of freedom need to be spe-
+                # cified if a complex boundary condition generator was 
+                # not required nor a list of degrees of freedom
+
+                if "load_function" in load_info:
+
+                    if (not (load_info["load_function"] in complex_bcsFunctionsDict
+                    )):
+                        
+                        if n_fields==1:
+
+                            if len(prescribed_dofs)>0:
+
+                                raise KeyError("To prescribe a boundar"+
+                                "y condition in a field which is not a"+
+                                " scalar and not setting a complex gen"+
+                                "erator of boundary conditions, you ha"+
+                                "ve to set a degree of freedom or a se"+
+                                "t of them. Use the key 'degrees_ofFre"+
+                                "edomList'")
+
+                        else:
+
+                            for subfield in load_info["sub_fieldsToApp"+
+                            "lyBC"]:
+                                
+                                converted_subfield = convert_fieldsNamesToIndices(
+                                subfield, fields_namesDict)
+
+                                if len(prescribed_dofs[converted_subfield
+                                ])>0:
+                                    
+                                    raise KeyError("To prescribe a bou"+
+                                    "dary condition in a field which i"+
+                                    "s not a scalar and not setting a "+
+                                    "complex generator of boundary con"+
+                                    "ditions, you have to set a degree"+
+                                    " of freedom or a set of them. Use"+
+                                    " the key 'degrees_ofFreedomList'")
+
+            # Searches for the load function
+
+            if "load_function" in load_info:
+
+                new_loadInfo.append(load_info["load_function"])
+
+            else:
+
+                raise KeyError("The dictionary to inform how the presc"+
+                "ribed load must be applied as boundary conditions has"+
+                " no key 'load_function', thus, this boundary conditio"+
+                "n cannot be applied. Check the dictionary you supplie"+
+                "d: "+str(load_info))
+            
+            # Sets a dictionary for the keys that are not reserved and
+            # sets this dictionary as a dictionary of additional parame-
+            # ters
+
+            additional_parameters = dict()
+
+            reserved_keys = ["sub_fieldsToApplyBC", ("degrees_ofFreedo"+
+            "mList"), "load_function"]
+
+            # Iterates through the keys of the load_info
+
+            for key, value in load_info.items():
+
+                # Checks if any of the keys is one of the reserved keys
+
+                if not (key in reserved_keys):
+
+                    additional_parameters[key] = value
+
+            # Checks if the load function is one of the complex ones 
+
+            if new_loadInfo[-1] in complex_bcsFunctionsDict:
+
+                # Gets the complex function working
+
+                result = programming_tools.dispatch_functions(
+                new_loadInfo[-1], None, fixed_inputVariablesDict=
+                method_arguments, second_sourceFixedArguments=
+                additional_parameters, methods_functionsDict=
+                complex_bcsFunctionsDict, return_list=True, 
+                return_singleFunction=True, all_argumentsFixed=True)[0]()
+
+                # Verifies if the result is a tuple
+
+                if isinstance(result, tuple):
+
+                    new_loadInfo[-1] = result[0]
+
+                    dirichlet_loads.append(result[1])
+
+                else:
+
+                    new_loadInfo[-1] = result[0]
+
+            # Otherwise, uses the generic loading curves
+
+            elif numerical_tools.generate_loadingParametricCurves(
+            new_loadInfo[-1], verify_curveNameExistence=True):
+
+                # Gets the loading curve
+
+                load_curve = numerical_tools.generate_loadingParametricCurves(
+                new_loadInfo[-1], additional_parameters=
+                additional_parameters)
+
+                prescribed_BC = Constant(0.0)
+
+                class LocalLoad:
+
+                    def __init__(self):
+
+                        self.time = Constant(t_initial)
+
+                        self.maximum_time = Constant(t_final)
+
+                        self.prescribed_BC = prescribed_BC
+
+                    def update_load(self, t):
+
+                        self.time.assign(t)
+
+                        self.prescribed_BC.assign(load_curve(self.time/self.maximum_time))
+
+                local_load = LocalLoad()
+
+                new_loadInfo[-1] = prescribed_BC
+
+                # Adds the time constant to the dirichlet_loads
+
+                dirichlet_loads.append(local_load)
+
+            else:
+
+                # Tests whether this load is a dolfin Constant
+
+                if isinstance(new_loadInfo[-1], Constant):
+
+                    dirichlet_loads.append(new_loadInfo[-1])
+
+                # If the load is a class and has an attribute "update"
+
+                elif hasattr(new_loadInfo[-1], "update_load"):
+
+                    dirichlet_loads.append(new_loadInfo[-1])
+
+                # Otherwise, updates it as a class (Expressions are clas-
+                # ses)
+
+                elif hasattr(new_loadInfo[-1], "t"):
+
+                    dirichlet_loads.append(new_loadInfo[-1])
+
+                else:
+
+                    raise AttributeError("The load prescribed to gener"+
+                    "ate Dirichlet boundary condition is not a program"+
+                    "-built generator nor a simple function. Besides i"+
+                    "t, it has no attribute 't', nor 'update_load' met"+
+                    "hod, neither is it a Constant. Thus, it cannot be"+
+                    " appended to the list of dirichlet_loads to be up"+
+                    "dated during time stepping")
+                
+            # Makes the new_loadInfo the old one
+
+            load_info = new_loadInfo
 
         # Verifies if load info is a list
 
-        if not isinstance(load_info, list):
+        elif not isinstance(load_info, list):
 
             raise TypeError("The load_info for the prescribed Dirichle"+
             "t boundary condition is not a list, but: "+str(load_info)+
@@ -58,28 +366,76 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0, t_final=
 
         elif isinstance(load_info[-1], str):
 
-            # Initializes the initial time constant
+            # Tries to find this load in the more complex boundary con-
+            # ditions generators
 
-            time_constant = Constant(t_initial)
+            if load_info[-1] in complex_bcsFunctionsDict:
 
-            maximum_time = Constant(t_final)
+                raise TypeError("The generator '"+str(load_info)+"' wa"+
+                "s required to create boundary conditions. To do this,"+
+                "you have to encapsulate the load information into a d"+
+                "ictionary, not a list")
 
-            # Gets the loading curve
+            # Otherwise, uses the generic loading curves
 
-            load_info[-1] = numerical_tools.generate_loadingParametricCurves(
-            load_info[-1])(time_constant)
+            else:
 
-            # Adds the time constant to the dirichlet_loads
+                # Gets the loading curve
 
-            dirichlet_loads.append(time_constant/maximum_time)
+                prescribed_BC = Constant(0.0)
 
-        # Tests whether the laod is in the list of loads
+                load_curve = numerical_tools.generate_loadingParametricCurves(
+                load_info[-1], additional_parameters=additional_parameters)
+
+                class LocalLoad:
+
+                    def __init__(self):
+
+                        self.time = Constant(t_initial)
+
+                        self.maximum_time = Constant(t_final)
+
+                        self.prescribed_BC = prescribed_BC
+
+                    def update_load(self, t):
+
+                        self.time.assign(t)
+
+                        self.prescribed_BC.assign(load_curve(self.time/
+                        self.maximum_time))
+
+                local_load = LocalLoad()
+
+                load_info[-1] = prescribed_BC
+
+                # Adds the time constant to the dirichlet_loads
+
+                dirichlet_loads.append(local_load)
+
+        # Tests whether the load is in the list of loads
 
         else:
 
             if not (load_info[-1] in dirichlet_loads):
 
-                dirichlet_loads.append(load_info[-1])
+                # Tests whether this load is a dolfin Constant
+
+                if isinstance(load_info[-1], Constant):
+
+                    dirichlet_loads.append(load_info[-1])
+
+                # If the load is a class and has an attribute "update"
+
+                elif hasattr(load_info[-1], "update_load"):
+
+                    dirichlet_loads.append(load_info[-1])
+
+                # Otherwise, updates it as a class (Expressions are clas-
+                # ses)
+
+                elif hasattr(load_info[-1], "t"):
+
+                    dirichlet_loads.append(load_info[-1])
 
         # Verifies whether the boundary physical groups is a list or not
 
@@ -145,12 +501,17 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0, t_final=
 
                 else:
 
+                    # Verifies if the load info has string values
+
+                    load_info[0] = convert_fieldsNamesToIndices(
+                    load_info[0], fields_namesDict)
+
                     for field in range(n_fields):
 
                         # Verifies if this field is to be constrained or 
                         # not
 
-                        if field==load_info[0]:
+                        if field in load_info[0]:
 
                             # Checks whether a set of degrees of freedom
                             # of the field is to be prescribed
@@ -229,6 +590,8 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0, t_final=
 
                     if isinstance(load_info[0], list):
 
+                        print(load_info[1])
+
                         # Iterates through the prescribed DOFs
 
                         for dof_number in load_info[0]:
@@ -260,14 +623,14 @@ boundary_conditions=None, dirichlet_loads=None, t_initial=0.0, t_final=
                 # Verifies if the load info has string values
 
                 load_info[0] = convert_fieldsNamesToIndices(load_info[0], 
-                fields_namesDict, dont_convertToList=True)
+                fields_namesDict)
 
                 for field in range(n_fields):
 
                     # Verifies if this field is to be constrained or 
                     # not
 
-                    if field==load_info[0]:
+                    if field in load_info[0]:
 
                         # Checks whether a set of degrees of freedom
                         # of the field is to be prescribed
@@ -474,13 +837,13 @@ boundary_conditions=None):
 lambda: [], 'sub_fieldsToApplyBC': lambda: []})
 
 def SimpleSupportDirichletBC(field_functionSpace, mesh_dataClass, 
-boundary_physicalGroupsDict, fields_namesDict, sub_fieldsToApplyBC=None, 
+bc_informationsDict, fields_namesDict, sub_fieldsToApplyBC=None, 
 boundary_conditions=None, boundary_physicalGroups=None):
     
     # Verifies if the boundary physical groups is a dictionary or a list
     # if the physical group is given
 
-    if isinstance(boundary_physicalGroupsDict, list):
+    if isinstance(bc_informationsDict, list):
 
         if boundary_physicalGroups is None:
 
@@ -491,20 +854,50 @@ boundary_conditions=None, boundary_physicalGroups=None):
         
         # Transforms in a dictionary
         
-        boundary_physicalGroupsDict[boundary_physicalGroups
-        ] = boundary_physicalGroupsDict
+        bc_informationsDict[boundary_physicalGroups
+        ] = bc_informationsDict
 
-    elif not isinstance(boundary_physicalGroupsDict, dict):
+    # Verifies if the dictionary of boundary conditions' information has
+    # physical groups as keys
 
-        raise ValueError("The boundary_physicalGroupsDict variable in the "+
-        "simple_supportDirichletBC method must be a dictionary, where "+
-        "the keys are the physical groups of the boundary regions and "+
-        "values are the list of DOFs to be constrained.")
+    elif isinstance(bc_informationsDict, dict):
+
+        for key in bc_informationsDict.keys():
+
+            if isinstance(key, str):
+                
+                if not (key in mesh_dataClass.boundary_physicalGroupsNameToTag):
+
+                    # This dictionary does not have keys as physical 
+                    # groups, thus, makes this a value with the physical
+                    # group as key
+
+                    if boundary_physicalGroups is None:
+
+                        raise ValueError("The bc_informationsDict is n"+
+                        "ot a dictionary with physical groups as keys."+
+                        " Nevertheless, the boundary_physicalGroups va"+
+                        "riable is None, so no physical group informat"+
+                        "ion can be retrieved")
+                    
+                    else:
+
+                        bc_informationsDict[boundary_physicalGroups] = (
+                        bc_informationsDict)
+
+                    break
+
+    elif not isinstance(bc_informationsDict, dict):
+
+        raise ValueError("The bc_informationsDict variable in the Simp"+
+        "leSupportDirichletBC method must be a dictionary, where the k"+
+        "eys are the physical groups of the boundary regions and value"+
+        "s are the list of DOFs to be constrained.")
 
     # If the physical groups variable is null, returns the empty list of
     # boundary conditions
 
-    if len(list(boundary_physicalGroupsDict.keys()))==0:
+    if len(list(bc_informationsDict.keys()))==0:
 
         if mesh_dataClass.verbose:
 
@@ -534,7 +927,7 @@ boundary_conditions=None, boundary_physicalGroups=None):
 
     # Iterates through the regions
 
-    for physical_group, list_constrainedDOFs in boundary_physicalGroupsDict.items():
+    for physical_group, list_constrainedDOFs in bc_informationsDict.items():
 
         # Verifies if the physical group is a string
 
@@ -687,9 +1080,10 @@ dont_convertToList=False):
 
                     raise KeyError("The field '"+str(sub_fieldsToApplyBC[
                     i])+"' was not found in the dictionary of fields' "+
-                    "names. Hence, it is not possible to make a fixed "+
-                    "support for this field. Check out the list of ava"+
-                    "ilable fields names: "+str(fields_namesDict.keys()))
+                    "names. Hence, it is not possible to create Dirich"+
+                    "let boundary conditions for this field. Check out"+
+                    " the list of available fields names: "+str(
+                    fields_namesDict.keys()))
                 
             elif not isinstance(sub_fieldsToApplyBC[i], int):
 
@@ -697,8 +1091,9 @@ dont_convertToList=False):
                 # throws an error
 
                 raise ValueError("Only integer or strings can be used "+
-                "to recover fields to make fixed supports. The value "+
-                str(sub_fieldsToApplyBC[i])+" was given")
+                "to recover fields to create Dirichlet boundary condit"+
+                "ions. The value "+str(sub_fieldsToApplyBC[i])+" was g"+
+                "iven")
             
     elif isinstance(sub_fieldsToApplyBC, str):
         
@@ -722,9 +1117,9 @@ dont_convertToList=False):
 
             raise KeyError("The field '"+str(sub_fieldsToApplyBC)+"' w"+
             "as not found in the dictionary of fields' names. Hence, i"+
-            "t is not possible to make a fixed support for this field."+
-            " Check out the list of available fields names: "+str(
-            fields_namesDict.keys()))
+            "t is not possible to create a Dirichlet boundary conditio"+
+            " for this field. Check out the list of available fields n"+
+            "ames: "+str(fields_namesDict.keys()))
         
     elif not isinstance(sub_fieldsToApplyBC, int):
 
@@ -732,7 +1127,7 @@ dont_convertToList=False):
         # an error
 
         raise ValueError("Only integer or strings can be used to recov"+
-        "er fields to make fixed supports. The value "+str(
-        sub_fieldsToApplyBC[i])+" was given")
+        "er fields to create Dirichlet boundary conditions. The value "+
+        str(sub_fieldsToApplyBC[i])+" was given")
     
     return sub_fieldsToApplyBC

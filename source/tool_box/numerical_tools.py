@@ -5,6 +5,8 @@ from dolfin import *
 
 import ufl_legacy as ufl
 
+import source.tool_box.programming_tools as programming_tools
+
 ########################################################################
 #                     Parametric loading functions                     #
 ########################################################################
@@ -14,58 +16,106 @@ import ufl_legacy as ufl
 # nal ecosystem). These loading functions must spit out numbers between
 # 0 and 1
 
-def generate_loadingParametricCurves(curve_name):
+@programming_tools.optional_argumentsInitializer({('additional_paramet'+
+'ers'): lambda: dict()})
 
-    # If the curve name is a list, gets parameters for the load curve
-
-    parameters_curve = None
-
-    if isinstance(curve_name, list):
-
-        if len(curve_name)>1:
-
-            parameters_curve = curve_name[1]
-
-            curve_name = curve_name[0]
-
-            # Tests if the parameters_curve is a dictionary
-
-            if not isinstance(parameters_curve, dict):
-
-                raise TypeError("You've set the parametric load curve "+
-                "as a list, i.e. the first component is the name of th"+
-                "e curve, and the second component is a dictionary of "+
-                "optional parameters for the load curve. The problem i"+
-                "s: you haven't set the optional parameters as a dicti"+
-                "onary, rather as "+str(parameters_curve))
-
-        elif len(curve_name)>0:
-
-            curve_name = curve_name[0]
-
-        else:
-
-            raise IndexError("If a load parametric curve is given as a"+
-            " list, it has to have two elements: the first one is the "+
-            "curve's name, and the second one is the dictionary of par"+
-            "ameters")
+def generate_loadingParametricCurves(curve_name, additional_parameters=
+None, verify_curveNameExistence=False):
+    
+    # The flag verify_curveNameExistence is True when the interest is 
+    # just to point out if the curve name is in the scope of the imple-
+    # mented functions 
 
     # Tests if it is linear
 
     if curve_name=="linear":
 
-        return lambda x: x
+        if verify_curveNameExistence:
+
+            return True
+        
+        # Check out if additional parameters have been been given
+
+        default_parameters = check_additionalParameters(
+        additional_parameters, {"end_point": [1.0, 1.0], "starting_poi"+
+        "nt": [0.0, 0.0]})
+
+        a1 = ((default_parameters["end_point"][1]-default_parameters[
+        "starting_point"][1])/(default_parameters["end_point"][0]-
+        default_parameters["starting_point"][0]))
+
+        a0 = (default_parameters["starting_point"][1]-(a1*
+        default_parameters["starting_point"][1]))
+
+        return lambda x: (a1*x)+a0
 
     # Tests if it is the square root
 
     elif curve_name=="square root":
 
+        if verify_curveNameExistence:
+
+            return True
+
         return lambda x: ufl.sqrt(x)
 
     else:
 
-        raise NameError("The parametric load curve '"+str(curve_name)+
-        "' has not yet been implemented")
+        if verify_curveNameExistence:
+
+            return False
+        
+        else:
+
+            raise NameError("The parametric load curve '"+str(curve_name
+            )+"' has not yet been implemented")
+        
+# Defines a function to check additional parameters to each loading cur-
+# ve
+
+def check_additionalParameters(additional_parameters, default_parameters):
+
+    if additional_parameters is None:
+
+        return default_parameters 
+    
+    elif not isinstance(additional_parameters, dict):
+
+        raise TypeError("The additional_parameters must be a dictionar"+
+        "y to get the simple generators of load curves. Whereas it cur"+
+        "rently is: "+str(additional_parameters))
+    
+    else:
+
+        # Iterates through the dictionary of default parameters
+
+        for name in additional_parameters:
+
+            if name in default_parameters:
+
+                # Checks if they have the same type
+
+                if not (type(default_parameters[name])==type(
+                additional_parameters[name])):
+                    
+                    raise TypeError("The '"+str(name)+"' additional pa"+
+                    "rameter to create a loading curve has not the sam"+
+                    "e type as of the default one. Look at the default"+
+                    " parameter: "+str(default_parameters[name])+"\nan"+
+                    "d the given parameter: "+str(additional_parameters[
+                    name]))
+
+                default_parameters[name] = additional_parameters[name]
+
+            else:
+
+                raise KeyError("The dictionary of additional parameter"+
+                "s to get a simple generator of load curves has the ke"+
+                "y '"+str(name)+"', but this key is not a valid additi"+
+                "onal information. Check out the valid ones and their "+
+                "respective default values: "+str(default_parameters))
+            
+        return default_parameters
 
 ########################################################################
 #  Safe numerical operations to avoid lack of differentiability or di- #

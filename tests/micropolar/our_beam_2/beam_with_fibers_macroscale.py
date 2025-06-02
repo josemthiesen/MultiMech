@@ -30,7 +30,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     nu_fiber = 0.4
 
-    flag_bending = True
+    flag_bending = False
 
     gamma_matrix = 0.0
 

@@ -8,12 +8,6 @@ import sys
 
 #sys.path.append(os.path.abspath("source/constitutive_models"))
 
-from dolfin import *
-
-#from mpi4py import MPI
-
-from mshr import *
-
 import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 
 import source.physics.hyperelastic_micropolar_continuum as variational_framework
@@ -44,24 +38,26 @@ homogenized_gradDisplacementFileName = ["homogenized_displacement_grad"+
 
 post_processes = []
 
+fields_names = ["displacement", "microrotation"]
+
 # Iterates through the fields (displacement and microrotation)
 
 for i in range(2):
 
-    post_processes.append(dict())
+    post_processes.append([fields_names[i], dict()])
 
-    post_processes[-1]["save field"] = {"directory path":results_pathGraphics, 
+    post_processes[-1][-1]["SaveField"] = {"directory path":results_pathGraphics, 
     "file name":displacement_fileName[i]}
 
     # Put "" in the subdomain to integrate over the entire domain
 
-    post_processes[-1]["homogenize field"] = {"directory path":
+    post_processes[-1][-1]["HomogenizeField"] = {"directory path":
     results_pathText, "file name":homogenized_displacementFileName[i], 
     "subdomain":""}
 
     # Put "" in the subdomain to integrate over the entire domain
 
-    post_processes[-1]["homogenize field's gradient"] = {"directory path":
+    post_processes[-1][-1]["HomogenizeFieldsGradient"] = {"directory path":
     results_pathText, "file name":homogenized_gradDisplacementFileName[i], 
     "subdomain":""}
 
@@ -75,19 +71,41 @@ post_processesSubmesh = []
 
 material_properties = dict()
 
-mu = 26.12
+E = 100E6
+
+nu = 0.4
+
+mu = E/(2*(1+nu))
+
+lmbda = (nu*E)/((1+nu)*(1-(2*nu)))
+
+flag_bending = True
+
+characteristic_lengthMatrix = 0.1
+
+gamma = 0.0
+
+alpha = 0.0
 
 material_properties["mu"] = mu
 
-material_properties["lambda"] = 63.84-(2*mu/3)
+material_properties["lambda"] = lmbda
 
-material_properties["kappa"] = 0.0
+material_properties["N"] = 0.1
 
-material_properties["alpha"] = 0.0
+if flag_bending:
 
-material_properties["beta"] = 0.0
+    beta = 4*mu*(characteristic_lengthMatrix**2)
 
-material_properties["gamma"] = 1e-12
+else:
+
+    beta = ((2*mu*(characteristic_lengthMatrix**2))-gamma)
+
+material_properties["alpha"] = alpha
+
+material_properties["beta"] = beta
+
+material_properties["gamma"] = gamma
 
 # Sets the material as a HGO material
 
@@ -111,7 +129,9 @@ material_properties)
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-mesh_fileName = "tests//test_meshes//intervertebral_disc"
+file_directory = os.getcwd()+"//tests//test_meshes"
+
+mesh_fileName = "intervertebral_disc"
 
 # Defines a set of physical groups to create a submesh
 
@@ -131,36 +151,17 @@ polynomial_degreeMicrorotation = 2
 #                           Solver parameters                          #
 ########################################################################
 
-# Sets some parameters
-
-parameters["form_compiler"]["representation"] = "uflacs"
-parameters["allow_extrapolation"] = True
-parameters["form_compiler"]["cpp_optimize"] = True
-parameters["form_compiler"]["quadrature_degree"] = 2
-
 # Sets the solver parameters in a dictionary
 
 solver_parameters = dict()
 
 solver_parameters["linear_solver"] = "mumps"#"minres"
 
-solver_parameters["newton_relative_tolerance"] = 1e-10#1e-3
+solver_parameters["newton_relative_tolerance"] = 1e-5#1e-3
 
-solver_parameters["newton_absolute_tolerance"] = 1e-10#1e-3
+solver_parameters["newton_absolute_tolerance"] = 1e-5#1e-3
 
 solver_parameters["newton_maximum_iterations"] = 10#50
-
-"""
-
-solver_parameters["preconditioner"] = "petsc_amg"
-
-solver_parameters["krylov_absolute_tolerance"] = 1e-6
-
-solver_parameters["krylov_relative_tolerance"] = 1e-6
-
-solver_parameters["krylov_maximum_iterations"] = 15000
-
-solver_parameters["krylov_monitor_convergence"] = False"""
 
 # Sets the initial time
 
@@ -172,7 +173,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 11
+maximum_loadingSteps = 5
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -182,38 +183,39 @@ maximum_loadingSteps = 11
 
 maximum_load = 4E1
 
-load = Expression("(t/t_final)*maximum_load", t=t, t_final=t_final,
-maximum_load=maximum_load, degree=0)
-
-# Assembles this load into the list of Neumann boundary conditions
-
-neumann_loads = [load]
-
 # Assemble the traction vector using this load expression
 
-traction_boundary = as_vector([0.0, 0.0, load])
+traction_boundary = {"load case": "NormalReferentialTorsion", "amp"+
+"litude_torsion": 100*maximum_load, "parametric_load_curve": "squa"+
+"re root", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
 
 # Defines a dictionary of tractions
 
 traction_dictionary = dict()
 
-traction_dictionary[5] = traction_boundary
-
 # Defines a dictionary of moments on the boundary
 
-moment_boundary = as_vector([0.0, 0.0, 0.0])
+moment_boundary = {"load case": "UniformReferentialTraction", "amp"+
+"litude_tractionX": 0.0, "amplitude_tractionY": 0.0, "amplitude_tr"+
+"actionZ": 0.0, "parametric_load_curve": "linear", "t": t, "t_final": 
+t_final}
 
 moment_dictionary = dict()
 
-moment_dictionary[5] = moment_boundary
+# Defines a dictionary of boundary conditions. Each key is a physi-
+# cal group and each value is another dictionary or a list of dic-
+# tionaries with the boundary conditions' information. Each of these 
+# dictionaries must have the key "BC case", which carries the name 
+# of the function that builds this boundary condition
 
-# Defines the boundary physical groups to apply fixed support boundary
-# condition. This variable can be either a list of physical groups tags
-# or simply a tag. Applies for both displacement and microrotation
+bcs_dictionary = dict()
 
-fixed_supportDisplacementPhysicalGroups = 4
+bcs_dictionary["bottom"] = {"BC case": "FixedSupportDirichletBC", 
+"sub_fieldsToApplyBC": ["displacement", "microrotation"]}
 
-fixed_supportMicrorotationPhysicalGroups = 4
+bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
+"mationsDict": {"load_function": "linear", "degrees_ofFreedomList": 2,
+"end_point": [1.0, 5E-2], "sub_fieldsToApplyBC": "displacement"}}
 
 ########################################################################
 ########################################################################
@@ -221,16 +223,19 @@ fixed_supportMicrorotationPhysicalGroups = 4
 ########################################################################
 ########################################################################
 
+# Defines a flag to print every step
+
+verbose = True
+
 # Solves the variational problem
 
 variational_framework.hyperelasticity_displacementMicrorotationBased(
 constitutive_model, traction_dictionary, moment_dictionary, 
-maximum_loadingSteps, t_final, post_processes, mesh_fileName, 
-solver_parameters, neumann_loads=neumann_loads, 
-polynomial_degreeDisplacement=polynomial_degreeDisplacement, 
-polynomial_degreeMicrorotation=polynomial_degreeMicrorotation, t=t, fixed_supportDisplacementPhysicalGroups=
-fixed_supportDisplacementPhysicalGroups, solution_name=[["displacement",
+maximum_loadingSteps, t_final, post_processes, file_directory+"//"+
+mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
+polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
+polynomial_degreeMicrorotation, t=t, solution_name=[["displacement", 
 "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
-volume_physGroupsSubmesh, fixed_supportMicrorotationPhysicalGroups=
-fixed_supportMicrorotationPhysicalGroups, post_processesSubmesh=
-post_processesSubmesh)
+volume_physGroupsSubmesh, post_processesSubmesh=
+post_processesSubmesh, verbose=verbose, dirichlet_boundaryConditions=
+bcs_dictionary)

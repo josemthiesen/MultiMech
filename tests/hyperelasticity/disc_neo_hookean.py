@@ -2,8 +2,6 @@
 
 import os
 
-#import periodic_structure as mesher
-
 import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as constitutive_models
 
 import source.physics.hyperelastic_cauchy_continuum as variational_framework
@@ -152,7 +150,7 @@ traction_boundary = {"load case": "NormalFollowerMoment", "amplitude_b"+
 
 traction_dictionary = dict()
 
-traction_dictionary["top"] = traction_boundary
+#traction_dictionary["top"] = traction_boundary
 
 # Defines a dictionary of boundary conditions. Each key is a physical
 # group and each value is another dictionary or a list of dictionaries 
@@ -162,7 +160,11 @@ traction_dictionary["top"] = traction_boundary
 
 bcs_dictionary = dict()
 
-bcs_dictionary["bottom"] = {"BC case": "fixed_supportDirichletBC"}
+bcs_dictionary["bottom"] = {"BC case": "FixedSupportDirichletBC"}
+
+bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
+"mationsDict": {"load_function": "linear", "degrees_ofFreedomList": 2,
+"end_point": [1.0, 5E-2]}}
 
 ########################################################################
 ########################################################################

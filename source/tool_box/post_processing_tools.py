@@ -108,6 +108,13 @@ context_class, fields_names):
 
     for i in range(len(post_processesUnifield)):
 
+        if not isinstance(post_processesUnifield[i], list):
+
+            raise TypeError("For multifield problems, the post-process"+
+            "es list must be a list of lists, where each sublist has t"+
+            "he name of the field in the first position and the dictio"+
+            "nary of post-processes in the second position")
+
         # Gets the number of the field to which this post process be-
         # longs
 

@@ -231,9 +231,11 @@ None, searched_entity="classes"):
         for entity_name, entity_object in inspect.getmembers(
         searched_file, searched_entity):
             
-            # Checks if the class is a subclass of the parent class
+            # Checks if the class is a subclass of the parent class and
+            # if the entity is local to the searched file
 
-            if not (entity_object in reserved_entities):
+            if (not (entity_object in reserved_entities)) and (
+            entity_object.__module__==searched_file.__name__):
                 
                 # Appends this subclass
 
@@ -251,7 +253,8 @@ None, searched_entity="classes"):
             # Checks if the class is a subclass of the parent class
 
             if (issubclass(entity_object, parent_class) and (not (
-            entity_object in reserved_entities))):
+            entity_object in reserved_entities)) and (
+            entity_object.__module__==searched_file.__name__)):
                 
                 # Appends this subclass
 

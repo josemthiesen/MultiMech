@@ -222,9 +222,15 @@ None):
 
             # Otherwise, updates it as a class (Expressions are classes)
 
-            else:
+            elif hasattr(dirichlet_load, "t"):
 
                 dirichlet_load.t = t
+
+            else:
+
+                raise AttributeError("Cannot update the dirichlet load"+
+                " because the class '"+str(dirichlet_load)+"' does not"+
+                " have the attribute 't'")
 
         # Updates the Neumann boundary conditions 
 
@@ -244,9 +250,15 @@ None):
 
             # Otherwise, updates it as a class (Expressions are classes)
 
-            else:
+            elif hasattr(neumann_load, "t"):
 
                 neumann_load.t = t
+
+            else:
+
+                raise AttributeError("Cannot update the neumann load b"+
+                "ecause the class '"+str(neumann_load)+"' does not hav"+
+                "e the attribute 't'")
 
         # Updates the classes of macroscale quantities
 
@@ -656,9 +668,15 @@ None, fields_corrections=None):
 
             # Otherwise, updates it as a class (Expressions are classes)
 
-            else:
+            elif hasattr(dirichlet_load, "t"):
 
                 dirichlet_load.t = t
+
+            else:
+
+                raise AttributeError("Cannot update the dirichlet load"+
+                " because the class '"+str(dirichlet_load)+"' does not"+
+                " have the attribute 't'")
 
         # Updates the Neumann boundary conditions 
 
@@ -678,9 +696,15 @@ None, fields_corrections=None):
 
             # Otherwise, updates it as a class (Expressions are classes)
 
-            else:
+            elif hasattr(neumann_load, "t"):
 
                 neumann_load.t = t
+
+            else:
+
+                raise AttributeError("Cannot update the neumann load b"+
+                "ecause the class '"+str(neumann_load)+"' does not hav"+
+                "e the attribute 't'")
 
         # Updates the classes of macroscale quantities
 

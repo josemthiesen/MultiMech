@@ -17,6 +17,8 @@ import source.tool_box.plotting_tools as plotting_tools
 
 import source.tool_box.boundary_conditions_tools as bc_tools
 
+import source.tool_box.dirichlet_load_tools as dirichlet_tools
+
 ########################################################################
 #                     Boundary conditions selector                     #
 ########################################################################
@@ -39,12 +41,19 @@ dirichlet_loads=None):
     bcs_functionsDict = programming_tools.dispatch_functions([], 
     bc_tools)[1]
 
+    # Initializes a dictionary of functions that generate special cases
+    # of fancier boundary conditions
+
+    complex_bcsFunctionsDict = programming_tools.dispatch_functions([], 
+    bc_tools)[1]
+
     # Initializes a dictionary with common arguments to the boundary 
     # condition generation functions
 
     method_arguments = {"field_functionSpace": monolithic_functionSpace, 
     "mesh_dataClass": mesh_dataClass, "fields_namesDict": 
-    fields_namesDict}
+    fields_namesDict, "complex_bcsFunctionsDict": 
+    complex_bcsFunctionsDict}
 
     # Iterates through the physical groups
 
