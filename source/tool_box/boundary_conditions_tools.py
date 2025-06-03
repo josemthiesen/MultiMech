@@ -347,7 +347,10 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
                     "t, it has no attribute 't', nor 'update_load' met"+
                     "hod, neither is it a Constant. Thus, it cannot be"+
                     " appended to the list of dirichlet_loads to be up"+
-                    "dated during time stepping")
+                    "dated during time stepping. Check the given value"+
+                    ": "+str(new_loadInfo[-1])+"\nCheck the list of co"+
+                    "mplex boundary conditions generator: "+str(
+                    complex_bcsFunctionsDict.keys()))
                 
             # Makes the new_loadInfo the old one
 

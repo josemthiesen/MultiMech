@@ -63,9 +63,10 @@ def rotation_tensorEulerRodrigues(phi, I=Identity(3)):
 
     # Evaluates the Euler-Rodrigues formula
 
-    R_bar = ((ufl.cos(rotation_angle)*I)+((ufl.sin(rotation_angle)/
-    rotation_angle)*W)+(((1-ufl.cos(rotation_angle))/(rotation_angle**2)
-    )*tensor_productVectorVector(phi, phi)))
+    R_bar = ufl.conditional(gt(rotation_angle, DOLFIN_EPS),((ufl.cos(
+    rotation_angle)*I)+((ufl.sin(rotation_angle)/rotation_angle)*W)+(((
+    1-ufl.cos(rotation_angle))/(rotation_angle**2))*
+    tensor_productVectorVector(phi, phi))), I)
 
     return R_bar
 

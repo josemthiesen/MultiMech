@@ -45,7 +45,7 @@ dirichlet_loads=None):
     # of fancier boundary conditions
 
     complex_bcsFunctionsDict = programming_tools.dispatch_functions([], 
-    bc_tools)[1]
+    dirichlet_tools)[1]
 
     # Initializes a dictionary with common arguments to the boundary 
     # condition generation functions

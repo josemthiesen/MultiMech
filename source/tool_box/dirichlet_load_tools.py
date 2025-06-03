@@ -3,3 +3,301 @@
 
 from dolfin import *
 
+import ufl_legacy as ufl
+
+import numpy as np
+
+import source.tool_box.numerical_tools as numerical_tools
+
+import source.tool_box.mesh_handling_tools as mesh_tools
+
+import source.tool_box.tensor_tools as tensor_tools
+
+import source.multiscale.multiscale_boundary_conditions.multiscale_expressions as custom_expressions
+
+# Defines a function to construct a Dirichlet boundary condition that a
+# surface is rotated and translated
+
+def SurfaceTranslationAndRotation(mesh_dataClass, boundary_physicalGroups, 
+in_planeSpin=0.0, normal_toPlaneSpin=0.0, translation=[0.0, 0.0, 0.0], 
+in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
+1.0, parametric_load_curve="linear"):
+
+    # Creates the time constants
+
+    time_constant = Constant(t)
+
+    maximum_time = Constant(t_final)
+    
+    # Verifies if the parametric load curve is a string and, then, uses
+    # it to convert to an actual function
+
+    if isinstance(parametric_load_curve, str):
+
+        parametric_load_curve = numerical_tools.generate_loadingParametricCurves(
+        parametric_load_curve)
+    
+    # Verifies if the physical group is a string and converts it
+
+    boundary_physicalGroups, original_physicalGroup = mesh_tools.convert_physicalGroup(
+    boundary_physicalGroups, mesh_dataClass, "boundary")
+
+    # Verifies if the center point is None, then, proceeds to evaluate
+    # the centroid of the region
+
+    if center_point is None:
+
+        center_point, area_inverse = mesh_tools.evaluate_centroidSurface(
+        boundary_physicalGroups, mesh_dataClass)
+
+    # Otherwise, verifies if it is a list
+
+    elif not (isinstance(center_point, list)):
+
+        raise TypeError("The center point of application of the follow"+
+        "er torsion must be a list. The following was given though: "+
+        str(center_point))
+
+    # Checks whether the in plane spin direction is a list
+    
+    if not isinstance(in_planeSpinDirection, list):
+
+        raise TypeError("The 'in_planeSpinDirection' in SurfaceTransla"+
+        "tionAndRotation is not a list. It must be a list with 3 eleme"+
+        "nts, i.e. a vector")   
+
+    elif len(in_planeSpinDirection)!=3:
+
+        raise ValueError("The 'in_planeSpinDirection' in SurfaceTransl"+
+        "ationAndRotation is a list that has "+str(len(
+        in_planeSpinDirection))+" elements. This list must have 3 elem"+
+        "ents, i.e. a vector in 3D space") 
+
+    # Checks whether the translation direction is a list
+    
+    if not isinstance(translation, list):
+
+        raise TypeError("The 'translation' in SurfaceTranslationAndRot"+
+        "ation is not a list. It must be a list with 3 elements, i.e. "+
+        "a vector")   
+
+    elif len(translation)!=3:
+
+        raise ValueError("The 'translation' in SurfaceTranslationAndRo"+
+        "tation is a list that has "+str(len(translation))+" elements."+
+        " This list must have 3 elements, i.e. a vector in 3D space")
+    
+    else:
+
+        # Creates the constant
+
+        translation = (Constant(translation)*parametric_load_curve(
+        time_constant/maximum_time))
+    
+    # Checks whether in_plane spin is a float
+    
+    if not isinstance(in_planeSpin, float):
+
+        raise TypeError("The 'in_planeSpin' in SurfaceTranslationAndRo"+
+        "tation is not a float. Provide it in degrees") 
+    
+    else:
+
+        # Creates the constant and converts from degrees to radians
+
+        in_planeSpin = Constant((in_planeSpin/180)*np.pi)
+    
+    # Checks whether the normal plane spin is a float
+    
+    if not isinstance(normal_toPlaneSpin, float):
+
+        raise TypeError("The 'normal_toPlaneSpin' in SurfaceTranslatio"+
+        "nAndRotation is not a float. Provide it in degrees")   
+    
+    else:
+
+        # Creates the constant and converts from degrees to radians
+
+        normal_toPlaneSpin = Constant((normal_toPlaneSpin/180)*np.pi)
+
+    # Gets the node closest to the center point
+
+    center_nodeNumber, center_point = mesh_tools.find_nodeClosestToPoint(
+    mesh_dataClass, center_point, None, None)
+
+    # Sets the centroid vector as constant
+
+    centroid_point = Constant(center_point)
+
+    # Sets the relative position vector on the surface
+
+    relative_position = mesh_dataClass.x-centroid_point
+    
+    # Looks for the nodes coordinates that are on elements adjacent to 
+    # the center point
+
+    adjacent_centerNodes, adjacent_centerNodesCoord = (
+    mesh_tools.find_nodesOnSurfaceAroundNode(mesh_dataClass, 
+    boundary_physicalGroups, node_number=center_nodeNumber))
+
+    # Evaluates the distance between the center point and the adjacent 
+    # nodes
+
+    adjacent_distances = []
+
+    for node_coordinate in adjacent_centerNodesCoord:
+
+        adjacent_distances.append(np.sqrt(((node_coordinate[0]-
+        center_point[0])**2)+((node_coordinate[1]-center_point[1])**2)+
+        ((node_coordinate[2]-center_point[2])**2)))
+
+    # Finds the greatest distance between the center node and its imme-
+    # diately close nodes
+
+    adjacent_distance = max(adjacent_distances)
+
+    # Defines a scalar parameter to integrate the normal only over the 
+    # elements that are adjacent to the center point, where the torsion
+    # axis passes through. It throws zero when the point is out of these
+    # elements and 1 otherwise
+
+    adjacency_parameter = ufl.conditional(gt(dot(relative_position,
+    relative_position), adjacent_distance**2), 0.0, 1.0)
+
+    # Gets the normal vector in the referential configuration
+
+    normal_vector = mesh_dataClass.n
+
+    # Evaluates the average normal vector of the surface integrating 
+    # over the elements adjacent to the node where the center of the 
+    # torsion moment is applied
+
+    average_normal = [float(assemble(adjacency_parameter*normal_vector[0
+    ]*mesh_dataClass.ds(boundary_physicalGroups))), float(assemble(
+    adjacency_parameter*normal_vector[1]*mesh_dataClass.ds(
+    boundary_physicalGroups))), float(assemble(adjacency_parameter*
+    normal_vector[2]*mesh_dataClass.ds(boundary_physicalGroups)))]
+
+    # Normalizes this average vector
+
+    norm_vector = (1.0/np.sqrt((average_normal[0]**2)+(average_normal[1
+    ]**2)+(average_normal[2]**2)))
+
+    average_normal = [norm_vector*average_normal[0], (norm_vector*
+    average_normal[1]), norm_vector*average_normal[2]]
+
+    average_normalVector = Constant(average_normal)
+
+    # Evaluates the inner product of the average normal vector with the
+    # in-plane spin direction
+
+    dot_inplaceSpinAverageNormal = ((average_normal[0]*
+    in_planeSpinDirection[0])+(average_normal[1]*in_planeSpinDirection[1
+    ])+(average_normal[2]*in_planeSpinDirection[2]))
+
+    # Verifies if the in-plane spin direction is out of the surface os-
+    # cular plane
+
+    if dot_inplaceSpinAverageNormal>1E-4:
+
+        print("WARNING: the in_planeSpinDirection provided to the Surf"+
+        "aceTranslationAndRotation is not contained in the plane of th"+
+        "e surface '"+str(original_physicalGroup)+"'. It was projected"+
+        " onto the surface though\n")
+
+        # Projects the in-plane spin direction and normalizes the outcome
+
+        projected_inplaneSpinDirection = [in_planeSpinDirection[0]-(
+        average_normal[0]*dot_inplaceSpinAverageNormal), 
+        in_planeSpinDirection[1]-(average_normal[1]*
+        dot_inplaceSpinAverageNormal), in_planeSpinDirection[2]-(
+        average_normal[2]*dot_inplaceSpinAverageNormal)]
+
+        projected_norm = np.sqrt((projected_inplaneSpinDirection[0]**2)+(
+        projected_inplaneSpinDirection[1]**2)+(
+        projected_inplaneSpinDirection[2]**2))
+
+        if projected_norm>1E-5:
+
+            projected_norm = 1/projected_norm
+
+            in_planeSpinDirection = [(projected_norm*
+            projected_inplaneSpinDirection[0]), (projected_norm*
+            projected_inplaneSpinDirection[1]), (projected_norm*
+            projected_inplaneSpinDirection[2])]
+
+        else:
+
+            raise ValueError("The in_planeSpinDirection given to the S"+
+            "urfaceTranslationAndRotation is perpendicular to the surf"+
+            "ace '"+str(original_physicalGroup)+"' plane. Thus, it can"+
+            "not be used to rotate this surface about a vector contain"+
+            "ed in this plane")
+
+    # Evaluates the rotation matrices, first the matrix about the normal
+    # axis
+
+    rotation_normalAxis = tensor_tools.rotation_tensorEulerRodrigues(
+    normal_toPlaneSpin*parametric_load_curve(time_constant/maximum_time
+    )*average_normalVector)
+
+    # Then, the matrix about the inplane direction
+
+    rotation_inPlane = tensor_tools.rotation_tensorEulerRodrigues(
+    in_planeSpin*parametric_load_curve(time_constant/maximum_time)*
+    in_planeSpinDirection)
+
+    # Multiplies the two matrices into one and substracts the identity
+    # matrix because what we really want is the displacement
+
+    total_rotationMatrix = ((rotation_inPlane*rotation_normalAxis)-
+    Identity(3))
+
+    # Instantiates a class to define an expression to the displacement 
+    # field using a linear expression
+
+    translated_rotatedDisplacement = custom_expressions.LinearVectorFieldExpression(
+    translation, total_rotationMatrix, center_point[0], center_point[1],
+    center_point[2])
+
+    # Annuntiates the corrections
+
+    print("\nTranslated and rotated surface Dirichlet BC:\nApplied to "+
+    "the surface '"+str(original_physicalGroup)+"' with a translation "+
+    "of "+str(translation.values())+"\nA in-plane spin of "+str(
+    (in_planeSpin.values()[0]/np.pi)*180)+" degrees about a direction "+
+    "of "+str(in_planeSpinDirection.values())+"\nA normal-to-plane spi"+
+    "n of "+str(normal_toPlaneSpin.values()[0])+" degrees\n")
+
+    # Defines a class to update the time constant and the traction am-
+    # plitude
+
+    class TimeUpdate:
+
+        def __init__(self):
+            
+            self.t = time_constant
+
+        # This class must have the update_load method to be called in 
+        # the stepping algorithm
+
+        def update_load(self, t):
+
+            # Updates the time constant
+
+            self.t.assign(Constant(t))
+
+            # Annuntiates the corrections
+
+            print("\nTranslation and rotation of surface Dirichlet BC "+
+            "at physical group '"+str(original_physicalGroup)+"':\n"+
+            str(float(parametric_load_curve(self.t/maximum_time)*100))+
+            "% of the final boundary condition's value is applied usin"+
+            "g the parametric load curve\n")
+
+    # Instantiates the loading class that was built and returns it as 
+    # well as the traction vector object
+
+    time_class = TimeUpdate()
+
+    return translated_rotatedDisplacement, time_class
