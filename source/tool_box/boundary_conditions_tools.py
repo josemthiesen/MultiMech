@@ -279,7 +279,7 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
 
                 else:
 
-                    new_loadInfo[-1] = result[0]
+                    new_loadInfo[-1] = result
 
             # Otherwise, uses the generic loading curves
 

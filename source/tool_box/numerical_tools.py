@@ -56,6 +56,14 @@ None, verify_curveNameExistence=False):
         if verify_curveNameExistence:
 
             return True
+        
+        # Check out if additional parameters have been been given
+
+        default_parameters = check_additionalParameters(
+        additional_parameters, {"end_point": [1.0, 1.0]})
+
+        a1 = ((default_parameters["end_point"][1]**2)/
+        default_parameters["end_point"][0])
 
         return lambda x: ufl.sqrt(x)
 

@@ -24,6 +24,10 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 def case1_varyingMicropolarNumber(flag_newMesh=False):
 
+    # Defines the load factor
+
+    load_factor = 1.0
+
     # Sets the Young modulus and the Poisson ration from psi to MPa
 
     nu_matrix = 0.4
@@ -85,60 +89,69 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     E_fiber = 100E6
 
     test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 300.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
     test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
-    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
-    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
 
     E_matrix = 100E6
 
     E_fiber = 1000E6
 
     test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
     test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
-    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
-    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
 
     E_matrix = 100E6
 
     E_fiber = 10000E6
 
     test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
     test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
-    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
-    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
 
-    parameters_sets = [test11]#, test12, test13, test21, test22, test23, 
-    #test31, test32, test33]
+    parameters_sets = [test11, test12, test13, test21, test22, test23, 
+    test31, test32, test33]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
@@ -489,11 +502,11 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     solver_parameters = dict()
 
-    solver_parameters["linear_solver"] = "mumps"#"mumps"
+    solver_parameters["linear_solver"] = "mumps"
 
-    solver_parameters["newton_relative_tolerance"] = 1e-6#1e-8
+    solver_parameters["newton_relative_tolerance"] = 1e-6
 
-    solver_parameters["newton_absolute_tolerance"] = 1e-5#1e-8
+    solver_parameters["newton_absolute_tolerance"] = 1e-5
 
     solver_parameters["newton_maximum_iterations"] = 30
 
@@ -513,16 +526,42 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     #                        Boundary conditions                       #
     ####################################################################
 
-    # Defines a load expression
-    
-    maximum_load = ((0.5*load_factor*E_matrix*((RVE_length*(RVE_width**3
-    ))/12))/((n_RVEsZ*RVE_width)**3))
+    # Gets the coefficient k2 for torsion of rectangular shafts from 
+    # Gere's Mechanics of Materials
+
+    section_ratios = np.array([1.0, 1.5, 1.75, 2, 2.5, 3, 4, 6, 8, 10, 
+    1000])
+
+    k2_values = np.array([0.141, 0.196, 0.214, 0.229, 0.249, 0.263, 0.281, 
+    0.298, 0.307, 0.312, 1/3])
+
+    def k2_interpolation(z):
+
+        for i in range(len(section_ratios)):
+
+            if section_ratios[i]>z:
+
+                a1 = ((k2_values[i]-k2_values[i-1])/(section_ratios[i]-
+                section_ratios[i-1]))
+
+                a0 = k2_values[i-1]-(a1*section_ratios[i-1])
+
+                return a0+(a1*z)
+            
+    k2 = k2_interpolation(n_RVEsZ/n_RVEsY)
+
+    J_rectangular = k2*(n_RVEsZ*(n_RVEsY**3)*(RVE_width**4))
+
+    # Defines the maximum load
+
+    maximum_load = float((load_factor*E_matrix*J_rectangular)/(2*(1+
+    nu_matrix)*n_RVEsX*RVE_length))
 
     # Assemble the traction vector using this load expression
 
     traction_boundary = {"load case": "NormalReferentialTorsion", "amp"+
-    "litude_torsion": 100*maximum_load, "parametric_load_curve": "squa"+
-    "re root", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
+    "litude_torsion": maximum_load, "parametric_load_curve": "square r"+
+    "oot", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
 
     # Defines a dictionary of tractions
 
@@ -549,7 +588,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     bcs_dictionary = dict()
 
-    bcs_dictionary["back"] = {"BC case": "FixedSupportDirichletBC", 
+    bcs_dictionary["left"] = {"BC case": "FixedSupportDirichletBC", 
     "sub_fieldsToApplyBC": ["displacement", "microrotation"]}
 
     ####################################################################

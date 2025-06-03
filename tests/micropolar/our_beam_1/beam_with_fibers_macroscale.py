@@ -24,6 +24,10 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 def case1_varyingMicropolarNumber(flag_newMesh=False):
 
+    # Defines the load factor
+
+    load_factor = 1.0
+
     # Sets the Young modulus and the Poisson ration from psi to MPa
 
     nu_matrix = 0.4
@@ -85,57 +89,66 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     E_fiber = 100E6
 
     test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 300.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
     test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
-    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
-    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
 
     E_matrix = 100E6
 
     E_fiber = 1000E6
 
     test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
     test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
-    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
-    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
 
     E_matrix = 100E6
 
     E_fiber = 10000E6
 
     test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
     test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
     
-    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, RVE_width
-    *n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 5.0, 
-    gamma_matrix, gamma_fiber, RVE_width, RVE_length, fiber_radius,
-    RVE_localizationX, RVE_localizationY, RVE_localizationZ]
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
+    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ]
 
     parameters_sets = [test11, test12, test13, test21, test22, test23, 
     test31, test32, test33]
@@ -519,7 +532,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Assemble the traction vector using this load expression
     
-    traction_boundary = {"load case": "UniformReferentialTraction", "a"
+    traction_boundary = {"load case": "UniformReferentialTraction", "a"+
     "mplitude_tractionX": 0.0, "amplitude_tractionY": maximum_load, "a"+
     "mplitude_tractionZ": 0.0, "parametric_load_curve": "linear", "t": 
     t, "t_final": t_final}
@@ -534,7 +547,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines a dictionary of moments on the boundary
 
-    moment_boundary = {"load case": "UniformReferentialTraction", "amp"
+    moment_boundary = {"load case": "UniformReferentialTraction", "amp"+
     "litude_tractionX": 0.0, "amplitude_tractionY": 0.0, "amplitude_tr"+
     "actionZ": 0.0, "parametric_load_curve": "linear", "t": t, "t_final": 
     t_final}
