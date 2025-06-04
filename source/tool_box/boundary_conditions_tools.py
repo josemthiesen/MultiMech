@@ -30,7 +30,8 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
     # Sets the method arguments as the dictionary for arguments to the
     # more complex BC generators
 
-    method_arguments = {"mesh_dataClass": mesh_dataClass}
+    method_arguments = {"mesh_dataClass": mesh_dataClass, "boundary_ph"+
+    "ysicalGroups": boundary_physicalGroups}
     
     # Verifies if the boundary physical groups is a dictionary or a list
     # if the physical group is given
@@ -272,6 +273,8 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
                 # Verifies if the result is a tuple
 
                 if isinstance(result, tuple):
+
+                    print(result)
 
                     new_loadInfo[-1] = result[0]
 
@@ -575,6 +578,10 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
 
             if n_fields==1:
 
+                print(load_info)
+
+                print(hasattr(load_info[0], "eval"))
+
                 # Verifies if no DOFs are especified
 
                 if len(load_info)==1:
@@ -592,8 +599,6 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
                 else:
 
                     if isinstance(load_info[0], list):
-
-                        print(load_info[1])
 
                         # Iterates through the prescribed DOFs
 

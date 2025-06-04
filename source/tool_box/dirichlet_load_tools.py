@@ -7,6 +7,8 @@ import ufl_legacy as ufl
 
 import numpy as np
 
+from copy import copy
+
 import source.tool_box.numerical_tools as numerical_tools
 
 import source.tool_box.mesh_handling_tools as mesh_tools
@@ -22,6 +24,8 @@ def SurfaceTranslationAndRotation(mesh_dataClass, boundary_physicalGroups,
 in_planeSpin=0.0, normal_toPlaneSpin=0.0, translation=[0.0, 0.0, 0.0], 
 in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
 1.0, parametric_load_curve="linear"):
+    
+    original_translation = copy(translation)
 
     # Creates the time constants
 
@@ -91,8 +95,7 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
 
         # Creates the constant
 
-        translation = (Constant(translation)*parametric_load_curve(
-        time_constant/maximum_time))
+        translation = Constant(translation)
     
     # Checks whether in_plane spin is a float
     
@@ -103,9 +106,9 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
     
     else:
 
-        # Creates the constant and converts from degrees to radians
+        # Converts from degrees to radians
 
-        in_planeSpin = Constant((in_planeSpin/180)*np.pi)
+        in_planeSpin = (in_planeSpin/180)*np.pi
     
     # Checks whether the normal plane spin is a float
     
@@ -116,9 +119,9 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
     
     else:
 
-        # Creates the constant and converts from degrees to radians
+        # Converts from degrees to radians
 
-        normal_toPlaneSpin = Constant((normal_toPlaneSpin/180)*np.pi)
+        normal_toPlaneSpin = (normal_toPlaneSpin/180)*np.pi
 
     # Gets the node closest to the center point
 
@@ -186,8 +189,6 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
     average_normal = [norm_vector*average_normal[0], (norm_vector*
     average_normal[1]), norm_vector*average_normal[2]]
 
-    average_normalVector = Constant(average_normal)
-
     # Evaluates the inner product of the average normal vector with the
     # in-plane spin direction
 
@@ -197,6 +198,8 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
 
     # Verifies if the in-plane spin direction is out of the surface os-
     # cular plane
+
+    initial_inPlaneSpinDirection = 0.0
 
     if dot_inplaceSpinAverageNormal>1E-4:
 
@@ -234,24 +237,11 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
             "not be used to rotate this surface about a vector contain"+
             "ed in this plane")
 
-    # Evaluates the rotation matrices, first the matrix about the normal
-    # axis
+    # Initializes the multiplication of the rotation matrices as a null
+    # Constant
 
-    rotation_normalAxis = tensor_tools.rotation_tensorEulerRodrigues(
-    normal_toPlaneSpin*parametric_load_curve(time_constant/maximum_time
-    )*average_normalVector)
-
-    # Then, the matrix about the inplane direction
-
-    rotation_inPlane = tensor_tools.rotation_tensorEulerRodrigues(
-    in_planeSpin*parametric_load_curve(time_constant/maximum_time)*
-    in_planeSpinDirection)
-
-    # Multiplies the two matrices into one and substracts the identity
-    # matrix because what we really want is the displacement
-
-    total_rotationMatrix = ((rotation_inPlane*rotation_normalAxis)-
-    Identity(3))
+    total_rotationMatrix = Constant([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+    0.0, 0.0, 0.0]])
 
     # Instantiates a class to define an expression to the displacement 
     # field using a linear expression
@@ -264,10 +254,10 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
 
     print("\nTranslated and rotated surface Dirichlet BC:\nApplied to "+
     "the surface '"+str(original_physicalGroup)+"' with a translation "+
-    "of "+str(translation.values())+"\nA in-plane spin of "+str(
-    (in_planeSpin.values()[0]/np.pi)*180)+" degrees about a direction "+
-    "of "+str(in_planeSpinDirection.values())+"\nA normal-to-plane spi"+
-    "n of "+str(normal_toPlaneSpin.values()[0])+" degrees\n")
+    "of "+str(original_translation)+"\nA in-plane spin of "+str(
+    (in_planeSpin/np.pi)*180)+" degrees about a direction of "+str(
+    in_planeSpinDirection)+"\nA normal-to-plane spin of "+str(
+    normal_toPlaneSpin)+" degrees\n")
 
     # Defines a class to update the time constant and the traction am-
     # plitude
@@ -278,22 +268,68 @@ in_planeSpinDirection=[0.0, 0.0, 0.0], center_point=None, t=0.0, t_final=
             
             self.t = time_constant
 
+            self.translation = translation
+
+            self.total_rotationMatrix = total_rotationMatrix
+
         # This class must have the update_load method to be called in 
         # the stepping algorithm
 
         def update_load(self, t):
 
+            print("Atualiza")
+
             # Updates the time constant
 
             self.t.assign(Constant(t))
+
+            # Evaluates the load using the parametric curve
+
+            load_value = float(parametric_load_curve(self.t/maximum_time
+            ))
+
+            # Updates the translation vector
+
+            new_translation = [load_value*component for component in (
+            original_translation)]
+
+            self.translation.assign(Constant(new_translation))
+
+            # Updates the vectors
+
+            new_inPlaneVector = [(in_planeSpin*load_value*component
+            ) for component in in_planeSpinDirection]
+
+            new_normalVector = [(normal_toPlaneSpin*load_value*component
+            ) for component in average_normal]
+
+            print(new_normalVector, new_inPlaneVector, load_value)
+
+            # Evaluates the rotation matrices
+
+            rotation_normalAxis = numerical_tools.rotation_tensorEulerRodrigues(
+            new_normalVector)
+
+            # Then, the matrix about the inplane direction
+
+            rotation_inPlane = numerical_tools.rotation_tensorEulerRodrigues(
+            new_inPlaneVector)
+
+            # Multiplies the two matrices into one and substracts the 
+            # identity matrix because what we really want is the displa-
+            # cement
+
+            self.total_rotationMatrix.assign(Constant((np.dot(
+            rotation_inPlane, rotation_normalAxis)-np.eye(3)).tolist()))
+
+            print(self.total_rotationMatrix.values())
 
             # Annuntiates the corrections
 
             print("\nTranslation and rotation of surface Dirichlet BC "+
             "at physical group '"+str(original_physicalGroup)+"':\n"+
-            str(float(parametric_load_curve(self.t/maximum_time)*100))+
-            "% of the final boundary condition's value is applied usin"+
-            "g the parametric load curve\n")
+            str(load_value*100)+"% of the final boundary condition's v"+
+            "alue is applied using the parametric load curve\n")
 
     # Instantiates the loading class that was built and returns it as 
     # well as the traction vector object

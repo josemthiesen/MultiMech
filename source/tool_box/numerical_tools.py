@@ -5,6 +5,8 @@ from dolfin import *
 
 import ufl_legacy as ufl
 
+import numpy as np
+
 import source.tool_box.programming_tools as programming_tools
 
 ########################################################################
@@ -143,3 +145,53 @@ def safe_sqrt(a):
 def closest_numberInList(number, list_ofNumbers):
 
     return min(list_ofNumbers, key=lambda x: abs(x-number))
+
+# Defines a function to construct the rotation matrix numerically (with-
+# out any ufl function)
+
+def rotation_tensorEulerRodrigues(phi):
+
+    if not isinstance(phi, list):
+
+        raise TypeError("The numerical rotation_tensorEulerRodrigues w"+
+        "as chosen and the vector 'phi' is not a list")
+
+    # Evaluates the rotation angle
+
+    rotation_angle = np.sqrt((phi[0]**2)+(phi[1]**2)+(phi[2]**2))
+
+    # Evaluates the skew tensor and the tensor given by the tensor pro-
+    # duct of the axial vector by itself
+
+    W = [[0.0, -phi[2], phi[1]], [phi[2], 0.0, -phi[0]], [-phi[1], phi[0
+    ], 0.0]]
+
+    axial_tensorAxial = [[phi[0]**2, phi[0]*phi[1], phi[0]*phi[2]], [
+    phi[1]*phi[0], phi[1]**2, phi[1]*phi[2]], [phi[2]*phi[0], phi[2]*phi[
+    1], phi[2]**2]]
+
+    # Evaluates the coefficients
+
+    c1 = np.cos(rotation_angle)
+
+    c2 = 1.0
+
+    c3 = 0.5
+
+    if rotation_angle>DOLFIN_EPS:
+
+        c2 = np.sin(rotation_angle)/rotation_angle
+
+        c3 = (1-np.cos(rotation_angle))/(rotation_angle**2)
+
+    # Evaluates the Euler-Rodrigues formula
+
+    R_bar = [[c1, 0.0, 0.0], [0.0, c1, 0.0], [0.0, 0.0, c1]]
+
+    for i in range(3):
+
+        for j in range(3):
+
+            R_bar[i][j] += (c2*W[i][j])+(c3*axial_tensorAxial[i][j])
+
+    return R_bar
