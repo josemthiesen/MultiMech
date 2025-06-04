@@ -162,12 +162,14 @@ bcs_dictionary = dict()
 
 bcs_dictionary["bottom"] = {"BC case": "FixedSupportDirichletBC"}
 
-bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
-"mationsDict": {"load_function": "linear", "degrees_ofFreedomList": 2,
-"end_point": [1.0, 5E-2]}}
-
 """bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
-"mationsDict": {"load_function": "SurfaceTranslationAndRotation"}}"""
+"mationsDict": {"load_function": "linear", "degrees_ofFreedomList": 2,
+"end_point": [1.0, 5E-2]}}"""
+
+bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
+"mationsDict": {"load_function": "SurfaceTranslationAndRotation", "tra"+
+"nslation": [0.0, 0.0, 0.05], "in_planeSpinDirection": [1.0, 0.0, 0.0], 
+"in_planeSpin": 15, "normal_toPlaneSpin": 45.0}}
 
 ########################################################################
 ########################################################################

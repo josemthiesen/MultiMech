@@ -221,6 +221,52 @@ gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25,
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation"):
 
+    # Gets the coefficient k2 for torsion of rectangular shafts from 
+    # Gere's Mechanics of Materials
+
+    section_ratios = np.array([1.0, 1.5, 1.75, 2, 2.5, 3, 4, 6, 8, 10, 
+    1000])
+
+    k2_values = np.array([0.141, 0.196, 0.214, 0.229, 0.249, 0.263, 0.281, 
+    0.298, 0.307, 0.312, 1/3])
+
+    def k2_interpolation(z):
+
+        for i in range(len(section_ratios)):
+
+            if section_ratios[i]>z:
+
+                a1 = ((k2_values[i]-k2_values[i-1])/(section_ratios[i]-
+                section_ratios[i-1]))
+
+                a0 = k2_values[i-1]-(a1*section_ratios[i-1])
+
+                return a0+(a1*z)
+            
+    k2 = k2_interpolation(n_RVEsZ/n_RVEsY)
+
+    J_rectangular = k2*(n_RVEsZ*(n_RVEsY**3)*(RVE_width**4))
+
+    # Evaluates the shear moduli of the fiber and of the matrix
+
+    G_matrix = E_matrix/(2*(1+nu_matrix))
+
+    G_fiber = E_fiber/(2*(1+nu_fiber))
+
+    # Evaluates the fiber ratio
+
+    fiber_ratio = (np.pi*(fiber_radius**2))/(RVE_width**2)
+
+    # Mixes them using the lower bound of the rule of mixtures to give a
+    # conservative load
+
+    G_mixture = 1.0/((fiber_ratio/G_fiber)+((1-fiber_ratio)/G_matrix))
+
+    # Defines the maximum load
+
+    maximum_load = float((load_factor*G_mixture*J_rectangular)/(n_RVEsX*
+    RVE_length))
+
     # Sets the data of the simulation in a txt file
 
     file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
@@ -233,8 +279,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
-    "calizationZ": RVE_localizationZ}), "00_parameters", parent_path=
-    base_path+"//graphics//"+subfolder_name)
+    "calizationZ": RVE_localizationZ, "G_mixture": G_mixture, "maximum"+
+    "_load": maximum_load}), "00_parameters", parent_path=base_path+"/"+
+    "/graphics//"+subfolder_name)
 
     file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
     "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
@@ -246,8 +293,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
-    "calizationZ": RVE_localizationZ}), "00_parameters", parent_path=
-    base_path+"//text//"+subfolder_name)
+    "calizationZ": RVE_localizationZ, "G_mixture": G_mixture, "maximum"+
+    "_load": maximum_load}), "00_parameters", parent_path=base_path+"/"+
+    "/text//"+subfolder_name)
 
     ####################################################################
     #                        Simulation results                        #
@@ -529,37 +577,6 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     ####################################################################
     #                        Boundary conditions                       #
     ####################################################################
-
-    # Gets the coefficient k2 for torsion of rectangular shafts from 
-    # Gere's Mechanics of Materials
-
-    section_ratios = np.array([1.0, 1.5, 1.75, 2, 2.5, 3, 4, 6, 8, 10, 
-    1000])
-
-    k2_values = np.array([0.141, 0.196, 0.214, 0.229, 0.249, 0.263, 0.281, 
-    0.298, 0.307, 0.312, 1/3])
-
-    def k2_interpolation(z):
-
-        for i in range(len(section_ratios)):
-
-            if section_ratios[i]>z:
-
-                a1 = ((k2_values[i]-k2_values[i-1])/(section_ratios[i]-
-                section_ratios[i-1]))
-
-                a0 = k2_values[i-1]-(a1*section_ratios[i-1])
-
-                return a0+(a1*z)
-            
-    k2 = k2_interpolation(n_RVEsZ/n_RVEsY)
-
-    J_rectangular = k2*(n_RVEsZ*(n_RVEsY**3)*(RVE_width**4))
-
-    # Defines the maximum load
-
-    maximum_load = float((load_factor*E_matrix*J_rectangular)/(2*(1+
-    nu_matrix)*n_RVEsX*RVE_length))
 
     # Assemble the traction vector using this load expression
 
