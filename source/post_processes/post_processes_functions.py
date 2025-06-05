@@ -9,8 +9,6 @@ import source.tool_box.variational_tools as variational_tools
 
 import source.tool_box.homogenization_tools as homogenization_tools
 
-import source.tool_box.functional_tools as functional_tools
-
 import source.tool_box.constitutive_tools as constitutive_tools
 
 import source.tool_box.mesh_handling_tools as mesh_tools
@@ -179,9 +177,9 @@ fields_namesDict, flag_parentMeshReuse=False):
     
     print("Updates the saving of the Cauchy stress field\n")
     
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["Cauchy stress", "stress"], "cauchy", "cauc"+
-    "hy_stress", fields_namesDict)
+    return constitutive_tools.save_stressField(output_object, field, 
+    time, flag_parentMeshReuse, ["Cauchy stress", "stress"], "cauchy", 
+    "cauchy_stress", fields_namesDict)
 
 ########################################################################
 #                      Couple Cauchy stress field                      #
@@ -280,9 +278,9 @@ time, fields_namesDict, flag_parentMeshReuse=False):
     
     print("Updates the saving of the couple Cauchy stress field\n")
 
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["Couple Cauchy stress", "stress"], "couple_"+
-    "cauchy", "cauchy_stress", fields_namesDict)
+    return constitutive_tools.save_stressField(output_object, field, 
+    time, flag_parentMeshReuse, ["Couple Cauchy stress", "stress"], "c"+
+    "ouple_cauchy", "cauchy_stress", fields_namesDict)
 
 ########################################################################
 #                  First Piola-Kirchhoff stress field                  #
@@ -383,9 +381,10 @@ time, fields_namesDict, flag_parentMeshReuse=False):
     print("Updates the saving of the first Piola-Kirchhoff stress fiel"+
     "d\n")
     
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["First Piola-Kirchhoff stress", "stress"], 
-    "first_piola_kirchhoff", "first_piolaStress", fields_namesDict)
+    return constitutive_tools.save_stressField(output_object, field, 
+    time, flag_parentMeshReuse, ["First Piola-Kirchhoff stress", "stre"+
+    "ss"], "first_piola_kirchhoff", "first_piolaStress", 
+    fields_namesDict)
 
 ########################################################################
 #              Couple first Piola-Kirchhoff stress field               #
@@ -487,9 +486,109 @@ field_number, time, fields_namesDict, flag_parentMeshReuse=False):
     print("Updates the saving of the couple first Piola-Kirchhoff stre"+
     "ss field\n")
     
-    return functional_tools.save_stressField(output_object, field, time, 
-    flag_parentMeshReuse, ["Couple first Piola-Kirchhoff stress", "str"+
-    "ess"], "couple_first_piola_kirchhoff", "first_piolaStress", 
+    return constitutive_tools.save_stressField(output_object, field, 
+    time, flag_parentMeshReuse, ["Couple first Piola-Kirchhoff stress", 
+    "stress"], "couple_first_piola_kirchhoff", "first_piolaStress", 
+    fields_namesDict)
+
+########################################################################
+#                            Traction fields                           #
+########################################################################
+
+# Defines a function to initialize the traction field file
+
+def initialize_tractionSaving(data, direct_codeData, submesh_flag):
+
+    # Gets the directory and the name of the file
+
+    parent_path = data[0]
+
+    file_name = data[1]
+
+    # Gets the polynomial degree of the interpolation function
+
+    polynomial_degree = data[2]
+
+    # Gets the mesh, the constitutive model, and the surface integrator
+    # from the data directly provided by the code
+
+    mesh = direct_codeData[0]
+
+    constitutive_model = direct_codeData[1]
+
+    ds = direct_codeData[2]
+
+    physical_groupsList = direct_codeData[3] 
+    
+    physical_groupsNamesToTags = direct_codeData[4]
+
+    referential_normal = direct_codeData[5]
+
+    # Creates the function space for the traction as a vector function 
+    # space
+
+    W = 0.0
+
+    if polynomial_degree==0:
+
+        W = VectorFunctionSpace(mesh, "DG", 0)
+
+    else:
+
+        W = VectorFunctionSpace(mesh, "CG", polynomial_degree)
+
+    # Gets the name of the file with the path to it
+
+    file_name = file_tools.verify_path(parent_path, file_name)
+
+    # Initializes the file
+
+    file = XDMFFile(file_name)
+
+    # Assembles the file and the function space into a class. This post-
+    # process does have a variable that can be shared with a submesh, 
+    # and it is the stress field
+
+    class OutputObject:
+
+        def __init__(self, file, W, constitutive_model, ds, 
+        physical_groupsList, physical_groupsNamesToTags, 
+        referential_normal):
+
+            self.W = W 
+
+            self.constitutive_model = constitutive_model
+
+            self.ds = ds 
+
+            self.result = file
+
+            self.physical_groupsList = physical_groupsList 
+
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
+            self.referential_normal = referential_normal
+
+    output_object = OutputObject(file, W, constitutive_model, ds, 
+    physical_groupsList, physical_groupsNamesToTags, referential_normal)
+
+    return output_object
+
+# Defines a function to update the pressure field
+
+def update_referentialTractionSaving(output_object, field, field_number, 
+time, fields_namesDict):
+    
+    print("Updates the saving of referential traction field\n")
+    
+    return constitutive_tools.save_referentialTraction(output_object, 
+    field, time, "first_piola_kirchhoff", "first_piolaStress", 
     fields_namesDict)
 
 ########################################################################
@@ -498,7 +597,7 @@ field_number, time, fields_namesDict, flag_parentMeshReuse=False):
 ########################################################################
 ########################################################################
 
-# Defines a function to initialize the Cauchy stress field file
+# Defines a function to initialize the pressure field file
 
 def initialize_pressureAtPointSaving(data, direct_codeData, submesh_flag):
 
@@ -604,7 +703,7 @@ def initialize_pressureAtPointSaving(data, direct_codeData, submesh_flag):
 
     return output_object
 
-# Defines a function to update the Cauchy stress field
+# Defines a function to update the pressure field
 
 def update_pressureAtPointSaving(output_object, field, field_number, time, 
 fields_namesDict):
@@ -612,7 +711,7 @@ fields_namesDict):
     print("Updates the saving of the pressure at point "+str(
     output_object.point_coordinates)+"\n")
     
-    return functional_tools.save_pressureAtPoint(output_object, field, 
+    return constitutive_tools.save_pressureAtPoint(output_object, field, 
     time, "cauchy", "cauchy_stress", fields_namesDict)
 
 ########################################################################

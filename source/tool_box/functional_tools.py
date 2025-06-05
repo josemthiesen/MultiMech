@@ -5,15 +5,13 @@ from dolfin import *
 
 from abc import ABC, abstractmethod
 
+from petsc4py import PETSc
+
 import source.tool_box.file_handling_tools as file_tools
 
 import source.tool_box.numerical_tools as numerical_tools
 
-import source.tool_box.variational_tools as variational_tools
-
 import source.tool_box.programming_tools as programming_tools
-
-import source.tool_box.plotting_tools as plotting_tools
 
 import source.tool_box.boundary_conditions_tools as bc_tools
 
@@ -273,7 +271,7 @@ def set_solverParameters(solver, solver_parameters):
     "lative_tolerance", "newton_absolute_tolerance", "newton_maximum_i"+
     "terations", "preconditioner", "krylov_absolute_tolerance", "krylo"+
     "v_relative_tolerance", "krylov_maximum_iterations", "krylov_monit"+
-    "or_convergence"]
+    "or_convergence", "petsc_options"]
 
     # Gets the keys of the solver parameters dictionary
 
@@ -344,6 +342,65 @@ def set_solverParameters(solver, solver_parameters):
 
         solver.parameters['newton_solver']['krylov_solver']['monitor_c'+
         'onvergence'] = solver_parameters["krylov_monitor_convergence"]
+
+    if "petsc_options" in parameter_types:
+
+        opts = PETSc.Options()
+
+        # If the snes solver is set, prescribe the tolerances differently
+
+        if "nonlinear_solver" in solver_parameters:
+            
+            if solver_parameters["nonlinear_solver"]=="snes":
+
+                if "newton_relative_tolerance" in parameter_types:
+
+                    opts["snes_rtol"] = solver_parameters["newton_rela"+
+                    "tive_tolerance"]
+
+                if "newton_absolute_tolerance" in parameter_types:
+
+                    opts["snes_atol"] = solver_parameters["newton_abso"+
+                    "lute_tolerance"]
+
+                if "newton_maximum_iterations" in parameter_types:
+
+                    opts["snes_max_it"] = solver_parameters["newton_ma"+
+                    "ximum_iterations"]
+
+                if "linear_solver" in parameter_types:
+
+                    opts["pc_factor_mat_solver_type"] = solver_parameters[
+                    "linear_solver"]
+
+                if "krylov_absolute_tolerance" in parameter_types:
+
+                    opts["ksp_atol"] = solver_parameters["krylov_absol"+
+                    "ute_tolerance"]
+
+                if "krylov_relative_tolerance" in parameter_types:
+
+                    opts["ksp_rtol"] = solver_parameters["krylov_relat"+
+                    "ive_tolerance"]
+
+                if "krylov_maximum_iterations" in parameter_types:
+
+                    opts["ksp_max_it"] = solver_parameters["krylov_max"+
+                    "imum_iterations"]
+
+        if solver_parameters["petsc_options"]:
+
+            # Defines options to check and avoid NaN/Inf in the solution
+
+            opts["snes_check_jacobian_domain_error"] = None
+
+            opts["snes_check_function_norm"] = ""  
+
+            opts["snes_check_function_value"] = ""
+
+            opts["snes_check_jacobian_norm"] = ""
+
+            opts["snes_check_jacobian_largest"] = ""
 
     # Returns the updated solver
 
@@ -804,298 +861,6 @@ def convert_stringToASCII(string_toConvert):
     # Returns the string
 
     return converted_string
-        
-########################################################################
-#                       Saving of stress measures                      #
-########################################################################
-
-# Defines a function to get, project and save a stress field
-
-def save_stressField(output_object, field, time, flag_parentMeshReuse,
-stress_solutionPlotNames, stress_name, stress_method, fields_namesDict):
-
-    # If the flag to reuse parent mesh information is true, just save 
-    # the information given in the output object
-
-    if flag_parentMeshReuse:
-
-        output_object.parent_toChildMeshResult.rename(
-        *stress_solutionPlotNames)
-
-        output_object.result.write(
-        output_object.parent_toChildMeshResult, time)
-
-        return output_object
-    
-    # Verifies if the output object has the attribute with the names of 
-    # the required fields
-
-    if not hasattr(output_object, "required_fieldsNames"):
-
-        raise AttributeError("The class of data for the post-process o"+
-        "f saving the stress field does not have the attribute 'requir"+
-        "ed_fieldsNames'. This class must have it")
-
-    # Verifies if the domain is homogeneous
-
-    if isinstance(output_object.constitutive_model, dict):
-
-        # Initializes a list of pairs of constitutive models and inte-
-        # gration domain
-
-        integration_pairs = []
-
-        # If the domain is heterogeneous, the stress field must be pro-
-        # jected for each subdomain
-
-        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
-
-            # Gets the fields for this constitutive model
-
-            retrieved_fields = select_fields(field, 
-            output_object.required_fieldsNames[subdomain], 
-            fields_namesDict)
-
-            # Gets the stress field
-
-            stress_field = programming_tools.get_result(getattr(
-            local_constitutiveModel, stress_method)(retrieved_fields), 
-            stress_name)
-
-            # Verifies if more than one physical group is given for the
-            # same constitutive model
-
-            if isinstance(subdomain, tuple):
-
-                # Iterates though the elements of the tuple
-
-                for sub in subdomain:
-
-                    # Converts the subdomain to an integer tag
-
-                    sub = variational_tools.verify_physicalGroups(sub, 
-                    output_object.physical_groupsList, 
-                    output_object.physical_groupsNamesToTags,
-                    throw_error=False)
-
-                    # Checks if this subdomain is in the domain physical
-                    # groups 
-
-                    if sub in output_object.physical_groupsList:
-
-                        # Adds this pair of constitutive model and inte-
-                        # gration domain to the list of such pairs
-
-                        integration_pairs.append([stress_field, sub])
-
-            else:
-
-                # Converts the subdomain to an integer tag
-
-                subdomain = variational_tools.verify_physicalGroups(
-                subdomain, output_object.physical_groupsList, 
-                output_object.physical_groupsNamesToTags, throw_error=
-                False)
-
-                # Checks if this subdomain is in the domain physical
-                # groups 
-
-                if subdomain in output_object.physical_groupsList:
-
-                    # Adds this pair of constitutive model and integra-
-                    # tion domain to the list of such pairs
-
-                    integration_pairs.append([stress_field, subdomain])
-
-        # Projects this piecewise continuous field of stress into a FE 
-        # space
-
-        stress_fieldFunction = variational_tools.project_piecewiseField(
-        integration_pairs, output_object.dx, output_object.W, 
-        output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags, solution_names=
-        stress_solutionPlotNames)
-
-        # Saves the field into the sharable result with a submesh
-
-        output_object.parent_toChildMeshResult = stress_fieldFunction
-
-        # Writes the field to the file
-
-        output_object.result.write(stress_fieldFunction, time)
-
-    else:
-
-        # Gets the fields for this constitutive model
-
-        retrieved_fields = select_fields(field, 
-        output_object.required_fieldsNames, fields_namesDict)
-
-        # Gets the stress field
-
-        stress_field = programming_tools.get_result(getattr(
-        output_object.constitutive_model, stress_method)(field), 
-        stress_name)
-
-        # Projects the stress into a function
-
-        stress_fieldFunction = project(stress_field, output_object.W)
-
-        stress_fieldFunction.rename(*stress_solutionPlotNames)
-
-        # Saves the field into the sharable result with a submesh
-
-        output_object.parent_toChildMeshResult = stress_fieldFunction
-
-        # Writes the field to the file
-
-        output_object.result.write(stress_fieldFunction, time)
-
-    return output_object
-
-# Defines a function to project the Cauchy stress field and get the 
-# pressure from it at a point
-
-def save_pressureAtPoint(output_object, field, time, stress_name, 
-stress_method, fields_namesDict):
-    
-    # Verifies if the output object has the attribute with the names of 
-    # the required fields
-
-    if not hasattr(output_object, "required_fieldsNames"):
-
-        raise AttributeError("The class of data for the post-process o"+
-        "f saving the pressure field at a point does not have the attr"+
-        "ibute 'required_fieldsNames'. This class must have it")
-
-    # Verifies if the domain is homogeneous
-
-    if isinstance(output_object.constitutive_model, dict):
-
-        # Initializes a list of pairs of constitutive models and inte-
-        # gration domain
-
-        integration_pairs = []
-
-        # If the domain is heterogeneous, the stress field must be pro-
-        # jected for each subdomain
-
-        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
-
-            # Gets the fields for this constitutive model
-
-            retrieved_fields = select_fields(field, 
-            output_object.required_fieldsNames[subdomain], 
-            fields_namesDict)
-
-            # Gets the stress field
-
-            stress_field = programming_tools.get_result(getattr(
-            local_constitutiveModel, stress_method)(retrieved_fields), 
-            stress_name)
-
-            # Verifies if more than one physical group is given for the
-            # same constitutive model
-
-            if isinstance(subdomain, tuple):
-
-                # Iterates though the elements of the tuple
-
-                for sub in subdomain:
-
-                    # Converts the subdomain to an integer tag
-
-                    sub = variational_tools.verify_physicalGroups(sub, 
-                    output_object.physical_groupsList, 
-                    output_object.physical_groupsNamesToTags,
-                    throw_error=False)
-
-                    # Checks if this subdomain is in the domain physical
-                    # groups 
-
-                    if sub in output_object.physical_groupsList:
-
-                        # Adds this pair of constitutive model and inte-
-                        # gration domain to the list of such pairs. Gets
-                        # the trace divided by 3 to get the pressure
-
-                        integration_pairs.append([(1/3)*tr(stress_field
-                        ), sub])
-
-            else:
-
-                # Converts the subdomain to an integer tag
-
-                subdomain = variational_tools.verify_physicalGroups(
-                subdomain, output_object.physical_groupsList, 
-                output_object.physical_groupsNamesToTags, throw_error=
-                False)
-
-                # Checks if this subdomain is in the domain physical
-                # groups 
-
-                if subdomain in output_object.physical_groupsList:
-
-                    # Adds this pair of constitutive model and integra-
-                    # tion domain to the list of such pairs. Gets the 
-                    # trace divided by 3 to get the pressure
-
-                    integration_pairs.append([(1/3)*tr(stress_field), 
-                    subdomain])
-
-        # Projects this piecewise continuous field of stress into a FE 
-        # space
-
-        pressure_fieldFunction = variational_tools.project_piecewiseField(
-        integration_pairs, output_object.dx, output_object.W, 
-        output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags)
-
-        # Updates the pressure by evaluating it the field at a point
-
-        output_object.result.append([time, pressure_fieldFunction(Point(
-        output_object.point_coordinates))])
-
-    else:
-
-        # Gets the fields for this constitutive model
-
-        retrieved_fields = select_fields(field, 
-        output_object.required_fieldsNames, fields_namesDict)
-
-        # Gets the stress field
-
-        stress_field = programming_tools.get_result(getattr(
-        output_object.constitutive_model, stress_method)(field), 
-        stress_name)
-
-        # Projects the stress into a function taking the trace to get 
-        # the pressure
-
-        pressure_fieldFunction = project((1/3)*tr(stress_field), 
-        output_object.W)
-
-        # Updates the pressure by evaluating it the field at a point
-
-        output_object.result.append([time, pressure_fieldFunction(Point(
-        output_object.point_coordinates))])
-
-    # Saves the pressure at a point to a txt file
-
-    file_tools.list_toTxt(output_object.result, output_object.file_name, 
-    add_extension=True)
-
-    # If it is to plot the data
-
-    if output_object.flag_plotting:
-
-        plotting_tools.plane_plot(output_object.file_name+".pdf", data=
-        output_object.result,  x_label=r"$t$", y_label=r"$p$", title=
-        r"pressure at $x="+str(output_object.point_coordinates[0])+",\;"+
-        "y="+str(output_object.point_coordinates[1])+",\;z="+str(
-        output_object.point_coordinates[2])+"$", highlight_points=True)
-
-    return output_object
 
 ########################################################################
 #     Creation and pre-evaluation of discontinuous function spaces     #

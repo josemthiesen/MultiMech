@@ -92,19 +92,19 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 100E6
 
-    test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
+    test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
+    test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.1, 0.1, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -114,19 +114,19 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 1000E6
 
-    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
+    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
+    test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.1, 0.1, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -136,26 +136,26 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 10000E6
 
-    test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
+    test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
+    test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.1, 0.1, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
 
-    parameters_sets = [test11, test12, test13, test21, test22, test23, 
-    test31, test32, test33]
+    parameters_sets = [test11]#, test12, test13, test21, test22, test23, 
+    #test31, test32, test33]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
@@ -332,6 +332,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     "le_cauchy_stress_submesh.xdmf", "first_piola_stress_submesh.xdmf", 
     "couple_first_piola_stress_submesh.xdmf"]
 
+    traction_fileName = "referential_traction.xdmf"
+
     post_processes = []
 
     post_processesSubmesh = []
@@ -388,6 +390,10 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathText, "file name": 
             homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
+
+            post_processes[-1][-1]["SaveReferentialTractionField"] = {
+            "directory path": results_pathGraphics, "file name": 
+            traction_fileName, "polynomial degree":1}
 
             """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
             "ory path": results_pathGraphics, "file name": 
@@ -561,6 +567,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     solver_parameters["newton_absolute_tolerance"] = 1e-5
 
     solver_parameters["newton_maximum_iterations"] = 30
+
+    solver_parameters["petsc_options"] = True
 
     # Sets the initial time
 

@@ -626,22 +626,111 @@ physical_groupsNamesToTags, solution_names=None, verbose=True):
 
     for projected_function, subdomain in field_list:
 
-        if verbose:
+        if subdomain=="":
 
-            print("Projects over the subdomain "+str(subdomain))
+            if verbose:
 
-        # Checks the subdomain for strings
+                print("Projects over entire domain because subdomain w"+
+                "as defined as "+str(subdomain))
 
-        subdomain = verify_physicalGroups(subdomain,physical_groupsList, 
-        physical_groupsNamesToTags=physical_groupsNamesToTags)
+            # Updates the linear form
 
-        # Updates the linear form
+            linear_form += (inner(projected_function, v)*dx)
 
-        linear_form += (inner(projected_function, v)*dx(subdomain))
+        else:
+
+            if verbose:
+
+                print("Projects over the subdomain "+str(subdomain))
+
+            # Checks the subdomain for strings
+
+            subdomain = verify_physicalGroups(subdomain,
+            physical_groupsList, physical_groupsNamesToTags=
+            physical_groupsNamesToTags)
+
+            # Updates the linear form
+
+            linear_form += (inner(projected_function, v)*dx(subdomain))
 
     # Solves the algebraic system to get the FEM parameters
 
     solve(bilinear_form==linear_form, projected_field)
+
+    # Returns the projected field
+
+    return projected_field
+
+# Defines a function to project a field defined on the boundary only
+
+def project_overBoundary(field_list, ds, V, physical_groupsList,
+physical_groupsNamesToTags, solution_names=None, verbose=True):
+    
+    # Creates the projected field
+
+    projected_fieldTrial = TrialFunction(V)
+
+    v = TestFunction(V)
+
+    projected_field = Function(V)
+
+    if not (solution_names is None):
+
+        projected_field.rename(*solution_names)
+
+    # Assembles and solves the variational form
+
+    bilinear_form = inner(projected_fieldTrial, v)*ds
+
+    # Initializes the linear form
+
+    linear_form = 0.0
+
+    # Iterates through the pairs of function to be projected and physi-
+    # cal group tag
+
+    for projected_function, subdomain in field_list:
+
+        if subdomain=="":
+
+            if verbose:
+
+                print("Projects over entire domain because subdomain w"+
+                "as defined as "+str(subdomain))
+
+            # Updates the linear form
+
+            linear_form += (inner(projected_function, v)*ds)
+
+        else:
+
+            if verbose:
+
+                print("Projects over the subdomain "+str(subdomain))
+
+            # Checks the subdomain for strings
+
+            subdomain = verify_physicalGroups(subdomain,
+            physical_groupsList, physical_groupsNamesToTags=
+            physical_groupsNamesToTags)
+
+            # Updates the linear form
+
+            linear_form += (inner(projected_function, v)*ds(subdomain))
+
+    # Assembles the linear and the bilinear forms. Uses flags keep_dia-
+    # gonal and ident_zeros because the bilinear form is mostly zero, 
+    # since the field is zero within the domain
+
+    A = assemble(bilinear_form, keep_diagonal=True)
+
+    A.ident_zeros()
+
+    L = assemble(linear_form)
+
+    # Solves the algebraic system to get the FEM parameters
+
+    solve(A, projected_field.vector(), L)
 
     # Returns the projected field
 

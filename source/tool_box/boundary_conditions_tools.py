@@ -274,8 +274,6 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
 
                 if isinstance(result, tuple):
 
-                    print(result)
-
                     new_loadInfo[-1] = result[0]
 
                     dirichlet_loads.append(result[1])
@@ -577,10 +575,6 @@ t_initial=0.0, t_final=1.0, boundary_physicalGroups=None):
             # Verifies if there is only one field
 
             if n_fields==1:
-
-                print(load_info)
-
-                print(hasattr(load_info[0], "eval"))
 
                 # Verifies if no DOFs are especified
 

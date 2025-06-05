@@ -16,7 +16,8 @@ class PostProcessContext:
     # Sets the common information provided to the class by the system
 
     def __init__(self, mesh, constitutive_model, dx, 
-    domain_physGroupsNamesToTags):
+    domain_physGroupsNamesToTags, ds, boundary_physGroupsNamesToTags,
+    referential_normal):
 
         self.mesh = mesh
 
@@ -25,6 +26,12 @@ class PostProcessContext:
         self.dx = dx
         
         self.domain_physGroupsNamesToTags = domain_physGroupsNamesToTags
+
+        self.ds = ds
+
+        self.boundary_physGroupsNamesToTags = boundary_physGroupsNamesToTags
+
+        self.referential_normal = referential_normal
 
         # Gets the physical groups from the integration measure inside a
         # try-except box because submeshes do not have physical groups
@@ -36,6 +43,17 @@ class PostProcessContext:
         except:
 
             self.physical_groupsList = None
+
+        # Gets the physical groups from the integration measure inside a
+        # try-except box because submeshes do not have physical groups
+
+        try:
+
+            self.boundary_physicalGroupsList = set(ds.subdomain_data().array())
+
+        except:
+
+            self.boundary_physicalGroupsList = None
 
 # Defines a template for the post-processes' classes
 
@@ -144,6 +162,24 @@ class SaveCoupleFirstPiolaStressField(PostProcessMethod):
         "y path", "file name", "polynomial degree"], [context.mesh, 
         context.constitutive_model, context.dx, 
         context.physical_groupsList, context.domain_physGroupsNamesToTags])
+
+# Sets a class for the method to save the traction field at the referen-
+# tial configuration
+
+class SaveReferentialTractionField(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_tractionSaving, 
+        post_functions.update_referentialTractionSaving, ["directory p"+
+        "ath", "file name", "polynomial degree"], [context.mesh, 
+        context.constitutive_model, context.ds, 
+        context.physical_groupsList, context.domain_physGroupsNamesToTags,
+        context.referential_normal])
 
 # Sets a class for the method to save the pressure field in a point
 

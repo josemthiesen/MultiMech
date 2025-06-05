@@ -78,7 +78,8 @@ None):
     context_class = post_classes.PostProcessContext(
     solution_field.function_space().mesh(), 
     constitutive_model, mesh_dataClass.dx, 
-    mesh_dataClass.domain_physicalGroupsNameToTag)
+    mesh_dataClass.domain_physicalGroupsNameToTag, mesh_dataClass.ds,
+    mesh_dataClass.boundary_physicalGroupsNameToTag, mesh_dataClass.n)
 
     # Transforms the dictionary of post-processing methods instructions
     # into a live-wire dictionary with the proper methods and needed in-
@@ -121,7 +122,9 @@ None):
 
         context_classRVE = post_classes.PostProcessContext(RVE_submesh, 
         constitutive_model, dx_submesh, 
-        mesh_dataClass.domain_physicalGroupsNameToTag)
+        mesh_dataClass.domain_physicalGroupsNameToTag, mesh_dataClass.ds,
+        mesh_dataClass.boundary_physicalGroupsNameToTag, 
+        mesh_dataClass.n)
 
         # Initializes the post process for the submesh if there's any
 
@@ -486,7 +489,9 @@ None, fields_corrections=None):
 
     context_class = post_classes.PostProcessContext(
     solution_field.function_space().mesh(), constitutive_model, 
-    mesh_dataClass.dx, mesh_dataClass.domain_physicalGroupsNameToTag)
+    mesh_dataClass.dx, mesh_dataClass.domain_physicalGroupsNameToTag, 
+    mesh_dataClass.ds, mesh_dataClass.boundary_physicalGroupsNameToTag, 
+    mesh_dataClass.n)
 
     # Verifies if the post processes is a list
 
@@ -546,7 +551,9 @@ None, fields_corrections=None):
 
         context_classRVE = post_classes.PostProcessContext(RVE_submesh, 
         constitutive_model, dx_submesh, 
-        mesh_dataClass.domain_physicalGroupsNameToTag)
+        mesh_dataClass.domain_physicalGroupsNameToTag, mesh_dataClass.ds,
+        mesh_dataClass.boundary_physicalGroupsNameToTag, 
+        mesh_dataClass.n)
 
         # Initializes the post process for the submesh if there's any
 
