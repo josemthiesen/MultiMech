@@ -654,10 +654,11 @@ stress_method, fields_namesDict):
         # Projects this piecewise continuous field of traction into a FE 
         # space
 
-        traction_fieldFunction = variational_tools.project_piecewiseField(
+        traction_fieldFunction = variational_tools.project_overBoundary(
         integration_pairs, output_object.ds, output_object.W, 
         output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags)
+        output_object.physical_groupsNamesToTags, solution_names=["tra"+
+        "ction", "DNS"])
 
         # Writes the field to the file
 
@@ -678,9 +679,6 @@ stress_method, fields_namesDict):
 
         # Projects the stress into a function taking the trace to get 
         # the pressure
-
-        """traction_fieldFunction = project(dot(stress_field,
-        output_object.referential_normal), output_object.W)"""
 
         traction_fieldFunction = variational_tools.project_overBoundary(
         [[dot(stress_field,output_object.referential_normal), ""]], 

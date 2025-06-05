@@ -125,22 +125,22 @@ maximum_loadingSteps = 5
 
 # Defines a load expression
 
-maximum_load = 2E7
+maximum_load = 2E6
 
 # Assemble the traction vector using this load expression
 
-"""
+#"""
 traction_boundary = {"load case": "UniformReferentialTraction", "ampli"+
-"tude_tractionX": 0.0, "amplitude_tractionY": maximum_load, "amplitude"+
-"_tractionZ": 0.0, "parametric_load_curve": "square root", "t": t, "t_"+
-"final": t_final}"""
+"tude_tractionX": 0.0, "amplitude_tractionY": 0.0, "amplitude_tractionZ": 
+maximum_load, "parametric_load_curve": "square root", "t": t, "t_"+
+"final": t_final}#"""
 
 """
 traction_boundary = {"load case": "NormalUniformFollowerTraction", "am"+
 "plitude_traction": 3.6*maximum_load, "parametric_load_curve": "square"+
 " root", "t": t, "t_final": t_final}"""
 
-#"""
+"""
 traction_boundary = {"load case": "NormalFollowerTorsion", "amplitude_"+
 "torsion": 0.0045*maximum_load, "parametric_load_curve": "square root", 
 "t": t, "t_final": t_final, "influence_radius": 0.10}#"""
@@ -155,7 +155,7 @@ traction_boundary = {"load case": "NormalFollowerMoment", "amplitude_b"+
 
 traction_dictionary = dict()
 
-#traction_dictionary["top"] = traction_boundary
+traction_dictionary["top"] = traction_boundary
 
 # Defines a dictionary of boundary conditions. Each key is a physical
 # group and each value is another dictionary or a list of dictionaries 
@@ -167,14 +167,16 @@ bcs_dictionary = dict()
 
 bcs_dictionary["bottom"] = {"BC case": "FixedSupportDirichletBC"}
 
-"""bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
+"""
+bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
 "mationsDict": {"load_function": "linear", "degrees_ofFreedomList": 2,
 "end_point": [1.0, 5E-2]}}"""
 
+"""
 bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
 "mationsDict": {"load_function": "SurfaceTranslationAndRotation", "tra"+
 "nslation": [0.0, 0.0, 0.05], "in_planeSpinDirection": [1.0, 0.0, 0.0], 
-"in_planeSpin": 15, "normal_toPlaneSpin": 45.0}}
+"in_planeSpin": 15, "normal_toPlaneSpin": 45.0}}"""
 
 ########################################################################
 ########################################################################
