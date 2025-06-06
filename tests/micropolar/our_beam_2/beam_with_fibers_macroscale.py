@@ -104,7 +104,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.09, 0.09, 
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -126,7 +126,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.09, 0.09, 
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -154,8 +154,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
 
-    parameters_sets = [test33]#, test12, test13, test21, test22, test23, 
-    #test31, test32, test33]
+    parameters_sets = [test11, test12, test13, test21, test22, test23, 
+    test31, test32, test33]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
