@@ -116,13 +116,13 @@ material_properties2 = dict()
 
 material_properties2["E"] = 1E7
 
-material_properties2["v"] = 0.4
+material_properties2["nu"] = 0.4
 
 material_properties3 = dict()
 
 material_properties3["E"] = 1E8
 
-material_properties3["v"] = 0.35
+material_properties3["nu"] = 0.35
 
 # Sets the material as a HGO material
 

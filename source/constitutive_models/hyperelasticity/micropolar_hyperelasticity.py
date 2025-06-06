@@ -59,17 +59,46 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
 
         self.required_fieldsNames = ["displacement", "microrotation"]
 
+        # Checks the keys of the dictionary of material parameters
+
+        constitutive_tools.check_materialDictionary(material_properties, 
+        ["E", "nu", "flag bending", "characteristic length", "alpha",
+        "gamma", "N"])
+
+        # Gets the Young modulus and the Poisson ratio
+
+        young_modulus = material_properties["E"]
+
+        poisson_ratio = material_properties["nu"]
+
+        # Gets the flag for bending and the characteristic length
+
+        flag_bending = material_properties["flag bending"]
+
+        characteristic_length = material_properties["characteristic le"+
+        "ngth"]
+
         # Gets the parameters
 
-        self.mu = Constant(material_properties["mu"])
+        self.mu = Constant(young_modulus/(2*(1+poisson_ratio)))
 
-        self.lmbda = Constant(material_properties["lambda"])
+        self.lmbda = Constant((poisson_ratio*young_modulus)/((1+
+        poisson_ratio)*(1-(2*poisson_ratio))))
 
         self.alpha = Constant(material_properties["alpha"])
 
-        self.beta = Constant(material_properties["beta"])
-
         self.gamma = Constant(material_properties["gamma"])
+
+        # Selects the beta parameter using the characteristic length
+
+        if flag_bending:
+
+            self.beta = Constant((4*self.mu)*(characteristic_length**2))
+
+        else:
+
+            self.beta = Constant((2*self.mu*(characteristic_length**2))-
+            self.gamma)
 
         # Gets the micropolar number, which varies between 0 and 1. If
         # null, it is Cauchy continuum; if 1, it is couple stress theory

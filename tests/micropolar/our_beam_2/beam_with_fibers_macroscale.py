@@ -26,7 +26,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the load factor
 
-    load_factor = 1.0
+    load_factor = 0.75
 
     # Defines the RVE overall parameters
 
@@ -104,7 +104,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.1, 0.1, 
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.09, 0.09, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -126,7 +126,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.1, 0.1, 
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.09, 0.09, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -148,13 +148,13 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.1, 0.1, 
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.09, 0.09, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
 
-    parameters_sets = [test11]#, test12, test13, test21, test22, test23, 
+    parameters_sets = [test33]#, test12, test13, test21, test22, test23, 
     #test31, test32, test33]
 
     # Sets a list of names for each set of parameters, which will yield
@@ -443,53 +443,28 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     #                       Material properties                        #
     ####################################################################
 
-    # Converts to Lamé parameters
-
-    mu_matrix = E_matrix/(2*(1+nu_matrix))
-
-    lmbda_matrix = (nu_matrix*E_matrix)/((1+nu_matrix)*(1-(2*nu_matrix)))
-
-    mu_fiber = E_fiber/(2*(1+nu_fiber))
-
-    lmbda_fiber = (nu_fiber*E_fiber)/((1+nu_fiber)*(1-(2*nu_fiber)))
-
     # Sets a dictionary of properties
 
     alpha_matrix = 0.0
 
-    beta_matrix = 0.0
-
     alpha_fiber = 0.0
-
-    beta_fiber = 0.0
-
-    if flag_bending:
-
-        beta_matrix = 4*mu_matrix*(characteristic_lengthMatrix**2)
-
-        beta_fiber = 4*mu_fiber*(characteristic_lengthFiber**2)
-
-    else:
-
-        beta_matrix = ((2*mu_matrix*(characteristic_lengthMatrix**2))-
-        gamma_matrix)
-
-        beta_fiber = ((2*mu_fiber*(characteristic_lengthFiber**2))-
-        gamma_fiber)
 
     # Saves the properties into a dictionary for the matrix
 
     material_propertiesMatrix = dict()
 
-    material_propertiesMatrix["mu"] = mu_matrix
+    material_propertiesMatrix["E"] = E_matrix
 
-    material_propertiesMatrix["lambda"] = lmbda_matrix
+    material_propertiesMatrix["nu"] = nu_matrix
+
+    material_propertiesMatrix["flag bending"] = flag_bending
+
+    material_propertiesMatrix["characteristic length"] = (
+    characteristic_lengthMatrix)
 
     material_propertiesMatrix["N"] = N_micropolarMatrix
 
     material_propertiesMatrix["alpha"] = alpha_matrix
-
-    material_propertiesMatrix["beta"] = beta_matrix
 
     material_propertiesMatrix["gamma"] = gamma_matrix
 
@@ -497,15 +472,18 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     material_propertiesFiber = dict()
 
-    material_propertiesFiber["mu"] = mu_fiber
+    material_propertiesFiber["E"] = E_fiber
 
-    material_propertiesFiber["lambda"] = lmbda_fiber
+    material_propertiesFiber["nu"] = nu_fiber
+
+    material_propertiesFiber["flag bending"] = flag_bending
+
+    material_propertiesFiber["characteristic length"] = (
+    characteristic_lengthFiber)
 
     material_propertiesFiber["N"] = N_micropolarFiber
 
     material_propertiesFiber["alpha"] = alpha_fiber
-
-    material_propertiesFiber["beta"] = beta_fiber
 
     material_propertiesFiber["gamma"] = gamma_fiber
 

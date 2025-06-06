@@ -216,6 +216,20 @@ gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25,
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation"):
 
+    # Evaluates the fiber ratio
+
+    fiber_ratio = (np.pi*(fiber_radius**2))/(RVE_length**2)
+
+    # Mixes them using the lower bound of the rule of mixtures to give a
+    # conservative load
+
+    E_mixture = 1.0/((fiber_ratio/E_fiber)+((1-fiber_ratio)/E_matrix))
+
+    # Defines the maximum load
+    
+    maximum_load = ((0.5*load_factor*E_mixture*((RVE_length*(RVE_width**
+    3))/12))/((n_RVEsZ*RVE_width)**3))
+
     # Sets the data of the simulation in a txt file
 
     file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
@@ -228,7 +242,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
-    "calizationZ": RVE_localizationZ}), "00_parameters", parent_path=
+    "calizationZ": RVE_localizationZ, "E_mixture": E_mixture, "maximum"+
+    "_load": maximum_load}), "00_parameters", parent_path=
     base_path+"//graphics//"+subfolder_name)
 
     file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
@@ -241,7 +256,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
-    "calizationZ": RVE_localizationZ}), "00_parameters", parent_path=
+    "calizationZ": RVE_localizationZ, "E_mixture": E_mixture, "maximum"+
+    "_load": maximum_load}), "00_parameters", parent_path=
     base_path+"//text//"+subfolder_name)
 
     ####################################################################
@@ -384,53 +400,28 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     #                       Material properties                        #
     ####################################################################
 
-    # Converts to Lamé parameters
-
-    mu_matrix = E_matrix/(2*(1+nu_matrix))
-
-    lmbda_matrix = (nu_matrix*E_matrix)/((1+nu_matrix)*(1-(2*nu_matrix)))
-
-    mu_fiber = E_fiber/(2*(1+nu_fiber))
-
-    lmbda_fiber = (nu_fiber*E_fiber)/((1+nu_fiber)*(1-(2*nu_fiber)))
-
     # Sets a dictionary of properties
 
     alpha_matrix = 0.0
 
-    beta_matrix = 0.0
-
     alpha_fiber = 0.0
-
-    beta_fiber = 0.0
-
-    if flag_bending:
-
-        beta_matrix = 4*mu_matrix*(characteristic_lengthMatrix**2)
-
-        beta_fiber = 4*mu_fiber*(characteristic_lengthFiber**2)
-
-    else:
-
-        beta_matrix = ((2*mu_matrix*(characteristic_lengthMatrix**2))-
-        gamma_matrix)
-
-        beta_fiber = ((2*mu_fiber*(characteristic_lengthFiber**2))-
-        gamma_fiber)
 
     # Saves the properties into a dictionary for the matrix
 
     material_propertiesMatrix = dict()
 
-    material_propertiesMatrix["mu"] = mu_matrix
+    material_propertiesMatrix["E"] = E_matrix
 
-    material_propertiesMatrix["lambda"] = lmbda_matrix
+    material_propertiesMatrix["nu"] = nu_matrix
 
     material_propertiesMatrix["N"] = N_micropolarMatrix
 
     material_propertiesMatrix["alpha"] = alpha_matrix
 
-    material_propertiesMatrix["beta"] = beta_matrix
+    material_propertiesMatrix["flag bending"] = flag_bending
+
+    material_propertiesMatrix["characteristic length"] = (
+    characteristic_lengthMatrix)
 
     material_propertiesMatrix["gamma"] = gamma_matrix
 
@@ -438,15 +429,18 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     material_propertiesFiber = dict()
 
-    material_propertiesFiber["mu"] = mu_fiber
+    material_propertiesFiber["E"] = E_fiber
 
-    material_propertiesFiber["lambda"] = lmbda_fiber
+    material_propertiesFiber["nu"] = nu_fiber
 
     material_propertiesFiber["N"] = N_micropolarFiber
 
     material_propertiesFiber["alpha"] = alpha_fiber
 
-    material_propertiesFiber["beta"] = beta_fiber
+    material_propertiesFiber["flag bending"] = flag_bending
+
+    material_propertiesFiber["characteristic length"] = (
+    characteristic_lengthFiber)
 
     material_propertiesFiber["gamma"] = gamma_fiber
 
@@ -524,11 +518,6 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     ####################################################################
     #                        Boundary conditions                       #
     ####################################################################
-
-    # Defines a load expression
-    
-    maximum_load = ((0.5*load_factor*E_matrix*((RVE_length*(RVE_width**3
-    ))/12))/((n_RVEsZ*RVE_width)**3))
 
     # Assemble the traction vector using this load expression
     

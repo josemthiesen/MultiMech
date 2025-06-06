@@ -55,7 +55,7 @@ material_properties = dict()
 
 material_properties["E"] = E
 
-material_properties["v"] = nu
+material_properties["nu"] = nu
 
 # Sets the material as a neo-hookean material using the corresponding
 # class

@@ -75,35 +75,25 @@ E = 100E6
 
 nu = 0.4
 
-mu = E/(2*(1+nu))
-
-lmbda = (nu*E)/((1+nu)*(1-(2*nu)))
-
 flag_bending = True
 
-characteristic_lengthMatrix = 0.1
+characteristic_length = 0.1
 
 gamma = 0.0
 
 alpha = 0.0
 
-material_properties["mu"] = mu
+material_properties["E"] = E
 
-material_properties["lambda"] = lmbda
+material_properties["nu"] = nu
+
+material_properties["flag bending"] = flag_bending
+
+material_properties["characteristic length"] = characteristic_length
 
 material_properties["N"] = 0.1
 
-if flag_bending:
-
-    beta = 4*mu*(characteristic_lengthMatrix**2)
-
-else:
-
-    beta = ((2*mu*(characteristic_lengthMatrix**2))-gamma)
-
 material_properties["alpha"] = alpha
-
-material_properties["beta"] = beta
 
 material_properties["gamma"] = gamma
 

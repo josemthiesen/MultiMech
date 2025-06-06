@@ -266,53 +266,28 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
     #                       Material properties                        #
     ####################################################################
 
-    # Converts to Lamé parameters
-
-    mu_matrix = E_matrix/(2*(1+nu_matrix))
-
-    lmbda_matrix = (nu_matrix*E_matrix)/((1+nu_matrix)*(1-(2*nu_matrix)))
-
-    mu_fiber = E_fiber/(2*(1+nu_fiber))
-
-    lmbda_fiber = (nu_fiber*E_fiber)/((1+nu_fiber)*(1-(2*nu_fiber)))
-
     # Sets a dictionary of properties
 
     alpha_matrix = 0.0
 
-    beta_matrix = 0.0
-
     alpha_fiber = 0.0
-
-    beta_fiber = 0.0
-
-    if flag_bending:
-
-        beta_matrix = 4*mu_matrix*(characteristic_lengthMatrix**2)
-
-        beta_fiber = 4*mu_fiber*(characteristic_lengthFiber**2)
-
-    else:
-
-        beta_matrix = ((2*mu_matrix*(characteristic_lengthMatrix**2))-
-        gamma_matrix)
-
-        beta_fiber = ((2*mu_fiber*(characteristic_lengthFiber**2))-
-        gamma_fiber)
 
     # Saves the properties into a dictionary for the matrix
 
     material_propertiesMatrix = dict()
 
-    material_propertiesMatrix["mu"] = mu_matrix
+    material_propertiesMatrix["E"] = E_matrix
 
-    material_propertiesMatrix["lambda"] = lmbda_matrix
+    material_propertiesMatrix["nu"] = nu_matrix
 
     material_propertiesMatrix["N"] = N_micropolarMatrix
 
     material_propertiesMatrix["alpha"] = alpha_matrix
 
-    material_propertiesMatrix["beta"] = beta_matrix
+    material_propertiesMatrix["flag bending"] = flag_bending
+
+    material_propertiesMatrix["characteristic length"] = (
+    characteristic_lengthMatrix)
 
     material_propertiesMatrix["gamma"] = gamma_matrix
 
@@ -320,15 +295,18 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     material_propertiesFiber = dict()
 
-    material_propertiesFiber["mu"] = mu_fiber
+    material_propertiesFiber["E"] = E_fiber
 
-    material_propertiesFiber["lambda"] = lmbda_fiber
+    material_propertiesFiber["nu"] = nu_fiber
 
     material_propertiesFiber["N"] = N_micropolarFiber
 
     material_propertiesFiber["alpha"] = alpha_fiber
 
-    material_propertiesFiber["beta"] = beta_fiber
+    material_propertiesFiber["flag bending"] = flag_bending
+
+    material_propertiesFiber["characteristic length"] = (
+    characteristic_lengthFiber)
 
     material_propertiesFiber["gamma"] = gamma_fiber
 

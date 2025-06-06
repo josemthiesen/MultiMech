@@ -61,9 +61,14 @@ class Neo_Hookean(HyperelasticMaterialModel):
 
         self.required_fieldsNames = ["displacement"]
 
+        # Checks the keys of the dictionary of material parameters
+
+        constitutive_tools.check_materialDictionary(material_properties, 
+        ["E", "nu"])
+
         self.E = Constant(material_properties["E"])
 
-        self.v = Constant(material_properties["v"])
+        self.v = Constant(material_properties["nu"])
 
         # Evaluates the Lamé parameters
 

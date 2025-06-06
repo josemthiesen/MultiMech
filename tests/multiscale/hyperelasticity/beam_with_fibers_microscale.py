@@ -177,7 +177,7 @@ material_propertiesMatrix = dict()
 
 material_propertiesMatrix["E"] = E_matrix
 
-material_propertiesMatrix["v"] = nu_matrix
+material_propertiesMatrix["nu"] = nu_matrix
 
 # And for the fiber
 
@@ -185,7 +185,7 @@ material_propertiesFiber = dict()
 
 material_propertiesFiber["E"] = E_fiber
 
-material_propertiesFiber["v"] = nu_fiber
+material_propertiesFiber["nu"] = nu_fiber
 
 # Sets the material as a HGO material
 
@@ -239,18 +239,6 @@ solver_parameters["newton_relative_tolerance"] = 1e-8#1e-8
 solver_parameters["newton_absolute_tolerance"] = 1e-5#1e-8
 
 solver_parameters["newton_maximum_iterations"] = 30
-
-"""
-
-solver_parameters["preconditioner"] = "petsc_amg"
-
-solver_parameters["krylov_absolute_tolerance"] = 1e-5
-
-solver_parameters["krylov_relative_tolerance"] = 1e-5
-
-solver_parameters["krylov_maximum_iterations"] = 15000
-
-solver_parameters["krylov_monitor_convergence"] = False"""
 
 ####################################################################
 #                        Boundary conditions                       #

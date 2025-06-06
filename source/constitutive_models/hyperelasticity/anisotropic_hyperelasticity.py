@@ -62,6 +62,13 @@ class Holzapfel_Gasser_Ogden_Unconstrained(HyperelasticMaterialModel):
         # this model
 
         self.required_fieldsNames = ["displacement"]
+
+        # Checks the keys of the dictionary of material parameters
+
+        constitutive_tools.check_materialDictionary(material_properties, 
+        ["c", "k1", "k2", "gamma", "kappa", "k", "local system of coor"+
+        "dinates: a direction", "local system of coordinates: d direct"+
+        "ion"])
         
         self.c = Constant(material_properties["c"])
 

@@ -12,6 +12,8 @@ import source.tool_box.programming_tools as programming_tools
 
 import source.tool_box.surface_loading_tools as surface_loading_tools
 
+import source.tool_box.body_forces_loading_tools as body_loading_tools
+
 ########################################################################
 #                            Internal work                             #
 ########################################################################
@@ -477,6 +479,204 @@ methods_functionsDict, field_variation, neumann_loads):
         mesh_dataClass.ds(physical_group))
 
     return traction_form, neumann_loads
+
+########################################################################
+#                           Body forces work                           #
+########################################################################
+
+# Defines a function to construct the variational form of the work done
+# by the body forces vector in the reference configuration given a dic-
+# tionary of body forces loads, where the keys are the corresponding do-
+# main physical groups and the values are the body forces loads
+
+def body_forcesWork(body_forcesDict, field_name, solution_fields, 
+variation_fields, monolithic_solution, fields_namesDict, mesh_dataClass, 
+neumann_loads):
+    
+    # Gets the symbolic field and its variation
+
+    field = solution_fields[field_name]
+
+    field_variation = variation_fields[field_name]
+
+    # Gets the physical groups tags
+
+    physical_groupsTags = set(mesh_dataClass.ds.subdomain_data().array(
+    ))
+
+    # Initializes the variational form
+
+    body_form = 0.0
+
+    # Initializes a dictionary of load-generating functions from the 
+    # body_loading_tools file
+
+    methods_functionsDict = None
+
+    methods_functionsDict = programming_tools.dispatch_functions([], 
+    body_loading_tools, methods_functionsDict=methods_functionsDict)[1]
+
+    # Initializes the dictionary of fixed arguments for the loading 
+    # functions
+
+    fixed_arguments = {"field": field, "mesh_dataClass": mesh_dataClass,
+    "field_variation": field_variation}
+
+    # For evaluation of the value of the field at a point, the numerical
+    # information must be provided, which is trickier in mixed finite e-
+    # lements formulation
+
+    if len(fields_namesDict.keys())>1:
+
+        # Splits the solution and gets the current numerical format of
+        # the field
+
+        fixed_arguments["field_numerical"] = monolithic_solution.split()[
+        fields_namesDict[field_name]]
+
+    else:
+
+        # In single field formulations, the symbolic and numerical func-
+        # tions coincide
+
+        fixed_arguments["field_numerical"] = field
+
+    # Iterates through the dictionary
+
+    for physical_group, body_force in body_forcesDict.items():
+
+        # Verifies if the body force is a list, to add multiple loads to a
+        # single physical group
+
+        if isinstance(body_force, list):
+
+            # Iterates through the loads
+
+            for load in body_force:
+
+                # Updates the body force form
+
+                body_form, neumann_loads = set_bodyForceIntegration(
+                body_form, body_force, physical_group, 
+                physical_groupsTags, mesh_dataClass, fixed_arguments, 
+                methods_functionsDict, field_variation, neumann_loads)
+
+        # If the body force is not a list, updates the variational form 
+        # directly
+
+        else:
+            
+            body_form, neumann_loads = set_bodyForceIntegration(
+            body_form, body_force, physical_group, physical_groupsTags, 
+            mesh_dataClass, fixed_arguments, methods_functionsDict, 
+            field_variation, neumann_loads)
+
+    # Returns the variational form
+
+    if mesh_dataClass.verbose:
+
+        print("Finishes creating the variational form of the work done"+
+        " by the body forces on the domain\n")
+
+    return body_form, neumann_loads
+
+# Defines a function to integrate the body forces variational form
+
+def set_bodyForceIntegration(body_form, body_force, physical_group,
+physical_groupsTags, mesh_dataClass, fixed_arguments, 
+methods_functionsDict, field_variation, neumann_loads):
+
+    # Checks if this body_force is a dictionary with instructions
+
+    if isinstance(body_force, dict):
+
+        # Checks if there is a load case name
+
+        if not ("load case" in body_force):
+
+            raise KeyError("There is no key 'load case' in the diction"+
+            "ary of body_force for the physical group '"+str(
+            physical_group)+"'. This key must be in to signal which au"+
+            "tomatically-generated load case must be used. The followi"+
+            "ng keys have been found though: "+str(body_force.keys()))
+
+        # Assembles the input of arguments for the body_force vector
+        # building method. Adds first the values given in fixed_ar-
+        # guments
+
+        method_arguments = {key: value for key, value in (
+        fixed_arguments.items())}
+
+        # Adds the physical group too
+
+        method_arguments["physical_group"] = physical_group
+
+        # Gets the load case from the body_force dictionary and copies the
+        # information apart of the load case. Does not pop the key be-
+        # cause this can alter the body_force dictionary for other physi-
+        # cal groups
+
+        load_case = body_force["load case"]
+
+        user_data = dict()
+
+        for key, value in body_force.items():
+
+            if key!="load case":
+
+                user_data[key] = value
+
+        # Dispatches the function and calls it right away
+
+        body_force, neumann_load = programming_tools.dispatch_functions(
+        load_case, None, fixed_inputVariablesDict=method_arguments,
+        second_sourceFixedArguments=user_data, methods_functionsDict=
+        methods_functionsDict, return_list=True, return_singleFunction=
+        True, all_argumentsFixed=True)[0]()
+
+        # Appends the neumann_load to the list of time controls
+
+        neumann_loads.append(neumann_load)
+
+    # Verifies if the body_force is, then, a fenics format
+
+    elif ((not isinstance(body_force, Expression)) and (not isinstance(
+    body_force, Constant)) and (not isinstance(body_force, 
+    ufl_legacy.core.expr.Expr))):
+
+        raise TypeError("The body_force vector, if not defined as a dict"+
+        "ionary of instructions to use built-in load cases, must be de"+
+        "fined as a dolfin format, either a Constant, an Expression, o"+
+        "r as_vector. In the physical group '"+str(physical_group)+"',"+
+        " the body_force provided was: "+str(body_force))
+
+    # Verifies if this physical group is indeed in ds
+        
+    physical_group = verify_physicalGroups(physical_group, 
+    physical_groupsTags, physical_groupsNamesToTags=
+    mesh_dataClass.boundary_physicalGroupsNameToTag)
+
+    if isinstance(physical_group, list):
+
+        for sub_physicalGroup in physical_group:
+
+            print("The physical group "+str(sub_physicalGroup)+" h"+
+            "as an area of "+str(assemble(1*mesh_dataClass.ds(
+            sub_physicalGroup)))+"\n")
+
+            body_form += (dot(body_force, field_variation)*
+            mesh_dataClass.ds(sub_physicalGroup))
+
+    else:
+
+        print("The physical group "+str(physical_group)+" has an a"+
+        "rea of "+str(assemble(1*mesh_dataClass.ds(physical_group)))
+        +"\n")
+
+        body_form += (dot(body_force, field_variation)*
+        mesh_dataClass.ds(physical_group))
+
+    return body_form, neumann_loads
 
 ########################################################################
 #                              Utilities                               #

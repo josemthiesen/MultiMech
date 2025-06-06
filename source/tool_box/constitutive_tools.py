@@ -26,6 +26,19 @@ i, j, k, l = ufl.indices(4)
 #                     Field checking and retrieving                    #
 ########################################################################
 
+# Defines a function to check if the dictionary of material parameters 
+# has all the keys
+
+def check_materialDictionary(dictionary, required_keys):
+
+    for key in required_keys:
+
+        if not (key in dictionary):
+
+            raise KeyError("The key '"+str(key)+"' was not found in th"+
+            "e dictionary of material parameters. See: "+str(
+            dictionary.keys()))
+
 # Defines a function to retrieve from the constitutive tools the neces-
 # sary fields' names
 
