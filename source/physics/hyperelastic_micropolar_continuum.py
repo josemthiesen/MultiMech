@@ -21,7 +21,8 @@ import source.tool_box.programming_tools as programming_tools
 @programming_tools.optional_argumentsInitializer({'neumann_loads': 
 lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: [], 
 'volume_physGroupsSubmesh': lambda: [], 'post_processesSubmesh': lambda: 
-[], 'dirichlet_boundaryConditions': lambda: dict()})
+[], 'dirichlet_boundaryConditions': lambda: dict(), 'body_forcesDict':
+lambda: dict(), 'body_momentsDict': lambda: dict()})
 
 def hyperelasticity_displacementMicrorotationBased(constitutive_model, 
 traction_dictionary, moment_dictionary, maximum_loadingSteps, t_final, 
@@ -29,7 +30,8 @@ post_processes, mesh_fileName, solver_parameters,
 polynomial_degreeDisplacement=2, polynomial_degreeMicrorotation=2, 
 t=0.0, neumann_loads=None, dirichlet_loads=None, solution_name=None,
 volume_physGroupsSubmesh=None, post_processesSubmesh=None, 
-dirichlet_boundaryConditions=None, verbose=False):
+dirichlet_boundaryConditions=None, verbose=False, body_forcesDict=None,
+body_momentsDict=None):
 
     ####################################################################
     #                               Mesh                               #
@@ -103,6 +105,18 @@ dirichlet_boundaryConditions=None, verbose=False):
     moment_dictionary, "microrotation", solution_fields, 
     variation_fields, solution_new, fields_namesDict, mesh_dataClass, 
     neumann_loads)
+
+    # Constructs the variational form for the work of the body forces
+
+    body_forcesVarForm, neumann_loads = variational_tools.body_forcesWork(
+    body_forcesDict, "displacement", solution_fields, variation_fields, 
+    solution_new, fields_namesDict, mesh_dataClass, neumann_loads)
+
+    # Constructs the variational form for the work of the body moments
+
+    body_momentsVarForm, neumann_loads = variational_tools.body_forcesWork(
+    body_momentsDict, "microrotation", solution_fields, variation_fields, 
+    solution_new, fields_namesDict, mesh_dataClass, neumann_loads)
 
     ####################################################################
     #              Problem and solver parameters setting               #

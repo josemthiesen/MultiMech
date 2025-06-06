@@ -18,14 +18,15 @@ import source.tool_box.programming_tools as programming_tools
 lambda: [], 'dirichlet_loads': lambda: [], 'solution_name': lambda: [
 "solution", "DNS"], 'volume_physGroupsSubmesh': lambda: [], ('post_pro'+
 'cessesSubmesh'): lambda: dict(), 'dirichlet_boundaryConditions': lambda: 
-dict()})
+dict(), "body_forcesDict": lambda: dict()})
 
 def hyperelasticity_displacementBased(constitutive_model, 
 traction_dictionary, maximum_loadingSteps, t_final, post_processes, 
 mesh_fileName, solver_parameters, neumann_loads=None, dirichlet_loads=
 None, polynomial_degree=2, quadrature_degree=2, t=0.0, 
 volume_physGroupsSubmesh=None, post_processesSubmesh=None, 
-solution_name=None, verbose=False, dirichlet_boundaryConditions=None):
+solution_name=None, verbose=False, dirichlet_boundaryConditions=None,
+body_forcesDict=None):
 
     ####################################################################
     #                               Mesh                               #
@@ -89,6 +90,12 @@ solution_name=None, verbose=False, dirichlet_boundaryConditions=None):
     variation_fields, solution_new, fields_namesDict, mesh_dataClass, 
     neumann_loads)
 
+    # Constructs the variational form for the work of the body forces
+
+    body_forcesVarForm, neumann_loads = variational_tools.body_forcesWork(
+    body_forcesDict, "displacement", solution_fields, variation_fields, 
+    solution_new, fields_namesDict, mesh_dataClass, neumann_loads)
+
     ####################################################################
     #              Problem and solver parameters setting               #
     ####################################################################
@@ -96,7 +103,7 @@ solution_name=None, verbose=False, dirichlet_boundaryConditions=None):
     # Assembles the residual and the nonlinear problem object. Sets the
     # solver parameters too
 
-    residual_form = internal_VarForm-traction_VarForm
+    residual_form = internal_VarForm-traction_VarForm-body_forcesVarForm
 
     solver = functional_tools.set_nonlinearProblem(residual_form, 
     solution_new, delta_solution, bc, solver_parameters=

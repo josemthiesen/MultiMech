@@ -132,8 +132,8 @@ maximum_load = 2E6
 #"""
 traction_boundary = {"load case": "UniformReferentialTraction", "ampli"+
 "tude_tractionX": 0.0, "amplitude_tractionY": 0.0, "amplitude_tractionZ": 
-maximum_load, "parametric_load_curve": "square root", "t": t, "t_"+
-"final": t_final}#"""
+maximum_load, "parametric_load_curve": "square root", "t": t, "t_final":
+t_final}#"""
 
 """
 traction_boundary = {"load case": "NormalUniformFollowerTraction", "am"+
@@ -178,6 +178,13 @@ bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
 "nslation": [0.0, 0.0, 0.05], "in_planeSpinDirection": [1.0, 0.0, 0.0], 
 "in_planeSpin": 15, "normal_toPlaneSpin": 45.0}}"""
 
+# Defines a dictionary of body forces
+
+body_forcesDict = dict()
+
+body_forcesDict[""] = {"load case": "UniformReferentialBodyForce", "am"+
+"plitude_bodyX":0.0, "amplitude_bodyY": 0.0, "amplitude_bodyZ": 2E8}
+
 ########################################################################
 ########################################################################
 ##                      Calculation and solution                      ##
@@ -190,4 +197,4 @@ variational_framework.hyperelasticity_displacementBased(
 constitutive_model, traction_dictionary, maximum_loadingSteps, t_final, 
 post_processes, mesh_fileName, solver_parameters, polynomial_degree=
 polynomial_degree, t=t, dirichlet_boundaryConditions=bcs_dictionary, 
-verbose=True)
+verbose=True, body_forcesDict=body_forcesDict)

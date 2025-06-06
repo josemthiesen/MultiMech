@@ -19,8 +19,9 @@ import source.tool_box.numerical_tools as numerical_tools
 # Defines a function to construct a uniform body force on a domain in 
 # the referential configuration
 
-def UniformReferentialTraction(amplitude_bodyX, amplitude_bodyY,
-amplitude_bodyZ, t=0.0, t_final=1.0, parametric_load_curve="linear"):
+def UniformReferentialBodyForce(amplitude_bodyX, amplitude_bodyY,
+amplitude_bodyZ, physical_group, t=0.0, t_final=1.0, 
+parametric_load_curve="linear"):
     
     # Verifies if the parametric load curve is a string and, then, uses
     # it to convert to an actual function
@@ -38,14 +39,46 @@ amplitude_bodyZ, t=0.0, t_final=1.0, parametric_load_curve="linear"):
 
     # Evaluates the body force vector at the referential configuration
 
-    B = as_vector([parametric_load_curve(time_constant/maximum_time)*
-    amplitude_bodyX, parametric_load_curve(time_constant/
-    maximum_time)*amplitude_bodyY, parametric_load_curve(
-    time_constant/maximum_time)*amplitude_bodyZ])
+    B = Constant([0.0, 0.0, 0.0])
+
+    class TimeUpdate:
+
+        def __init__(self):
+            
+            self.t = time_constant
+
+            self.B = B
+
+        # This class must have the update_load method to be called in 
+        # the stepping algorithm
+
+        def update_load(self, t):
+
+            # Updates the time constant
+
+            self.t.assign(Constant(t))
+
+            # Evaluates the parametric load curve
+
+            load_value = parametric_load_curve(self.t/maximum_time)
+
+            # Updates the vector
+
+            self.B.assign(Constant([load_value*amplitude_bodyX, 
+            load_value*amplitude_bodyY, load_value*amplitude_bodyZ]))
+
+            # Annuntiates the corrections
+
+            print("\nUniform referential body force at physical group "+
+            "'"+str(physical_group)+"':\n"+str(float(load_value*100))+
+            "% of the final load is applied using the parametric load "+
+            "curve\n")
+
+    time_update = TimeUpdate()
 
     # Returns the body force vector and the time constant
 
-    return B, time_constant
+    return B, time_update
 
 ########################################################################
 #                           Follower forces                            #

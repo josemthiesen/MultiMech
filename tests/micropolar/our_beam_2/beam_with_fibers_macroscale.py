@@ -26,7 +26,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the load factor
 
-    load_factor = 0.75
+    load_factor = 0.9
 
     # Defines the RVE overall parameters
 
@@ -90,7 +90,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_matrix = 100E6
 
-    E_fiber = 100E6
+    E_fiber = 1.0*E_matrix
 
     test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
@@ -112,7 +112,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_matrix = 100E6
 
-    E_fiber = 1000E6
+    E_fiber = 10*E_matrix
 
     test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
@@ -134,7 +134,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_matrix = 100E6
 
-    E_fiber = 10000E6
+    E_fiber = 100*E_matrix
 
     test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
@@ -148,7 +148,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.09, 0.09, 
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -542,7 +542,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     solver_parameters["newton_relative_tolerance"] = 1e-6
 
-    solver_parameters["newton_absolute_tolerance"] = 1e-5
+    solver_parameters["newton_absolute_tolerance"] = 1e-4
 
     solver_parameters["newton_maximum_iterations"] = 30
 
