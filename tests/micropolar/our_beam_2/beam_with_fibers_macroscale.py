@@ -26,7 +26,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the load factor
 
-    load_factor = 0.9
+    load_factor = 0.75
 
     # Defines the RVE overall parameters
 
@@ -567,8 +567,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     # Assemble the traction vector using this load expression
 
     traction_boundary = {"load case": "NormalReferentialTorsion", "amp"+
-    "litude_torsion": maximum_load, "parametric_load_curve": "square r"+
-    "oot", "t": t, "t_final": t_final}#, "influence_radius": 0.10}
+    "litude_torsion": maximum_load, "t": t, "t_final": t_final, "param"+
+    "etric_load_curve": "linear"}#, "influence_radius": 0.10}
 
     # Defines a dictionary of tractions
 

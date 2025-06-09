@@ -14,8 +14,6 @@ import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as c
 
 import source.multiscale.multiscale_hyperelasticity as variational_framework
 
-import source.tool_box.file_handling_tools as file_tools
-
 sys.path.insert(1, '/home/matheus-janczkowski/Github')
 
 import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
@@ -26,7 +24,7 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 ########################################################################
 ########################################################################
         
-displacement_multiscaleBC = "MinimallyConstrainedFirstOrderBC"
+displacement_multiscaleBC = "MinimallyConstrainedFirstOrderBC"#"LinearFirstOrderBC"#"PeriodicFirstOrderBC"#
 
 fluctuation_field = False
 

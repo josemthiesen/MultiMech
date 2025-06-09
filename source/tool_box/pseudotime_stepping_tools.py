@@ -36,7 +36,7 @@ mesh_dataClass, constitutive_model, post_processesDict=None,
 post_processesSubmeshDict=None, dirichlet_loads=None, neumann_loads=None, 
 solution_name=None, volume_physGroupsSubmesh=None, 
 macro_quantitiesClasses=None, t=None, t_final=None, maximum_loadingSteps=
-None):
+None, field_correction=None):
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
@@ -53,7 +53,7 @@ None):
 
     for MacroScaleClass in macro_quantitiesClasses:
 
-        if not inspect.isclass(MacroScaleClass):
+        if not hasattr(MacroScaleClass, '__class__'):
 
             raise TypeError("The objects in 'macro_quantitiesClasses' "+
             "must be classes")
@@ -102,6 +102,8 @@ None):
         volume_physGroupsSubmesh = [volume_physGroupsSubmesh]
     
     # If there are volumetric physical groups to build a submesh
+
+    solution_submesh = None
 
     if len(volume_physGroupsSubmesh)>0:
 
@@ -165,6 +167,14 @@ None):
     # Initializes the pseudotime counter
 
     time_counter = 0
+
+    correction_projection = None
+
+    intermediate_field = None
+
+    if not (field_correction is None):
+
+        correction_projection = Function(field_correction[2])
 
     # Checks if the time keys of the macro quantities for multiscale a-
     # nalysis are empty. If so, creates a range of time points
@@ -280,9 +290,53 @@ None):
         print("The solution of this pseudotime took "+str(end_time-
         start_time)+" seconds\n\n")
 
+        # If the field has to be corrected, like in multiscale analysis, 
+        # using a correction field
+
+        if not (field_correction is None):
+
+            # Interpolates the correction of the field by the given
+            # function space, and, then, adds the resulting vector of
+            # parameters to the solution's one
+
+            correction_projection.interpolate(field_correction[1])
+
+            # Takes care if the solution field has the same number of 
+            # degrees of freedom as the correction does
+
+            if len(solution_field.vector())!=len(
+            correction_projection.vector()):
+                
+                # If there's a difference, an intermediate field has to
+                # be created in the function space of the correction 
+                
+                if intermediate_field is None:
+
+                    intermediate_field = Function(field_correction[2])
+
+                # In this space, the solution will be projected and the
+                # interpolated correction will be added
+                
+                intermediate_field.vector()[:] = (project(solution_field, 
+                field_correction[2]).vector()[:]+
+                correction_projection.vector()[:])
+
+            else:
+
+                solution_field.vector()[:] += (
+                correction_projection.vector()[:])
+
+        # Renames the solution
+
         if len(solution_name)>0:
 
-            solution_field.rename(*solution_name)
+            if intermediate_field is None:
+
+                solution_field.rename(*solution_name)
+
+            else:
+
+                intermediate_field.rename(*solution_name)
 
         # Updates the post processes objects
 
@@ -291,19 +345,38 @@ None):
             # Sets the field number as -1, for this problem has a single
             # field only. It must be -1 in this case
 
-            post_processingObjects[post_processName] = (
-            post_process.update_function(post_processingObjects[
-            post_processName], solution_field, -1, t, fields_namesDict))
+            if intermediate_field is None:
+
+                post_processingObjects[post_processName] = (
+                post_process.update_function(post_processingObjects[
+                post_processName], solution_field, -1, t, 
+                fields_namesDict))
+
+            else:
+
+                post_processingObjects[post_processName] = (
+                post_process.update_function(post_processingObjects[
+                post_processName], intermediate_field, -1, t, 
+                fields_namesDict))
 
         # If a submesh is to be populated with part of the solution
 
         if len(volume_physGroupsSubmesh)>0 and (len(list(
         post_processesSubmesh.keys()))>0):
 
-            solution_submesh = mesh_tools.field_parentToSubmesh(
-            RVE_submesh, solution_field, RVE_toParentCellMap, 
-            sub_meshMapping=RVE_meshMapping, parent_meshMapping=
-            parent_meshMapping, field_submesh=solution_submesh)
+            if intermediate_field is None:
+
+                solution_submesh = mesh_tools.field_parentToSubmesh(
+                RVE_submesh, solution_field, RVE_toParentCellMap, 
+                sub_meshMapping=RVE_meshMapping, parent_meshMapping=
+                parent_meshMapping, field_submesh=solution_submesh)
+
+            else:
+
+                solution_submesh = mesh_tools.field_parentToSubmesh(
+                RVE_submesh, intermediate_field, RVE_toParentCellMap, 
+                sub_meshMapping=RVE_meshMapping, parent_meshMapping=
+                parent_meshMapping, field_submesh=solution_submesh)
 
             if len(solution_name)>0:
 
@@ -440,7 +513,13 @@ None, fields_corrections=None):
 
             if len(post_processesList)>0:
 
-                post_processesList = post_processesList[0]
+                if len(post_processesList[0])>0:
+
+                    post_processesList = post_processesList[0][1]
+
+                else:
+
+                    post_processesList = dict()
 
             else:
 
@@ -452,23 +531,55 @@ None, fields_corrections=None):
 
             if len(post_processesSubmeshList)>0:
 
-                post_processesSubmeshList = post_processesSubmeshList[0]
+                if len(post_processesSubmeshList[0])>0:
+
+                    post_processesSubmeshList = post_processesSubmeshList[
+                    0][1]
+
+                else:
+
+                    post_processesSubmeshList = dict()
 
             else:
 
                 post_processesSubmeshList = dict()
 
+        # Updates the solution name for one field
+
+        if len(solution_name)>0:
+
+            if isinstance(solution_name[0], list):
+
+                solution_name = solution_name[0]
+
+            else:
+
+                solution_name = ["field", "Microscale"]
+
+        else:
+
+            solution_name = ["field", "Microscale"]
+
+        # Updates the field corrections for the case of a single field
+
+        fields_corrections = list(fields_corrections.values())
+
+        if len(fields_corrections)>0:
+
+            fields_corrections = fields_corrections[0]
+
         # Calls the appropriate function to iterate in a single-field 
         # problem
 
-        newton_raphsonSingleField(solver, solution_field, mesh_dataClass, 
-        constitutive_model, post_processesDict=post_processesList, 
-        post_processesSubmeshDict=post_processesSubmeshList, 
-        dirichlet_loads=dirichlet_loads, neumann_loads=neumann_loads, 
-        solution_name=solution_name, volume_physGroupsSubmesh=
-        volume_physGroupsSubmesh, macro_quantitiesClasses=
-        macro_quantitiesClasses, t=t, t_final=t_final, 
-        maximum_loadingSteps=maximum_loadingSteps)
+        return newton_raphsonSingleField(solver, solution_field, 
+        fields_namesDict, mesh_dataClass, constitutive_model, 
+        post_processesDict=post_processesList, post_processesSubmeshDict=
+        post_processesSubmeshList, dirichlet_loads=dirichlet_loads, 
+        neumann_loads=neumann_loads, solution_name=solution_name, 
+        volume_physGroupsSubmesh=volume_physGroupsSubmesh, 
+        macro_quantitiesClasses=macro_quantitiesClasses, t=t, t_final=
+        t_final, maximum_loadingSteps=maximum_loadingSteps,
+        field_correction=fields_corrections)
     
     print("\n#########################################################"+
     "###############\n#              The Newton-Raphson scheme will be"+
