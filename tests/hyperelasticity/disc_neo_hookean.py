@@ -125,7 +125,7 @@ maximum_loadingSteps = 5
 
 # Defines a load expression
 
-maximum_load = 2E6
+maximum_load = 2E7
 
 # Assemble the traction vector using this load expression
 
@@ -183,7 +183,7 @@ bcs_dictionary["top"] = {"BC case": "PrescribedDirichletBC", "bc_infor"+
 body_forcesDict = dict()
 
 body_forcesDict[""] = {"load case": "UniformReferentialBodyForce", "am"+
-"plitude_bodyX":0.0, "amplitude_bodyY": 0.0, "amplitude_bodyZ": 2E8}
+"plitude_bodyX":0.0, "amplitude_bodyY": 0.0, "amplitude_bodyZ": 2E5}
 
 ########################################################################
 ########################################################################

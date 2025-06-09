@@ -395,22 +395,6 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathGraphics, "file name": 
             traction_fileName, "polynomial degree":1}
 
-            """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
-            "ory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[0], "polynomial degree": 1}
-
-            post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
-            "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[1], "polynomial degree": 1}
-
-            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
-            "rectory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[2], "polynomial degree": 1}
-
-            post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
-            "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[3], "polynomial degree": 1}"""
-
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes
 

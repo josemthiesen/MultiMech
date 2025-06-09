@@ -3,6 +3,8 @@
 
 from dolfin import *
 
+import numpy as np
+
 from abc import ABC, abstractmethod
 
 from petsc4py import PETSc
@@ -253,13 +255,215 @@ trial_functions, boundary_conditions, solver_parameters=None):
 
     # Sets the solver to this problem
 
-    solver = NonlinearVariationalSolver(Res)
+    """solver = NonlinearVariationalSolver(Res)
 
     if not (solver_parameters is None):
 
         solver = set_solverParameters(solver, solver_parameters)
 
-    return solver
+    return solver"""
+
+    return create_solverClass(Res, solver_parameters)
+
+# Defines a function to create a class of NonlinearVariationalSolver 
+# with extra features taken from the solver_parameters dictionary
+
+def create_solverClass(non_linearProblem, solver_parameters):
+
+    if solver_parameters is None:
+
+        return NonlinearVariationalSolver(non_linearProblem)
+        
+    # Verifies if solver_parameters is not a dictionary
+
+    elif not isinstance(solver_parameters, dict):
+
+        raise TypeError("solver_parameters is not a dictionary, thus i"+
+        "t cannot be used to set the parameters of the solver")
+    
+    # Gets the admissible keys for the custom solver
+
+    custom_parameters = give_customSolverParametersKeys()
+
+    # Selects the parameters that are not native to fenics implementation
+
+    non_nativeParameters = dict()
+
+    for name, value in solver_parameters.items():
+
+        if name in custom_parameters:
+
+            # Adds this parameters
+
+            non_nativeParameters[name] = value
+
+    # If there is no non native parameters, creates the solver
+
+    if len(non_nativeParameters.keys())==0:
+
+        return set_solverParameters(NonlinearVariationalSolver(
+        non_linearProblem), solver_parameters)
+    
+    raise NotImplementedError("The custom solver has not been implemented yet")
+
+    # Eliminates the keys that are for the custom solver
+
+    for name in non_nativeParameters.keys():
+
+        solver_parameters.pop(name)
+
+    # Defines the class of the custom solver
+
+    class CustomSolver:
+
+        def __init__(self, problem):
+            
+            # Receives the NonlinearVariationalProblem and sets some de-
+            # fault parameters
+
+            self.problem = problem
+
+            self.parameters = {"nonlinear_solver": "newton", "newton_s"+
+            "olver": dict()}
+
+            self.parameters["newton_solver"] = {"maximum_iterations": 25, 
+            "relative_tolerance": 1e-8, "absolute_tolerance": 1e-8, "r"+
+            "eport": True, "error_on_nonconvergence": True, "linear_so"+
+            "lver": "lu"}
+
+        def solve(self):
+            
+            # Gets the solution, the residual,the Gateaux derivative, 
+            # and boundary conditions
+
+            u = self.problem.u
+
+            F_form = self.problem.F
+
+            J_form = self.problem.J
+
+            bcs = self.problem.bcs
+
+            if J_form is None:
+
+                du = TrialFunction(u.function_space())
+
+                J_form = derivative(F_form, u, du)
+
+            # Initializes the residual vector and the solution update
+            # step
+
+            residual_vector = None
+
+            du = Function(u.function_space())
+
+            # Gets some parameters
+
+            max_iter = self.parameters["newton_solver"]["maximum_iterations"]
+
+            a_tol = self.parameters["newton_solver"]["absolute_tolerance"]
+
+            r_tol = self.parameters["newton_solver"]["relative_tolerance"]
+
+            report = self.parameters["newton_solver"]["report"]
+
+            error_on_nonconvergence = self.parameters["newton_solver"]["error_on_nonconvergence"]
+
+            linear_solver = self.parameters["newton_solver"]["linear_solver"]
+
+            converged = False
+
+            initial_residual = None
+
+            for k in range(1, max_iter+1):
+
+                # Assembles residual
+
+                residual_vector = assemble(F_form)
+
+                for bc in bcs:
+
+                    bc.apply(residual_vector, u.vector())
+
+                res_norm = residual_vector.norm("l2")
+
+                if k==1:
+
+                    initial_residual = res_norm*1.0
+
+                if report:
+
+                    print(f"  Newton iteration {k}: r (norm) = {res_norm:.6e}")
+
+                if not np.isfinite(res_norm):
+
+                    raise RuntimeError("Newton solver diverged: residu"+
+                    "al is NaN or Inf")
+                
+                elif res_norm>non_nativeParameters["maximum_residual"]:
+
+                    raise RuntimeError("Newton solver diverged: residu"+
+                    "al is "+str(res_norm)+", which is larger than the"+
+                    " tolerance of "+str(non_nativeParameters["maximum"+
+                    "_residual"]))
+
+                if res_norm < a_tol:
+
+                    converged = True
+
+                    break
+
+                elif (res_norm/initial_residual)<r_tol:
+
+                    converged = True
+
+                    break
+
+                # Assembles Jacobian
+
+                J = assemble(J_form)
+
+                for bc in bcs:
+
+                    bc.apply(J)
+
+                # Solves for update
+
+                solve(J, du.vector(), residual_vector, linear_solver)
+
+                # Update solution
+
+                u.vector().axpy(-1.0, du.vector())
+
+                u.vector().apply("insert")
+
+            if not converged:
+
+                msg = f"Newton solver did not converge after {max_iter} iterations."
+
+                if error_on_nonconvergence:
+
+                    raise RuntimeError(msg)
+                
+                else:
+
+                    print(msg)
+
+            elif report:
+
+                print(f"  Newton solver converged in {k} iterations.\n")
+        
+    # Instantiates the new class and sets the parameters
+
+    return set_solverParameters(CustomSolver(non_linearProblem), 
+    solver_parameters)
+
+# Defines a function to give the parameters for the upgrade of the Newton
+# implementation native to fenics
+
+def give_customSolverParametersKeys():
+
+    return ["maximum_residual"]
 
 # Defines a function to update solver parameters
 
@@ -285,7 +489,9 @@ def set_solverParameters(solver, solver_parameters):
         if not (key in admissible_keys):
 
             raise NameError("The key "+str(key)+" is not an admissible"+
-            " key to set solver parameters.")
+            " key to set solver parameters. Check the admissible keys:"+
+            "\n"+str(admissible_keys)+"\nand the parameters for the cu"+
+            "stom solver:\n"+str(give_customSolverParametersKeys()))
         
     # Sets the solver parameters
 

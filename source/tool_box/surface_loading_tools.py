@@ -20,7 +20,8 @@ import source.tool_box.numerical_tools as numerical_tools
 # referential configuration
 
 def UniformReferentialTraction(amplitude_tractionX, amplitude_tractionY,
-amplitude_tractionZ, t=0.0, t_final=1.0, parametric_load_curve="linear"):
+amplitude_tractionZ, physical_group, t=0.0, t_final=1.0, 
+parametric_load_curve="linear"):
     
     # Verifies if the parametric load curve is a string and, then, uses
     # it to convert to an actual function
@@ -38,14 +39,44 @@ amplitude_tractionZ, t=0.0, t_final=1.0, parametric_load_curve="linear"):
 
     # Evaluates the traction vector at the referential configuration
 
-    T = as_vector([parametric_load_curve(time_constant/maximum_time)*
-    amplitude_tractionX, parametric_load_curve(time_constant/
-    maximum_time)*amplitude_tractionY, parametric_load_curve(
-    time_constant/maximum_time)*amplitude_tractionZ])
+    T = Constant([0.0, 0.0, 0.0])
+
+    # Creates the updating class
+
+    class TimeUpdate:
+
+        def __init__(self):
+            
+            self.t = time_constant
+
+            self.T = T
+
+        def update_load(self, t):
+
+            self.t.assign(Constant(t))
+
+            # Evaluates the load curve
+
+            load_value = float(parametric_load_curve(time_constant/
+            maximum_time))
+
+            # Updates the traction vector
+
+            self.T.assign(Constant([load_value*amplitude_tractionX, 
+            load_value*amplitude_tractionY, (load_value*
+            amplitude_tractionZ)]))
+
+            # Annuntiates the corrections
+
+            print("\nUniform referential traction at physical group '"+
+            str(physical_group)+"':\n"+str(load_value*100)+"% of the "+
+            "final load is applied using the parametric load curve\n")
+
+    time_update = TimeUpdate()
 
     # Returns the traction and the time constant
 
-    return T, time_constant
+    return T, time_update
 
 # Defines a function to construct a torsion in the referential configu-
 # ration
