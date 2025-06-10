@@ -361,9 +361,9 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     solver_parameters["linear_solver"] = "mumps"#"mumps"
 
-    solver_parameters["newton_relative_tolerance"] = 1e-9#1e-8
+    solver_parameters["newton_relative_tolerance"] = 1e-6#1e-8
 
-    solver_parameters["newton_absolute_tolerance"] = 1e-7#1e-8
+    solver_parameters["newton_absolute_tolerance"] = 1e-4#1e-8
 
     solver_parameters["newton_maximum_iterations"] = 30
 

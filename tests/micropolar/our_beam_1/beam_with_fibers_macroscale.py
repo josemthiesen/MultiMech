@@ -28,18 +28,6 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     load_factor = 1.0
 
-    # Sets the Young modulus and the Poisson ration from psi to MPa
-
-    nu_matrix = 0.4
-
-    nu_fiber = 0.4
-
-    flag_bending = True
-
-    gamma_matrix = 0.0
-
-    gamma_fiber = 0.0
-
     # Defines the RVE overall parameters
 
     RVE_width = 1.0
@@ -57,6 +45,22 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     n_RVEsY = 7
 
     n_RVEsZ = 25
+
+    # Sets the Young modulus and the Poisson ration from psi to MPa
+
+    nu_matrix = 0.4
+
+    nu_fiber = 0.4
+
+    flag_bending = True
+
+    gamma_matrix = 0.0
+
+    gamma_fiber = 0.0
+
+    characteristic_lengthMatrix = RVE_width*1.0
+    
+    characteristic_lengthFiber = RVE_width*1.0
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
@@ -86,68 +90,68 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_matrix = 100E6
 
-    E_fiber = 100E6
+    E_fiber = 1.0*E_matrix
 
-    test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
 
     E_matrix = 100E6
 
-    E_fiber = 1000E6
+    E_fiber = 10.0*E_matrix
 
-    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001,
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
 
     E_matrix = 100E6
 
-    E_fiber = 10000E6
+    E_fiber = 100.0*E_matrix
 
-    test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.002, 0.002, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.02, 0.02, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
     
-    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.2, 0.2, 
-    RVE_width*n_RVEsZ*2.0, (RVE_width*n_RVEsZ*2.0), flag_bending, 
-    load_factor, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius, RVE_localizationX, RVE_localizationY, 
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ]
 
     parameters_sets = [test11, test12, test13, test21, test22, test23, 
@@ -227,8 +231,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines the maximum load
     
-    maximum_load = ((0.5*load_factor*E_mixture*((RVE_length*(RVE_width**
-    3))/12))/((n_RVEsZ*RVE_width)**3))
+    maximum_load = ((0.5*load_factor*E_mixture*((RVE_length*n_RVEsX*((
+    n_RVEsY*RVE_width)**3))/12))/((n_RVEsZ*RVE_width)**3))
 
     # Sets the data of the simulation in a txt file
 
@@ -351,22 +355,6 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathText, "file name": 
             homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
-
-            """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
-            "ory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[0], "polynomial degree": 1}
-
-            post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
-            "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[1], "polynomial degree": 1}
-
-            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
-            "rectory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[2], "polynomial degree": 1}
-
-            post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
-            "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[3], "polynomial degree": 1}"""
 
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes
@@ -497,9 +485,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     solver_parameters["linear_solver"] = "mumps"
 
-    solver_parameters["newton_relative_tolerance"] = 1e-6#1e-8
+    solver_parameters["newton_relative_tolerance"] = 1e-6
 
-    solver_parameters["newton_absolute_tolerance"] = 1e-5#1e-8
+    solver_parameters["newton_absolute_tolerance"] = 1e-4
 
     solver_parameters["newton_maximum_iterations"] = 30
 
