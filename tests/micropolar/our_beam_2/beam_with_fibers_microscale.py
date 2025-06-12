@@ -43,7 +43,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Reads the parameters set
 
-    base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
+    base_path = os.getcwd()+"//tests//micropolar//our_beam_2//results"
 
     parameters_sets = file_tools.txt_toList(base_path+"//parameters_se"+
     "ts")
@@ -104,7 +104,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
             transfinite_directions=transfinite_directions,
             RVE_localizationX=parameters_sets[i][15], RVE_localizationY=
             parameters_sets[i][16], RVE_localizationZ=parameters_sets[i
-            ][17])
+            ][17], n_RVEsXMacro=parameters_sets[i][18], n_RVEsYMacro=
+            parameters_sets[i][19], n_RVEsZMacro=parameters_sets[i][20])
 
 # Defines a function to try different parameters
 
@@ -115,7 +116,8 @@ characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0,
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
 1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name=["simulation"],
-fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
+fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3], 
+n_RVEsXMacro=1, n_RVEsYMacro=1, n_RVEsZMacro=1):
 
     ####################################################################
     ####################################################################
@@ -339,7 +341,9 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
         RVE_localizationZ, mesh_fileName=mesh_fileName, file_directory=
         file_directory, transfinite_directions=transfinite_directions,
         translation=[RVE_length*(RVE_localizationX-1), RVE_width*(
-        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)])
+        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)],
+        n_RVEsXMacro=n_RVEsXMacro, n_RVEsYMacro=n_RVEsYMacro, 
+        n_RVEsZMacro=n_RVEsZMacro)
 
     ####################################################################
     #                          Function space                          #
@@ -359,11 +363,11 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     solver_parameters = dict()
 
-    solver_parameters["linear_solver"] = "mumps"#"mumps"
+    solver_parameters["linear_solver"] = "mumps"
 
-    solver_parameters["newton_relative_tolerance"] = 1e-9#1e-8
+    solver_parameters["newton_relative_tolerance"] = 1e-7
 
-    solver_parameters["newton_absolute_tolerance"] = 1e-7#1e-8
+    solver_parameters["newton_absolute_tolerance"] = 1e-5
 
     solver_parameters["newton_maximum_iterations"] = 30
 

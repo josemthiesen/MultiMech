@@ -96,19 +96,19 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
     E_matrix = 100E6
 
@@ -118,19 +118,19 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
     E_matrix = 100E6
 
@@ -140,19 +140,19 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
     parameters_sets = [test11, test12, test13, test21, test22, test23, 
     test31, test32, test33]
@@ -280,8 +280,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
     "calizationZ": RVE_localizationZ, "G_mixture": G_mixture, "maximum"+
-    "_load": maximum_load}), "00_parameters", parent_path=base_path+"/"+
-    "/graphics//"+subfolder_name)
+    "_load": maximum_load, "n_RVEsX": n_RVEsX, "n_RVEsY": n_RVEsY, "n_"+
+    "RVEsZ": n_RVEsZ}), "00_parameters", parent_path=base_path+"//grap"+
+    "hics//"+subfolder_name)
 
     file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
     "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
@@ -294,8 +295,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
     "calizationZ": RVE_localizationZ, "G_mixture": G_mixture, "maximum"+
-    "_load": maximum_load}), "00_parameters", parent_path=base_path+"/"+
-    "/text//"+subfolder_name)
+    "_load": maximum_load, "n_RVEsX": n_RVEsX, "n_RVEsY": n_RVEsY, "n_"+
+    "RVEsZ": n_RVEsZ}), "00_parameters", parent_path=base_path+"//grap"+
+    "hics//"+subfolder_name)
 
     ####################################################################
     #                        Simulation results                        #
