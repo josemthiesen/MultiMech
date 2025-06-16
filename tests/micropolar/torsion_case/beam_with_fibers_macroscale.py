@@ -26,7 +26,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the load factor
 
-    load_factor = 1.0
+    load_factor = 0.75
 
     # Defines the RVE overall parameters
 
@@ -34,17 +34,13 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     RVE_length = 1.0
 
-    # Defines the fiber radius
-
-    fiber_radius = 0.25
-
     # Defines the number of RVEs at each direction
 
-    n_RVEsX = 1
+    n_RVEsX = 7
 
-    n_RVEsY = 7
+    n_RVEsY = 4
 
-    n_RVEsZ = 25
+    n_RVEsZ = 4
 
     # Sets the Young modulus and the Poisson ration from psi to MPa
 
@@ -52,22 +48,26 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     nu_fiber = 0.4
 
-    flag_bending = True
+    flag_bending = False
 
     gamma_matrix = 0.0
 
     gamma_fiber = 0.0
 
-    characteristic_lengthMatrix = RVE_width*1.0
+    characteristic_lengthMatrix = RVE_length*1.0
     
-    characteristic_lengthFiber = RVE_width*1.0
+    characteristic_lengthFiber = RVE_length*1.0
+
+    # Defines the fiber radius
+
+    fiber_radius = 0.25
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
 
     RVE_localizationX = int(np.ceil(0.5*n_RVEsX))
 
-    RVE_localizationY = 6#n_RVEsY#np.ceil(0.5*n_RVEsY)
+    RVE_localizationY = n_RVEsY#np.ceil(0.5*n_RVEsY)
 
     RVE_localizationZ = int(np.ceil(0.5*n_RVEsZ))
 
@@ -96,63 +96,63 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
     E_matrix = 100E6
 
-    E_fiber = 10.0*E_matrix
+    E_fiber = 10*E_matrix
 
-    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001,
+    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
     E_matrix = 100E6
 
-    E_fiber = 100.0*E_matrix
+    E_fiber = 100*E_matrix
 
     test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
     test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ]
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
     parameters_sets = [test11, test12, test13, test21, test22, test23, 
     test31, test32, test33]
@@ -166,9 +166,10 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Saves the parameters set
 
-    base_path = os.getcwd()+"//tests//micropolar//our_beam_1//results"
+    base_path = os.getcwd()+"//tests//micropolar//torsion_case//results"
 
-    file_tools.list_toTxt(parameters_sets, base_path+"//parameters_sets")
+    file_tools.list_toTxt(parameters_sets, "parameters_sets", 
+    parent_path=base_path)
 
     # Iterates through the simulations
 
@@ -220,19 +221,51 @@ gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25,
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation"):
 
+    # Gets the coefficient k2 for torsion of rectangular shafts from 
+    # Gere's Mechanics of Materials
+
+    section_ratios = np.array([1.0, 1.5, 1.75, 2, 2.5, 3, 4, 6, 8, 10, 
+    1000])
+
+    k2_values = np.array([0.141, 0.196, 0.214, 0.229, 0.249, 0.263, 0.281, 
+    0.298, 0.307, 0.312, 1/3])
+
+    def k2_interpolation(z):
+
+        for i in range(len(section_ratios)):
+
+            if section_ratios[i]>z:
+
+                a1 = ((k2_values[i]-k2_values[i-1])/(section_ratios[i]-
+                section_ratios[i-1]))
+
+                a0 = k2_values[i-1]-(a1*section_ratios[i-1])
+
+                return a0+(a1*z)
+            
+    k2 = k2_interpolation(n_RVEsZ/n_RVEsY)
+
+    J_rectangular = k2*(n_RVEsZ*(n_RVEsY**3)*(RVE_width**4))
+
+    # Evaluates the shear moduli of the fiber and of the matrix
+
+    G_matrix = E_matrix/(2*(1+nu_matrix))
+
+    G_fiber = E_fiber/(2*(1+nu_fiber))
+
     # Evaluates the fiber ratio
 
-    fiber_ratio = (np.pi*(fiber_radius**2))/(RVE_length**2)
+    fiber_ratio = (np.pi*(fiber_radius**2))/(RVE_width**2)
 
     # Mixes them using the lower bound of the rule of mixtures to give a
     # conservative load
 
-    E_mixture = 1.0/((fiber_ratio/E_fiber)+((1-fiber_ratio)/E_matrix))
+    G_mixture = 1.0/((fiber_ratio/G_fiber)+((1-fiber_ratio)/G_matrix))
 
     # Defines the maximum load
-    
-    maximum_load = ((0.5*load_factor*E_mixture*((RVE_length*n_RVEsX*((
-    n_RVEsY*RVE_width)**3))/12))/((n_RVEsZ*RVE_width)**3))
+
+    maximum_load = float((load_factor*G_mixture*J_rectangular)/(n_RVEsX*
+    RVE_length))
 
     # Sets the data of the simulation in a txt file
 
@@ -246,9 +279,10 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
-    "calizationZ": RVE_localizationZ, "E_mixture": E_mixture, "maximum"+
-    "_load": maximum_load}), "00_parameters", parent_path=
-    base_path+"//graphics//"+subfolder_name)
+    "calizationZ": RVE_localizationZ, "G_mixture": G_mixture, "maximum"+
+    "_load": maximum_load, "n_RVEsX": n_RVEsX, "n_RVEsY": n_RVEsY, "n_"+
+    "RVEsZ": n_RVEsZ}), "00_parameters", parent_path=base_path+"//grap"+
+    "hics//"+subfolder_name)
 
     file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
     "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
@@ -260,9 +294,10 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     gamma_fiber, "RVE_width:": RVE_width, "RVE_length:": RVE_length, 
     "fiber_radius:": fiber_radius, "RVE_localizationX": 
     RVE_localizationX, "RVE_localizationY": RVE_localizationY, "RVE_lo"+
-    "calizationZ": RVE_localizationZ, "E_mixture": E_mixture, "maximum"+
-    "_load": maximum_load}), "00_parameters", parent_path=
-    base_path+"//text//"+subfolder_name)
+    "calizationZ": RVE_localizationZ, "G_mixture": G_mixture, "maximum"+
+    "_load": maximum_load, "n_RVEsX": n_RVEsX, "n_RVEsY": n_RVEsY, "n_"+
+    "RVEsZ": n_RVEsZ}), "00_parameters", parent_path=base_path+"//grap"+
+    "hics//"+subfolder_name)
 
     ####################################################################
     #                        Simulation results                        #
@@ -298,6 +333,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     stress_fieldFileNameSubmesh = ["cauchy_stress_submesh.xdmf", "coup"+
     "le_cauchy_stress_submesh.xdmf", "first_piola_stress_submesh.xdmf", 
     "couple_first_piola_stress_submesh.xdmf"]
+
+    traction_fileName = "referential_traction.xdmf"
 
     post_processes = []
 
@@ -356,6 +393,10 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
 
+            post_processes[-1][-1]["SaveReferentialTractionField"] = {
+            "directory path": results_pathGraphics, "file name": 
+            traction_fileName, "polynomial degree":1}
+
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes
 
@@ -402,14 +443,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     material_propertiesMatrix["nu"] = nu_matrix
 
-    material_propertiesMatrix["N"] = N_micropolarMatrix
-
-    material_propertiesMatrix["alpha"] = alpha_matrix
-
     material_propertiesMatrix["flag bending"] = flag_bending
 
     material_propertiesMatrix["characteristic length"] = (
     characteristic_lengthMatrix)
+
+    material_propertiesMatrix["N"] = N_micropolarMatrix
+
+    material_propertiesMatrix["alpha"] = alpha_matrix
 
     material_propertiesMatrix["gamma"] = gamma_matrix
 
@@ -421,14 +462,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     material_propertiesFiber["nu"] = nu_fiber
 
-    material_propertiesFiber["N"] = N_micropolarFiber
-
-    material_propertiesFiber["alpha"] = alpha_fiber
-
     material_propertiesFiber["flag bending"] = flag_bending
 
     material_propertiesFiber["characteristic length"] = (
     characteristic_lengthFiber)
+
+    material_propertiesFiber["N"] = N_micropolarFiber
+
+    material_propertiesFiber["alpha"] = alpha_fiber
 
     material_propertiesFiber["gamma"] = gamma_fiber
 
@@ -452,7 +493,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     file_directory = os.getcwd()+"//tests//test_meshes"
 
-    mesh_fileName = "micropolar_beam_with_fibers_bending"
+    mesh_fileName = "micropolar_beam_with_fibers_torsion"
 
     if flag_newMesh:
 
@@ -491,6 +532,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     solver_parameters["newton_maximum_iterations"] = 30
 
+    solver_parameters["petsc_options"] = True
+
     # Sets the initial time
 
     t = 0.0
@@ -508,19 +551,16 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     ####################################################################
 
     # Assemble the traction vector using this load expression
-    
-    traction_boundary = {"load case": "UniformReferentialTraction", "a"+
-    "mplitude_tractionX": 0.0, "amplitude_tractionY": maximum_load, "a"+
-    "mplitude_tractionZ": 0.0, "parametric_load_curve": "linear", "t": 
-    t, "t_final": t_final}
+
+    traction_boundary = {"load case": "NormalReferentialTorsion", "amp"+
+    "litude_torsion": maximum_load, "t": t, "t_final": t_final, "param"+
+    "etric_load_curve": "linear"}#, "influence_radius": 0.10}
 
     # Defines a dictionary of tractions
 
     traction_dictionary = dict()
 
-    traction_dictionary["upper"] = traction_boundary
-
-    traction_dictionary["lower"] = traction_boundary
+    traction_dictionary["right"] = traction_boundary
 
     # Defines a dictionary of moments on the boundary
 
@@ -541,7 +581,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     bcs_dictionary = dict()
 
-    bcs_dictionary["back"] = {"BC case": "FixedSupportDirichletBC", 
+    bcs_dictionary["left"] = {"BC case": "FixedSupportDirichletBC", 
     "sub_fieldsToApplyBC": ["displacement", "microrotation"]}
 
     ####################################################################
@@ -561,7 +601,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     maximum_loadingSteps, t_final, post_processes, file_directory+"//"+
     mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
     polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
-    polynomial_degreeMicrorotation, t=t, solution_name=[["displacement",
+    polynomial_degreeMicrorotation, t=t, solution_name=[["displacement", 
     "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
     volume_physGroupsSubmesh, post_processesSubmesh=
     post_processesSubmesh, verbose=verbose, dirichlet_boundaryConditions=

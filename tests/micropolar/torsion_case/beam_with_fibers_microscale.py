@@ -43,7 +43,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Reads the parameters set
 
-    base_path = os.getcwd()+"//tests//micropolar//our_beam_2//results"
+    base_path = os.getcwd()+"//tests//micropolar//torsion_case//results"
 
     parameters_sets = file_tools.txt_toList(base_path+"//parameters_se"+
     "ts")

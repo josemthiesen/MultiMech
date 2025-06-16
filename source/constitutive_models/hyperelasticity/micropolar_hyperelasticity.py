@@ -322,6 +322,6 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         # Stores the tensors inside the a dictionary so the variational
         # form and the post-processes can distinguish between them
 
-        result = {"cauchy":sigma, "couple_cauchy": sigma_couple}
+        result = {"cauchy": sigma, "couple_cauchy": sigma_couple}
 
         return result
