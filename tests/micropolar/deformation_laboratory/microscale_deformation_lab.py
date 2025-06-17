@@ -33,8 +33,8 @@ def case_3(flag_newMesh=False):
     # Sets the multiscale boundary conditions for each one of the fields
 
     multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
-    "llyConstrainedFirstOrderBC"], ["LinearFirstOrderBC", "LinearFirst"+
-    "OrderBC"], ["PeriodicFirstOrderBC", "PeriodicFirstOrderBC"]]
+    "llyConstrainedFirstOrderBC"]]#, ["LinearFirstOrderBC", "LinearFirst"+
+    #"OrderBC"], ["PeriodicFirstOrderBC", "PeriodicFirstOrderBC"]]
 
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
@@ -96,17 +96,17 @@ def case_3(flag_newMesh=False):
 
     null_tensor = [null_vector, null_vector, null_vector]
 
-    displacement_gradients = [[[-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0,
-    0.0, -1.0]], [[-1.0, 1.0, 0.0], [1.0, -1.0, 0.0], [0.0, 0.0, -1.0]],
-    [[0.0, 0.0, 1.0], [0.0, -1.0, 0.0], [1.0, 0.0, -1.0]], null_tensor,
-    null_tensor, null_tensor]
+    displacement_gradients = [null_tensor,
+    null_tensor, null_tensor, [[0.1, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0,
+    0.0, 0.0]], [[0.0, 0.1, 0.0], [0.1, 0.0, 0.0], [0.0, 0.0, 0.0]],
+    [[0.0, 0.0, 0.1], [0.0, 0.1, 0.0], [0.1, 0.0, 0.0]]]
 
     # Sets the same for the microrotation gradient
 
-    microrotation_gradients = [null_tensor, null_tensor, null_tensor, [[
-    0.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]], [[-1.0, 1.0, 
-    0.0], [1.0, -1.0, 0.0], [0.0, 0.0, -1.0]], [[0.0, 0.0, 1.0], [0.0, 
-    -1.0, 0.0], [1.0, 0.0, -1.0]]]
+    microrotation_gradients = [[[0.0, 0.0, 1.5], [0.0, 1.5, 0.0
+    ], [1.5, 0.0, 0.0]], [[
+    2.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], [[0.0, 2.0, 0.0], 
+    [2.0, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, null_tensor, null_tensor]
 
     # Sets the displacements and microrotations as null vectors
 
