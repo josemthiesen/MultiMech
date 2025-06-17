@@ -24,7 +24,7 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 # Defines a function to try multiple parameters
 
-def case1_varyingMicropolarNumber(flag_newMesh=False):
+def case_3(flag_newMesh=False):
 
     # Sets the mesh refinement
 
@@ -43,43 +43,134 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Reads the parameters set
 
-    base_path = os.getcwd()+"//tests//micropolar//bending_case//results"
+    base_path = os.getcwd()+("//tests//micropolar//deformation_laborat"+
+    "ory//results")
 
-    parameters_sets = file_tools.txt_toList(base_path+"//parameters_se"+
-    "ts")
+    # Sets the number of time steps
 
-    # Sets a list of names for each set of parameters, which will yield
-    # different simulations
+    n_steps = 5
 
-    simulations_names = ["simulation_11", "simulation_12", "simulation"+
-    "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
-    "ion_31", "simulation_32", "simulation_33"]
+    # Defines the RVE overall parameters
 
-    # Defines a list of lists, each list is a set of material parameters:
-    # 0.  Young modulus of the matrix
-    # 1.  Young modulus of the fiber
-    # 2.  Poisson ratio of the matrix
-    # 3.  Poisson ratio of the fiber
-    # 4.  micropolar number of the matrix
-    # 5.  micropolar number of the fiber
-    # 6.  characteristic length of the matrix
-    # 7.  characteristic length of the fiber
-    # 8.  flag for bending
-    # 9.  load factor
-    # 10. gamma of the matrix
-    # 11. gamma of the fiber
-    # 12. RVE width
-    # 13. RVE length
-    # 14. radius of the fiber
+    RVE_width = 1.0
+
+    RVE_length = 1.0
+
+    # Defines the fiber radius
+
+    fiber_radius = 0.25
+
+    # Sets the Young modulus and the Poisson ration from psi to MPa
+
+    nu_matrix = 0.4
+
+    nu_fiber = 0.4
+
+    flag_bending = True
+
+    gamma_matrix = 0.0
+
+    gamma_fiber = 0.0
+
+    characteristic_lengthMatrix = RVE_width*1.0
+    
+    characteristic_lengthFiber = RVE_width*1.0
+
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    N_matrix = 0.08
+
+    N_fiber = 0.08
+
+    base_parameters = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix,
+    N_fiber, characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius]
+
+    # Sets the list of final values of displacement gradient. The gradi-
+    # ent will be set as null
+
+    null_vector = [0.0, 0.0, 0.0]
+
+    null_tensor = [null_vector, null_vector, null_vector]
+
+    displacement_gradients = [[[-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0,
+    0.0, -1.0]], [[-1.0, 1.0, 0.0], [1.0, -1.0, 0.0], [0.0, 0.0, -1.0]],
+    [[0.0, 0.0, 1.0], [0.0, -1.0, 0.0], [1.0, 0.0, -1.0]], null_tensor,
+    null_tensor, null_tensor]
+
+    # Sets the same for the microrotation gradient
+
+    microrotation_gradients = [null_tensor, null_tensor, null_tensor, [[
+    0.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]], [[-1.0, 1.0, 
+    0.0], [1.0, -1.0, 0.0], [0.0, 0.0, -1.0]], [[0.0, 0.0, 1.0], [0.0, 
+    -1.0, 0.0], [1.0, 0.0, -1.0]]]
+
+    # Sets the displacements and microrotations as null vectors
+
+    displacement_macro = interpolate_macroQuantities(null_vector, 
+    n_steps)
+
+    microrotation_macro = interpolate_macroQuantities(null_vector, 
+    n_steps)
+
+    # Iterates through the multiscale boundary conditions
 
     counter = 0
 
-    for multiscale_BCs in multiscale_BCsSets:
+    # Gets the number of simulations
 
-        # Iterates through the simulations
+    n_simulations = min([len(displacement_gradients), len(
+    microrotation_gradients)])
 
-        for i in range(min([len(parameters_sets),len(simulations_names)]
-        )):
+    # Iterates through the simulations
+
+    for i in range(n_simulations):
+
+        # Gets the number of this simulation
+
+        simulation_number = str(i+1)
+
+        for j in range(len(str(n_simulations))-len(simulation_number)):
+
+            simulation_number = "0"+simulation_number
+
+        # Creates the directory to this result
+
+        subfolder_name = "simulation_"+simulation_number
+
+        # Gets the list of displacement gradient and of microrotation 
+        # gradient
+
+        displacement_gradient = interpolate_macroQuantities(
+        displacement_gradients[i], n_steps)
+
+        microrotation_gradient = interpolate_macroQuantities(
+        microrotation_gradients[i], n_steps)
+
+        # Saves the quantities
+        
+        file_tools.list_toTxt(displacement_macro, "homogenized_displac"+
+        "ement", parent_path=base_path+"//text//"+subfolder_name, 
+        add_extension=True)
+        
+        file_tools.list_toTxt(microrotation_macro, "homogenized_micror"+
+        "otation", parent_path=base_path+"//text//"+subfolder_name, 
+        add_extension=True)
+        
+        file_tools.list_toTxt(displacement_gradient, "homogenized_disp"+
+        "lacement_gradient", parent_path=base_path+"//text"+"//"+
+        subfolder_name, add_extension=True)
+        
+        file_tools.list_toTxt(microrotation_gradient, "homogenized_mic"+
+        "rorotation_grad", parent_path=base_path+"//text//"+
+        subfolder_name, add_extension=True)
+
+        # Iterates through the multiscale boundary conditions
+
+        for multiscale_BCs in multiscale_BCsSets:
 
             # Makes a new mesh just for the first test and if a new mesh 
             # is asked for
@@ -94,27 +185,55 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
             # Calls the simulation for bending 
 
-            beam_case_1(multiscale_BCs[0], multiscale_BCs[1], base_path, 
-            *parameters_sets[i][0:10], gamma_matrix=parameters_sets[i][
-            10], gamma_fiber=parameters_sets[i][11], RVE_width=
-            parameters_sets[i][12], RVE_length=parameters_sets[i][13], 
-            fiber_radius=parameters_sets[i][14], flag_newMesh=flag_mesh, 
-            subfolder_name=[simulations_names[i], multiscale_BCs[0]+"_"+
-            multiscale_BCs[1]], fluctuation_field=fluctuation_field, 
-            transfinite_directions=transfinite_directions,
-            RVE_localizationX=parameters_sets[i][15], RVE_localizationY=
-            parameters_sets[i][16], RVE_localizationZ=parameters_sets[i
-            ][17])
+            beam_case_3(multiscale_BCs[0], multiscale_BCs[1], base_path, 
+            *base_parameters[0:9], gamma_matrix=base_parameters[9],
+            gamma_fiber=base_parameters[10], RVE_width=base_parameters[
+            11], RVE_length=base_parameters[12], fiber_radius=
+            base_parameters[13], flag_newMesh=flag_mesh, subfolder_name=
+            [subfolder_name, multiscale_BCs[0]+"_"+multiscale_BCs[1]], 
+            fluctuation_field=fluctuation_field, transfinite_directions=
+            transfinite_directions)
+
+# Defines a function to linearly interpolate the final values
+
+def interpolate_macroQuantities(final_value, n_steps, t_initial=0.0, 
+t_final=1.0):
+    
+    # Initializes the macro quantity as a list
+
+    macro_quantity = []
+
+    # Gets the final value as a numpy array
+
+    final_value = np.array(final_value)
+
+    # Iterates through the steps
+
+    for i in range(n_steps):
+
+        # Gets the current time
+
+        t_current = t_initial+((t_final-t_initial)*(i/(n_steps-1)))
+
+        # Multiplies the current time by the numpy array and adds to the
+        # list o macro quantities
+
+        macro_quantity.append([t_current, (final_value*t_current).tolist(
+        )])
+
+    # Returns the macro quantity list
+
+    return macro_quantity
 
 # Defines a function to try different parameters
 
-def beam_case_1(displacement_multiscaleBC, microrotation_multiscaleBC,
+def beam_case_3(displacement_multiscaleBC, microrotation_multiscaleBC,
 base_path, E_matrix, E_fiber, nu_matrix, nu_fiber, N_micropolarMatrix, 
 N_micropolarFiber, characteristic_lengthMatrix, 
-characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
-gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
-n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
-1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name=["simulation"],
+characteristic_lengthFiber, flag_bending, gamma_matrix=0.0, gamma_fiber=
+0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, n_RVEsX=1, 
+n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=1, 
+RVE_localizationZ=1, flag_newMesh=True, subfolder_name=["simulation"],
 fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     ####################################################################
@@ -141,55 +260,58 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     if fluctuation_field:
 
-        saving_fileNames = ["displacement_microscale_fluctuation.xdmf", "microrotation"+
-        "_microscale_fluctuation.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
-        "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
-        "ation.xdmf"]
+        saving_fileNames = ["displacement_microscale_fluctuation.xdmf", 
+        "microrotation_microscale_fluctuation.xdmf", "lambda_displacem"+
+        "ent.xdmf", "lambda_grad_displacement.xdmf", "lambda_microrota"+
+        "tion.xdmf", "lambda_grad_microrotation.xdmf"]
 
-        homogenized_displacementFileName = ["homogenized_displacement_micr"+
-        "oscale_fluctuation.txt", "homogenized_microrotation_microscale.txt"]
+        homogenized_displacementFileName = ["homogenized_displacement_"+
+        "microscale_fluctuation.txt", "homogenized_microrotation_micro"+
+        "scale.txt"]
 
-        homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
-        "gradient_microscale_fluctuation.txt", "homogenized_microrotation_grad_microsc"+
-        "ale.txt"]
+        homogenized_gradDisplacementFileName = ["homogenized_displacem"+
+        "ent_gradient_microscale_fluctuation.txt", "homogenized_micror"+
+        "otation_grad_microscale.txt"]
 
-        homogenized_piolaFileName = ["homogenized_first_piola_microscale_fluctuation.t"+
-        "xt", "homogenized_couple_first_piola_microscale.txt"]
+        homogenized_piolaFileName = ["homogenized_first_piola_microsca"+
+        "le_fluctuation.txt", "homogenized_couple_first_piola_microsca"+
+        "le.txt"]
 
-        homogenized_cauchyFileName = ["homogenized_cauchy_microscale_fluctuation.t"+
-        "xt", "homogenized_couple_cauchy_microscale.txt"]
+        homogenized_cauchyFileName = ["homogenized_cauchy_microscale_f"+
+        "luctuation.txt", "homogenized_couple_cauchy_microscale.txt"]
 
     else:
 
-        saving_fileNames = ["displacement_microscale.xdmf", "microrotation"+
-        "_microscale.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
-        "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
-        "ation.xdmf"]
+        saving_fileNames = ["displacement_microscale.xdmf", "microrota"+
+        "tion_microscale.xdmf", "lambda_displacement.xdmf", "lambda_gr"+
+        "ad_displacement.xdmf", "lambda_microrotation.xdmf", "lambda_g"+
+        "rad_microrotation.xdmf"]
 
-        homogenized_displacementFileName = ["homogenized_displacement_micr"+
-        "oscale.txt", "homogenized_microrotation_microscale.txt"]
+        homogenized_displacementFileName = ["homogenized_displacement_"+
+        "microscale.txt", "homogenized_microrotation_microscale.txt"]
 
-        homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
-        "gradient_microscale.txt", "homogenized_microrotation_grad_microsc"+
-        "ale.txt"]
+        homogenized_gradDisplacementFileName = ["homogenized_displacem"+
+        "ent_gradient_microscale.txt", "homogenized_microrotation_grad"+
+        "_microscale.txt"]
 
-        homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
-        "xt", "homogenized_couple_first_piola_microscale.txt"]
+        homogenized_piolaFileName = ["homogenized_first_piola_microsca"+
+        "le.txt", "homogenized_couple_first_piola_microscale.txt"]
 
         homogenized_cauchyFileName = ["homogenized_cauchy_microscale.t"+
         "xt", "homogenized_couple_cauchy_microscale.txt"]
 
     if fluctuation_field:
 
-        stress_fieldFileName = ["cauchy_stress_microscale_fluctuation.xdmf", "couple_c"+
-        "auchy_stress_microscale_fluctuation.xdmf", "first_piola_stress_microscale.xdmf",
-        "couple_first_piola_stress_microscale.xdmf"]
+        stress_fieldFileName = ["cauchy_stress_microscale_fluctuation."+
+        "xdmf", "couple_cauchy_stress_microscale_fluctuation.xdmf", "f"+
+        "irst_piola_stress_microscale.xdmf", "couple_first_piola_stres"+
+        "s_microscale.xdmf"]
 
     else:
 
-        stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "couple_c"+
-        "auchy_stress_microscale.xdmf", "first_piola_stress_microscale.xdmf",
-        "couple_first_piola_stress_microscale.xdmf"]
+        stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "coup"+
+        "le_cauchy_stress_microscale.xdmf", "first_piola_stress_micros"+
+        "cale.xdmf", "couple_first_piola_stress_microscale.xdmf"]
 
     post_processes = []
 
@@ -367,18 +489,6 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     solver_parameters["newton_maximum_iterations"] = 30
 
-    """
-
-    solver_parameters["preconditioner"] = "petsc_amg"
-
-    solver_parameters["krylov_absolute_tolerance"] = 1e-5
-
-    solver_parameters["krylov_relative_tolerance"] = 1e-5
-
-    solver_parameters["krylov_maximum_iterations"] = 15000
-
-    solver_parameters["krylov_monitor_convergence"] = False"""
-
     ####################################################################
     #                        Boundary conditions                       #
     ####################################################################
@@ -419,4 +529,4 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
     polynomial_degreeMicrorotation, verbose=verbose, fluctuation_field=
     fluctuation_field)
 
-case1_varyingMicropolarNumber(flag_newMesh=True)
+case_3(flag_newMesh=True)
