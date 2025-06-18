@@ -4,6 +4,8 @@ import os
 
 import sys
 
+import traceback
+
 import numpy as np
 
 from dolfin import *
@@ -74,22 +76,31 @@ def case_3(flag_newMesh=False):
 
     gamma_fiber = 0.0
 
-    characteristic_lengthMatrix = RVE_width*1.0
+    characteristic_lengthMatrix = fiber_radius*0.5
     
-    characteristic_lengthFiber = RVE_width*1.0
+    characteristic_lengthFiber = fiber_radius*0.5
 
     E_matrix = 100E6
 
     E_fiber = 100.0*E_matrix
 
+    N_matrix = 0.2
+
+    N_fiber = 0.2
+
+    parameters_set = [[E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix,
+    N_fiber, characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
+    fiber_radius]]
+
     N_matrix = 0.08
 
     N_fiber = 0.08
-
-    base_parameters = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix,
-    N_fiber, characteristic_lengthMatrix, characteristic_lengthFiber, 
-    flag_bending, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
-    fiber_radius]
+    
+    parameters_set.append([E_matrix, E_fiber, nu_matrix, nu_fiber, 
+    N_matrix, N_fiber, characteristic_lengthMatrix, 
+    characteristic_lengthFiber, flag_bending, gamma_matrix, gamma_fiber, 
+    RVE_width, RVE_length, fiber_radius])
 
     # Sets the list of final values of displacement gradient. The gradi-
     # ent will be set as null
@@ -107,7 +118,7 @@ def case_3(flag_newMesh=False):
 
     microrotation_gradients = [[[2.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 
     0.0, 0.0]], [[0.0, 0.0, 1.5], [0.0, 1.5, 0.0], [1.5, 0.0, 0.0]], [[
-    0.0, 2.0, 0.0], [2.0, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, 
+    0.0, 1.7, 0.0], [1.7, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, 
     null_tensor, null_tensor]
 
     # Sets the displacements and microrotations as null vectors
@@ -127,74 +138,100 @@ def case_3(flag_newMesh=False):
     n_simulations = min([len(displacement_gradients), len(
     microrotation_gradients)])
 
-    # Iterates through the simulations
+    # Iterates through the base parameters
 
-    for i in range(n_simulations):
+    for base_parameters in parameters_set:
 
-        # Gets the number of this simulation
+        # Iterates through the simulations
 
-        simulation_number = str(i+1)
+        for i in range(n_simulations):
 
-        for j in range(len(str(n_simulations))-len(simulation_number)):
+            # Gets the number of this simulation
 
-            simulation_number = "0"+simulation_number
+            simulation_number = str(counter+1)
 
-        # Creates the directory to this result
+            for j in range(len(str(n_simulations))-len(simulation_number
+            )):
 
-        subfolder_name = "simulation_"+simulation_number
+                simulation_number = "0"+simulation_number
 
-        # Gets the list of displacement gradient and of microrotation 
-        # gradient
+            # Creates the directory to this result
 
-        displacement_gradient = interpolate_macroQuantities(
-        displacement_gradients[i], n_steps)
+            subfolder_name = "simulation_"+simulation_number
 
-        microrotation_gradient = interpolate_macroQuantities(
-        microrotation_gradients[i], n_steps)
+            # Gets the list of displacement gradient and of microrotation
+            # gradient
 
-        # Saves the quantities
-        
-        file_tools.list_toTxt(displacement_macro, "homogenized_displac"+
-        "ement", parent_path=base_path+"//text//"+subfolder_name, 
-        add_extension=True)
-        
-        file_tools.list_toTxt(microrotation_macro, "homogenized_micror"+
-        "otation", parent_path=base_path+"//text//"+subfolder_name, 
-        add_extension=True)
-        
-        file_tools.list_toTxt(displacement_gradient, "homogenized_disp"+
-        "lacement_gradient", parent_path=base_path+"//text"+"//"+
-        subfolder_name, add_extension=True)
-        
-        file_tools.list_toTxt(microrotation_gradient, "homogenized_mic"+
-        "rorotation_grad", parent_path=base_path+"//text//"+
-        subfolder_name, add_extension=True)
+            displacement_gradient = interpolate_macroQuantities(
+            displacement_gradients[i], n_steps)
 
-        # Iterates through the multiscale boundary conditions
+            microrotation_gradient = interpolate_macroQuantities(
+            microrotation_gradients[i], n_steps)
 
-        for multiscale_BCs in multiscale_BCsSets:
+            # Saves the quantities
+            
+            file_tools.list_toTxt(displacement_macro, "homogenized_dis"+
+            "placement", parent_path=base_path+"//text//"+subfolder_name, 
+            add_extension=True)
+            
+            file_tools.list_toTxt(microrotation_macro, "homogenized_mi"+
+            "crorotation", parent_path=base_path+"//text//"+
+            subfolder_name, add_extension=True)
+            
+            file_tools.list_toTxt(displacement_gradient, "homogenized_"+
+            "displacement_gradient", parent_path=base_path+"//text"+"/"+
+            "/"+subfolder_name, add_extension=True)
+            
+            file_tools.list_toTxt(microrotation_gradient, "homogenized"+
+            "_microrotation_grad", parent_path=base_path+"//text//"+
+            subfolder_name, add_extension=True)
 
-            # Makes a new mesh just for the first test and if a new mesh 
-            # is asked for
+            # Iterates through the multiscale boundary conditions
 
-            flag_mesh = False
+            for multiscale_BCs in multiscale_BCsSets:
 
-            if flag_newMesh and counter==0:
+                # Makes a new mesh just for the first test and if a new 
+                # mesh is asked for
 
-                flag_mesh = True
+                flag_mesh = False
 
-            counter += 1
+                if flag_newMesh and counter==0:
 
-            # Calls the simulation for bending 
+                    flag_mesh = True
 
-            beam_case_3(multiscale_BCs[0], multiscale_BCs[1], base_path, 
-            *base_parameters[0:9], gamma_matrix=base_parameters[9],
-            gamma_fiber=base_parameters[10], RVE_width=base_parameters[
-            11], RVE_length=base_parameters[12], fiber_radius=
-            base_parameters[13], flag_newMesh=flag_mesh, subfolder_name=
-            [subfolder_name, multiscale_BCs[0]+"_"+multiscale_BCs[1]], 
-            fluctuation_field=fluctuation_field, transfinite_directions=
-            transfinite_directions, bias_directions=bias_directions)
+                counter += 1
+
+                # Calls the simulation for bending 
+
+                try:
+
+                    beam_case_3(multiscale_BCs[0], multiscale_BCs[1], 
+                    base_path, *base_parameters[0:9], gamma_matrix=
+                    base_parameters[9], gamma_fiber=base_parameters[10], 
+                    RVE_width=base_parameters[11], RVE_length=
+                    base_parameters[12], fiber_radius=base_parameters[13
+                    ], flag_newMesh=flag_mesh, subfolder_name=[
+                    subfolder_name, multiscale_BCs[0]+"_"+multiscale_BCs[
+                    1]], fluctuation_field=fluctuation_field, 
+                    transfinite_directions=transfinite_directions, 
+                    bias_directions=bias_directions)
+
+                except Exception as error_message:
+
+                    print("Error Message:", str(error_message))
+
+                    print("Full Traceback:\n")
+
+                    traceback.print_exc()
+
+                    print("\n\n")
+
+                    print("\n\nThe simulation "+str(counter)+" did not"+
+                    " converge")
+
+                    print("\n\n")
+
+                    raise KeyboardInterrupt
 
 # Defines a function to linearly interpolate the final values
 
@@ -238,6 +275,40 @@ n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=1,
 RVE_localizationZ=1, flag_newMesh=True, subfolder_name=["simulation"],
 fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3], 
 bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
+
+    # Sets the data of the simulation in a txt file
+
+    parent_path = [base_path+"//graphics", base_path+"//text"]
+
+    for name in subfolder_name:
+
+        parent_path[0] += "//"+name
+
+        parent_path[1] += "//"+name
+
+    file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
+    "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
+    "N_micropolarMatrix:": N_micropolarMatrix, "N_micropolarFiber:": 
+    N_micropolarFiber, "characteristic_lengthMatrix:": 
+    characteristic_lengthMatrix, "characteristic_lengthFiber:": 
+    characteristic_lengthFiber, "flag_bending:": flag_bending, "gamma_"+
+    "matrix:": gamma_matrix, "gamma_fiber:": gamma_fiber, "RVE_width:": 
+    RVE_width, "RVE_length:": RVE_length, "fiber_radius:": fiber_radius, 
+    "RVE_localizationX": RVE_localizationX, "RVE_localizationY": 
+    RVE_localizationY, "RVE_localizationZ": RVE_localizationZ}), "00_p"+
+    "arameters", parent_path=parent_path[0])
+
+    file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
+    "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
+    "N_micropolarMatrix:": N_micropolarMatrix, "N_micropolarFiber:": 
+    N_micropolarFiber, "characteristic_lengthMatrix:": 
+    characteristic_lengthMatrix, "characteristic_lengthFiber:": 
+    characteristic_lengthFiber, "flag_bending:": flag_bending, "gamma_"+
+    "matrix:": gamma_matrix, "gamma_fiber:": gamma_fiber, "RVE_width:": 
+    RVE_width, "RVE_length:": RVE_length, "fiber_radius:": fiber_radius, 
+    "RVE_localizationX": RVE_localizationX, "RVE_localizationY": 
+    RVE_localizationY, "RVE_localizationZ": RVE_localizationZ}), "00_p"+
+    "arameters", parent_path=parent_path[1])
 
     ####################################################################
     ####################################################################
