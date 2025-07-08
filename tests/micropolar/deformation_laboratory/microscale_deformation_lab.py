@@ -118,7 +118,7 @@ def case_3(flag_newMesh=False):
 
     microrotation_gradients = [[[2.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 
     0.0, 0.0]], [[0.0, 0.0, 1.5], [0.0, 1.5, 0.0], [1.5, 0.0, 0.0]], [[
-    0.0, 1.7, 0.0], [1.7, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, 
+    0.0, 1.5, 0.0], [1.5, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, 
     null_tensor, null_tensor]
 
     # Sets the displacements and microrotations as null vectors
@@ -148,10 +148,12 @@ def case_3(flag_newMesh=False):
 
             # Gets the number of this simulation
 
-            simulation_number = str(counter+1)
+            counter += 1
 
-            for j in range(len(str(n_simulations))-len(simulation_number
-            )):
+            simulation_number = str(counter)
+
+            for j in range(len(str(int(n_simulations*len(parameters_set)
+            )))-len(simulation_number)):
 
                 simulation_number = "0"+simulation_number
 
@@ -198,8 +200,6 @@ def case_3(flag_newMesh=False):
                 if flag_newMesh and counter==0:
 
                     flag_mesh = True
-
-                counter += 1
 
                 # Calls the simulation for bending 
 
