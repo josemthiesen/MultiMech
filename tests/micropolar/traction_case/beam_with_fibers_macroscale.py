@@ -14,8 +14,6 @@ import source.physics.hyperelastic_micropolar_continuum as variational_framework
 
 import source.tool_box.file_handling_tools as file_tools
 
-from source.tool_box.file_handling_tools import float_toString
-
 sys.path.insert(1, '/home/matheus-janczkowski/Github')
 
 import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
@@ -44,7 +42,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsY = 7
 
-    n_RVEsZ = 25
+    n_RVEsZ = 11
 
     # Sets the Young modulus and the Poisson ration from psi to MPa
 
@@ -67,7 +65,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     RVE_localizationX = int(np.ceil(0.5*n_RVEsX))
 
-    RVE_localizationY = 6#n_RVEsY#np.ceil(0.5*n_RVEsY)
+    RVE_localizationY = n_RVEsY#np.ceil(0.5*n_RVEsY)
 
     RVE_localizationZ = int(np.ceil(0.5*n_RVEsZ))
 
@@ -166,9 +164,10 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Saves the parameters set
 
-    base_path = os.getcwd()+"//tests//micropolar//bending_case//results"
+    base_path = os.getcwd()+"//tests//micropolar//traction_case//results"
 
-    file_tools.list_toTxt(parameters_sets, base_path+"//parameters_sets")
+    file_tools.list_toTxt(parameters_sets, "parameters_sets", 
+    parent_path=base_path)
 
     # Iterates through the simulations
 
@@ -183,7 +182,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
             flag_mesh = True
 
-        # Calls the simulation for bending
+        # Calls the simulation for traction
 
         try:
 
@@ -231,8 +230,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     # Defines the maximum load
     
-    maximum_load = ((0.5*load_factor*E_mixture*((RVE_length*n_RVEsX*((
-    n_RVEsY*RVE_width)**3))/12))/((n_RVEsZ*RVE_width)**3))
+    maximum_load = ((load_factor*E_mixture*(n_RVEsX*RVE_length*n_RVEsY*
+    RVE_width))/(n_RVEsZ*RVE_width))
 
     # Sets the data of the simulation in a txt file
 
@@ -452,7 +451,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     file_directory = os.getcwd()+"//tests//test_meshes"
 
-    mesh_fileName = "micropolar_beam_with_fibers_bending"
+    mesh_fileName = "micropolar_beam_with_fibers_traction"
 
     if flag_newMesh:
 
@@ -510,17 +509,15 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     # Assemble the traction vector using this load expression
     
     traction_boundary = {"load case": "UniformReferentialTraction", "a"+
-    "mplitude_tractionX": 0.0, "amplitude_tractionY": maximum_load, "a"+
-    "mplitude_tractionZ": 0.0, "parametric_load_curve": "linear", "t": 
+    "mplitude_tractionX": 0.0, "amplitude_tractionY": 0.0, "amplitude_"+
+    "tractionZ": maximum_load, "parametric_load_curve": "linear", "t": 
     t, "t_final": t_final}
 
     # Defines a dictionary of tractions
 
     traction_dictionary = dict()
 
-    traction_dictionary["upper"] = traction_boundary
-
-    traction_dictionary["lower"] = traction_boundary
+    traction_dictionary["front"] = traction_boundary
 
     # Defines a dictionary of moments on the boundary
 
@@ -531,7 +528,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     moment_dictionary = dict()
 
-    moment_dictionary["lower"] = moment_boundary
+    moment_dictionary["front"] = moment_boundary
 
     # Defines a dictionary of boundary conditions. Each key is a physi-
     # cal group and each value is another dictionary or a list of dic-

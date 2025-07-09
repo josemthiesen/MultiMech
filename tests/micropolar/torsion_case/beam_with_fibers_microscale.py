@@ -195,7 +195,7 @@ n_RVEsXMacro=1, n_RVEsYMacro=1, n_RVEsZMacro=1):
 
     post_processes = []
 
-    fields_names = ["displacement", "microrotation"]
+    fields_names = ["Displacement", "Microrotation"]
     
     if (displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and microrotation_multiscaleBC!="PeriodicFirstOrderBC"):

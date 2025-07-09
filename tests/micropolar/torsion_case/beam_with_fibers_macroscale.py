@@ -340,7 +340,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
 
     post_processesSubmesh = []
 
-    fields_names = ["displacement", "microrotation"]
+    fields_names = ["Displacement", "Microrotation"]
 
     # Iterates through the fields (displacement and microrotation)
 
@@ -582,7 +582,7 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     bcs_dictionary = dict()
 
     bcs_dictionary["left"] = {"BC case": "FixedSupportDirichletBC", 
-    "sub_fieldsToApplyBC": ["displacement", "microrotation"]}
+    "sub_fieldsToApplyBC": ["Displacement", "Microrotation"]}
 
     ####################################################################
     ####################################################################
@@ -601,8 +601,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     maximum_loadingSteps, t_final, post_processes, file_directory+"//"+
     mesh_fileName, solver_parameters, polynomial_degreeDisplacement=
     polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
-    polynomial_degreeMicrorotation, t=t, solution_name=[["displacement", 
-    "DNS"], ["microrotation", "DNS"]], volume_physGroupsSubmesh=
+    polynomial_degreeMicrorotation, t=t, solution_name=[["Displacement", 
+    "DNS"], ["Microrotation", "DNS"]], volume_physGroupsSubmesh=
     volume_physGroupsSubmesh, post_processesSubmesh=
     post_processesSubmesh, verbose=verbose, dirichlet_boundaryConditions=
     bcs_dictionary)

@@ -389,7 +389,7 @@ bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
 
     post_processes = []
 
-    fields_names = ["displacement", "microrotation"]
+    fields_names = ["Displacement", "Microrotation"]
     
     if (displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and microrotation_multiscaleBC!="PeriodicFirstOrderBC"):
