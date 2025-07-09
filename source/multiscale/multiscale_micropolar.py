@@ -48,9 +48,9 @@ fluctuation_field=False):
     # the corresponding value is another dictionary, which has keys for
     # necessary information to create finite elements
 
-    elements_dictionary = {"displacement": {"field type": "vector", "i"+
+    elements_dictionary = {"Displacement": {"field type": "vector", "i"+
     "nterpolation function": "CG", "polynomial degree": 
-    polynomial_degreeDisplacement}, "microrotation": {"field type": "v"+
+    polynomial_degreeDisplacement}, "Microrotation": {"field type": "v"+
     "ector", "interpolation function": "CG", "polynomial degree": 
     polynomial_degreeMicrorotation}}
 
@@ -67,12 +67,12 @@ fluctuation_field=False):
 
     multiscale_BCsDict = dict()
 
-    multiscale_BCsDict["displacement"] = {"boundary condition": 
+    multiscale_BCsDict["Displacement"] = {"boundary condition": 
     displacement_multiscaleBC, "macro information": {"macro field file":
     macro_displacementFileName, "macro field gradient file":
     macro_gradDisplacementFileName}}
 
-    multiscale_BCsDict["microrotation"] = {"boundary condition": 
+    multiscale_BCsDict["Microrotation"] = {"boundary condition": 
     microrotation_multiscaleBC, "macro information": {"macro field fil"+
     "e": macro_microrotationFileName, "macro field gradient file":
     macro_gradMicrorotationFileName}}
@@ -95,7 +95,7 @@ fluctuation_field=False):
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_micropolarInternalWorkFirstPiola(
-    "displacement", "microrotation", solution_fields, variation_fields, 
+    "Displacement", "Microrotation", solution_fields, variation_fields, 
     constitutive_model, mesh_dataClass)
 
     ####################################################################

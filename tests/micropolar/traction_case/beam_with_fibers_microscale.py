@@ -26,13 +26,15 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets the mesh refinement
 
-    transfinite_directions = [12, 12, 6, 6, 6]
+    transfinite_directions = [12, 12, 12, 6, 8]
+
+    bias_directions = {"cylinder radial": 1.5, "box radial": 1.1}
 
     # Sets the multiscale boundary conditions for each one of the fields
 
-    multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
-    "llyConstrainedFirstOrderBC"], ["LinearFirstOrderBC", "LinearFirst"+
-    "OrderBC"], ["PeriodicFirstOrderBC", "PeriodicFirstOrderBC"]]
+    multiscale_BCsSets = [["PeriodicFirstOrderBC", "PeriodicFirstOrder"+
+    "BC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"], ["MinimallyCo"+
+    "nstrainedFirstOrderBC", "MinimallyConstrainedFirstOrderBC"]]
 
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
@@ -41,7 +43,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Reads the parameters set
 
-    base_path = os.getcwd()+"//tests//micropolar//bending_case//results"
+    base_path = os.getcwd()+"//tests//micropolar//traction_case//results"
 
     parameters_sets = file_tools.txt_toList(base_path+"//parameters_se"+
     "ts")
@@ -90,7 +92,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
             counter += 1
 
-            # Calls the simulation for bending 
+            # Calls the simulation for traction 
 
             beam_case_1(multiscale_BCs[0], multiscale_BCs[1], base_path, 
             *parameters_sets[i][0:10], gamma_matrix=parameters_sets[i][
@@ -102,7 +104,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
             transfinite_directions=transfinite_directions,
             RVE_localizationX=parameters_sets[i][15], RVE_localizationY=
             parameters_sets[i][16], RVE_localizationZ=parameters_sets[i
-            ][17])
+            ][17], bias_directions=bias_directions)
 
 # Defines a function to try different parameters
 
@@ -113,7 +115,8 @@ characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0,
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
 1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name=["simulation"],
-fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
+fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3], 
+bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
 
     ####################################################################
     ####################################################################
@@ -196,13 +199,13 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
     if (displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and microrotation_multiscaleBC!="PeriodicFirstOrderBC"):
     
-        fields_names.extend(["displacement_lagrange_multiplier", "disp"+
+        fields_names.extend(["Displacement_lagrange_multiplier", "Disp"+
         "lacement_gradient_lagrange_multiplier"]) 
 
     if (microrotation_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and displacement_multiscaleBC!="PeriodicFirstOrderBC"):
     
-        fields_names.extend(["microrotation_lagrange_multiplier", "mic"+
+        fields_names.extend(["Microrotation_lagrange_multiplier", "Mic"+
         "rorotation_gradient_lagrange_multiplier"])
 
     # Iterates through the fields (displacement and microrotation)
@@ -337,7 +340,8 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
         RVE_localizationZ, mesh_fileName=mesh_fileName, file_directory=
         file_directory, transfinite_directions=transfinite_directions,
         translation=[RVE_length*(RVE_localizationX-1), RVE_width*(
-        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)])
+        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)],
+        bias_directions=bias_directions)
 
     ####################################################################
     #                          Function space                          #
