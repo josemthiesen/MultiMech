@@ -24,7 +24,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Defines the load factor
 
-    load_factor = 1.0
+    load_factor = 0.2
 
     # Defines the RVE overall parameters
 
@@ -200,7 +200,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         except Exception as error_message:
 
-            print("\n\nSimulation did not converge")
+            print("\n\nSimulation "+simulations_names[i]+" did not con"+
+            "verge")
 
             print("Error Message:", str(error_message))
 
@@ -354,6 +355,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathText, "file name": 
             homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
+
+            post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
+            "ory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[0], "polynomial degree": 1}
+
+            post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
+            "directory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[1], "polynomial degree": 1}
 
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes

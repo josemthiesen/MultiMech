@@ -16,8 +16,6 @@ import source.multiscale.multiscale_micropolar as variational_framework
 
 import source.tool_box.file_handling_tools as file_tools
 
-from source.tool_box.file_handling_tools import float_toString
-
 sys.path.insert(1, '/home/matheus-janczkowski/Github')
 
 import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
