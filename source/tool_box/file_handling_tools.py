@@ -718,7 +718,13 @@ None):
 
 # Defines a function to read a list from a txt file
 
-def txt_toList(file_name):
+def txt_toList(file_name, parent_path=None):
+
+    # Adds the parent path if it is given
+
+    if not (parent_path is None):
+
+        file_name = verify_path(parent_path, file_name)
 
     # Reads the txt file
 
