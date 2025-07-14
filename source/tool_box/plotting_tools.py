@@ -13,7 +13,8 @@ import matplotlib.ticker as ticker
 def plane_plot(file_name, data=None, x_data=None, y_data=None, label=
 None, x_label=None, y_label=None, title=None, flag_grid=True, 
 highlight_points=False, color='orange', flag_scientificNotation=False,
-element_style='-', legend=None, plot_type="line"):
+element_style='-', element_size=1.5,  legend=None, plot_type="line", 
+color_map=False, flag_noTicks=False):
 
     print("Starts plotting")
 
@@ -68,6 +69,13 @@ element_style='-', legend=None, plot_type="line"):
             for i in range(len(data[0])-1):
 
                 y_data.append([])
+
+        # If the plot type is catter, treats each point as a separate 
+        # curve
+
+        elif plot_type=="scatter":
+
+            multiple_curves = len(data)
 
         for point in data:
 
@@ -141,6 +149,13 @@ element_style='-', legend=None, plot_type="line"):
 
             raise IndexError("The x data and y data are lists of diffe"+
             "rent sizes. Thus, cannot be used for plotting")
+        
+        # If the plot type is catter, treats each point as a separate 
+        # curve
+
+        elif plot_type=="scatter":
+
+            multiple_curves = len(x_data)
 
     # Sets the graph to be plotted in LaTeX style
 
@@ -148,6 +163,19 @@ element_style='-', legend=None, plot_type="line"):
     "font.serif": ["Computer Modern Roman"], "axes.labelsize": 14, "fo"+
     "nt.size": 14, "legend.fontsize": 12, "xtick.labelsize": 12, "ytic"+
     "k.labelsize": 12, "text.latex.preamble": r"\usepackage{amsmath}"})
+
+    # Gets the color map
+
+    if color_map:
+
+        try:
+
+            color_map = plt.get_cmap(color_map)
+
+        except Exception as error_message:
+
+            print("Error Message:"+str(error_message)+"\nProbably this"+
+            " color map does not exist")
 
     # Creates the figure and the subplots
 
@@ -175,12 +203,43 @@ element_style='-', legend=None, plot_type="line"):
             raise IndexError(str(multiple_curves)+" curves were given "+
             "to be plotted but "+str(len(element_style))+" line styles"+
             " were given")
+
+        # Verifies line thickness
+
+        if isinstance(element_size, float) or isinstance(element_size, 
+        int):
+
+            element_size = [element_size for i in range(
+            multiple_curves)]
+
+        elif not isinstance(element_size, list):
+
+            raise TypeError("Multiple curves were given to be plotted,"+
+            " but the element_size variables is neither a float or an "+
+            "integer nor a list")
+        
+        elif len(element_size)!=multiple_curves:
+
+            raise IndexError(str(multiple_curves)+" curves were given "+
+            "to be plotted but "+str(len(element_size))+" line thickne"+
+            "sses were given")
         
         # Verifies the color vector
 
         if isinstance(color, str):
 
             color = [color for i in range(multiple_curves)]
+
+        elif isinstance(color, float) or isinstance(color, int):
+
+            if color_map:
+
+                color = [color_map(color) for i in range(multiple_curves
+                )]
+
+            else:
+
+                color = [color for i in range(multiple_curves)]
 
         elif not isinstance(color, list):
 
@@ -191,8 +250,19 @@ element_style='-', legend=None, plot_type="line"):
 
             raise IndexError(str(multiple_curves)+" curves were given "+
             "to be plotted but "+str(len(color))+" colors were given")
+        
+        elif color_map:
+
+            for i in range(len(color)):
+
+                if isinstance(color[i], float) or isinstance(color[i], 
+                int):
+                    
+                    color[i] = color_map(color[i])
             
     else:
+
+        # Verifies the line styles
         
         if isinstance(element_style, list):
 
@@ -205,6 +275,22 @@ element_style='-', legend=None, plot_type="line"):
             else:
 
                 element_style = element_style[0]
+
+        # Verifies the line thicknesses
+        
+        if isinstance(element_size, list):
+
+            if len(element_size)>1:
+
+                raise IndexError(str(len(element_size))+" line thickne"+
+                "sses were given, but there is only one curve to be pl"+
+                "otted")
+            
+            else:
+
+                element_size = element_size[0]
+
+        # And verifies the line colors
         
         if isinstance(color, list):
 
@@ -215,7 +301,14 @@ element_style='-', legend=None, plot_type="line"):
             
             else:
 
-                color = color[0]
+                if color_map and (isinstance(color, float) or isinstance(
+                color, int)):
+
+                    color = color_map(color[0])
+
+                else:
+
+                    color = color[0]
 
     # Plots it
 
@@ -228,12 +321,27 @@ element_style='-', legend=None, plot_type="line"):
                 if plot_type=="line":
 
                     subplots_tuple.plot(x_data, y_data[i], linestyle=
-                    element_style[i], color=color[i])
+                    element_style[i], linewidth=element_size[i], color=
+                    color[i])
 
                 elif plot_type=="scatter":
 
-                    subplots_tuple.scatter(x_data, y_data[i], marker=
-                    element_style[i], color=color[i])
+                    # If multiple curves are plotted at once
+
+                    if isinstance(y_data[i], list):
+
+                        subplots_tuple.scatter(x_data, y_data[i], marker=
+                        element_style[i], s=element_size[i]**2, color=
+                        color[i], zorder=3)
+
+                    # If it is just the default treatment of scatter 
+                    # plots
+
+                    else:
+
+                        subplots_tuple.scatter(x_data[i], y_data[i], 
+                        marker=element_style[i], s=element_size[i]**2, 
+                        color=color[i], zorder=3)
 
                 else:
 
@@ -247,12 +355,12 @@ element_style='-', legend=None, plot_type="line"):
             if plot_type=="line":
 
                 subplots_tuple.plot(x_data, y_data, linestyle=
-                element_style, color=color)
+                element_style, linewidth=element_size, color=color)
 
             elif plot_type=="scatter":
 
                 subplots_tuple.scatter(x_data, y_data, marker=
-                element_style, color=color)
+                element_style, s=element_size**2, color=color, zorder=3)
 
             else:
 
@@ -276,12 +384,27 @@ element_style='-', legend=None, plot_type="line"):
                 if plot_type=="line":
 
                     subplots_tuple.plot(x_data, y_data[i], linestyle=
-                    element_style[i], color=color[i], label=label[i])
+                    element_style[i], linewidth=element_size[i], color=
+                    color[i], label=label[i])
 
                 elif plot_type=="scatter":
 
-                    subplots_tuple.scatter(x_data, y_data[i], marker=
-                    element_style[i], color=color[i], label=label[i])
+                    # If multiple curves are plotted at once
+
+                    if isinstance(y_data[i], list):
+
+                        subplots_tuple.scatter(x_data, y_data[i], marker=
+                        element_style[i], s=element_size[i]**2, color=
+                        color[i], zorder=3)
+
+                    # If it is just the default treatment of scatter 
+                    # plots
+
+                    else:
+
+                        subplots_tuple.scatter(x_data[i], y_data[i], 
+                        marker=element_style[i], s=element_size[i]**2, 
+                        color=color[i], zorder=3)
 
                 else:
 
@@ -295,12 +418,14 @@ element_style='-', legend=None, plot_type="line"):
             if plot_type=="line":
 
                 subplots_tuple.plot(x_data, y_data, linestyle=
-                element_style, color=color, label=label)
+                element_style, linewidth=element_size, color=color,
+                label=label)
 
             elif plot_type=="scatter":
 
                 subplots_tuple.scatter(x_data, y_data, marker=
-                element_style, color=color, label=label)
+                element_style, s=element_size**2, color=color, label=
+                label, zorder=3)
 
             else:
 
@@ -339,6 +464,12 @@ element_style='-', legend=None, plot_type="line"):
 
         subplots_tuple.ticklabel_format(style='sci', axis='both', 
         scilimits=(0,0))
+
+    elif flag_noTicks:
+
+        subplots_tuple.set_xticks([])
+
+        subplots_tuple.set_yticks([])
 
     # Verifies and uses if necessary other optional attributes
 

@@ -26,7 +26,7 @@ def evaluate_tangentOperators(flag_newMesh=False):
 
     # Sets the perturbation step
 
-    pertubation_step = 1E-6
+    pertubation_step = -5
 
     # Sets the mesh refinement
 
@@ -36,11 +36,11 @@ def evaluate_tangentOperators(flag_newMesh=False):
 
     # Sets the multiscale boundary conditions for each one of the fields
 
-    #multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
-    #"llyConstrainedFirstOrderBC"], ["PeriodicFirstOrderBC", "PeriodicF"+
-    #"irstOrderBC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
+    multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
+    "llyConstrainedFirstOrderBC"], ["PeriodicFirstOrderBC", "PeriodicF"+
+    "irstOrderBC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
 
-    multiscale_BCsSets = [["LinearFirstOrderBC", "LinearFirstOrderBC"]]
+    #multiscale_BCsSets = [["LinearFirstOrderBC", "LinearFirstOrderBC"]]
 
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
@@ -50,7 +50,7 @@ def evaluate_tangentOperators(flag_newMesh=False):
     # Reads the parameters set
 
     base_path = (os.getcwd()+"//tests//micropolar//tangent_operators//"+
-    "results")
+    "results_E_"+str(abs(pertubation_step)))
 
     parameters_sets = file_tools.txt_toList("parameters_sets", 
     parent_path=base_path)
@@ -62,22 +62,7 @@ def evaluate_tangentOperators(flag_newMesh=False):
     "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
     "ion_31", "simulation_32", "simulation_33"]
 
-    # Defines a list of lists, each list is a set of material parameters:
-    # 0.  Young modulus of the matrix
-    # 1.  Young modulus of the fiber
-    # 2.  Poisson ratio of the matrix
-    # 3.  Poisson ratio of the fiber
-    # 4.  micropolar number of the matrix
-    # 5.  micropolar number of the fiber
-    # 6.  characteristic length of the matrix
-    # 7.  characteristic length of the fiber
-    # 8.  flag for bending
-    # 9.  load factor
-    # 10. gamma of the matrix
-    # 11. gamma of the fiber
-    # 12. RVE width
-    # 13. RVE length
-    # 14. radius of the fiber
+    # Iterates through the multiscale boundary conditions
 
     counter = 0
 
@@ -112,7 +97,7 @@ def evaluate_tangentOperators(flag_newMesh=False):
             bias_directions]
 
             central_differencesTangentOperators(base_path, 
-            subfolder_name, pertubation_step, BVP_arguments, 
+            subfolder_name, 10**(pertubation_step), BVP_arguments, 
             BVP_keywordArguments)
 
 # Defines a function to perturbate the macroscale gradients to get the

@@ -6,9 +6,15 @@ import numpy as np
 
 import source.tool_box.file_handling_tools as file_tools
 
+import source.tool_box.plotting_tools as plotting_tools
+
 # Defines a function to run the process
 
 def plot_operators():
+
+    # Sets the basic size for the component representative circle
+
+    basic_size = 12.0
 
     # Sets the multiscale boundary conditions for each one of the fields
 
@@ -44,12 +50,12 @@ def plot_operators():
             # Calls the function to read the derivatives of the stress
             # tensors and plot the dispersion of the components
 
-            plot_dispersion(folder_name)
+            plot_dispersion(folder_name, basic_size)
 
 # Defines a function to read the derivatives of the stress tensors, and 
 # plot the dispersion of the components
 
-def plot_dispersion(folder_name):
+def plot_dispersion(folder_name, basic_size):
 
     # Reads the derivative files
 
@@ -89,6 +95,23 @@ def plot_dispersion(folder_name):
 
     dPcouple_dGradPhi = normalize_tensors(dPcouple_dGradPhi, 
     maximum_magnitude)
+
+    # Iterates through the time points
+
+    for i in range(len(dP_dGradU)):
+
+        # Gets the time point and the file name
+
+        time = dP_dGradU[i][0]
+
+        file_name = ("C_voigt_t_"+str(int(np.floor(time)))+"_"+str(time-
+        np.floor(time))[2:]+".pdf")
+
+        # Plots the tensors
+
+        plot_tensor(dP_dGradU[i][1], dP_dGradPhi[i][1], dPcouple_dGradU[
+        i][1], dPcouple_dGradPhi[i][1], folder_name, file_name, time, 
+        basic_size)
 
 # Defines a function to get the maximum value of magnitude of a list of
 # tensors
@@ -132,8 +155,171 @@ def normalize_tensors(tensors_list, maximum_magnitude):
 # Deines a function to plot the tensor
 
 def plot_tensor(dP_dGradU, dP_dGradPhi, dPcouple_dGradU, 
-dPcouple_dGradPhi):
+dPcouple_dGradPhi, parent_path, file_name, time, basic_size):
 
-    pass
+    # Initializes the color list and the marker size list
+
+    color_list = []
+
+    marker_sizeList = []
+
+    # Initializes the plot lists
+
+    x_data = []
+
+    y_data = []
+
+    # Initializes the counters for the Voigt notation indices
+
+    row_index = 9
+
+    column_index = 1
+
+    # Iterates through the derivative of the first Piola-Kirchhof couple
+    # stress tensor w.r.t. the displacement gradient
+
+    for i in range(len(dPcouple_dGradU)):
+
+        for j in range(len(dPcouple_dGradU[i])):
+
+            x_data.append(column_index)
+
+            y_data.append(row_index)
+
+            color_list.append(0.5*(dPcouple_dGradU[i][j]+1))
+
+            #marker_sizeList.append(abs(dPcouple_dGradU[i][j])*basic_size)
+
+            marker_sizeList.append(basic_size)
+
+            # Updates the column counter
+
+            column_index += 1
+
+        # Updates the counter
+
+        column_index = 1
+
+        row_index -= 1
+
+    # Iterates through the derivative of the first Piola-Kirchhof couple
+    # stress tensor w.r.t. the microrotation gradient
+
+    row_index = 9
+
+    column_index = 10
+
+    for i in range(len(dPcouple_dGradPhi)):
+
+        for j in range(len(dPcouple_dGradPhi[i])):
+
+            x_data.append(column_index)
+
+            y_data.append(row_index)
+
+            color_list.append(0.5*(dPcouple_dGradPhi[i][j]+1))
+
+            #marker_sizeList.append(abs(dPcouple_dGradPhi[i][j])*
+            #basic_size)
+
+            marker_sizeList.append(basic_size)
+
+            # Updates the column counter
+
+            column_index += 1
+
+        # Updates the counter
+
+        column_index = 10
+
+        row_index -= 1
+
+    # Iterates through the derivative of the first Piola-Kirchhof stress 
+    # tensor w.r.t. the displacement gradient
+
+    row_index = 18
+
+    column_index = 1
+
+    for i in range(len(dP_dGradU)):
+
+        for j in range(len(dP_dGradU[i])):
+
+            x_data.append(column_index)
+
+            y_data.append(row_index)
+
+            color_list.append(0.5*(dP_dGradU[i][j]+1))
+
+            #marker_sizeList.append(abs(dP_dGradU[i][j])*basic_size)
+
+            marker_sizeList.append(basic_size)
+
+            # Updates the column counter
+
+            column_index += 1
+
+        # Updates the counter
+
+        column_index = 1
+
+        row_index -= 1
+
+    # Iterates through the derivative of the first Piola-Kirchhof stress 
+    # tensor w.r.t. the microrotation gradient
+
+    row_index = 18
+
+    column_index = 10
+
+    for i in range(len(dP_dGradPhi)):
+
+        for j in range(len(dP_dGradPhi[i])):
+
+            x_data.append(column_index)
+
+            y_data.append(row_index)
+
+            color_list.append(0.5*(dP_dGradPhi[i][j]+1))
+
+            #marker_sizeList.append(abs(dP_dGradPhi[i][j])*basic_size)
+
+            marker_sizeList.append(basic_size)
+
+            # Updates the column counter
+
+            column_index += 1
+
+        # Updates the counter
+
+        column_index = 10
+
+        row_index -= 1
+
+    # Plots and saves the figure
+
+    plotting_tools.plane_plot(parent_path+"//"+file_name, x_data=x_data, 
+    y_data=y_data, element_style="s", element_size=marker_sizeList, 
+    color=color_list, color_map='coolwarm', plot_type="scatter", 
+    flag_grid=False, flag_noTicks=True)
+
+def test():
+
+    base_path = (os.getcwd()+"//tests//micropolar//tangent_operators//"+
+    "results//simulation_11//LinearFirstOrderBC_LinearFirstOrderBC")
+
+    x_data = [1,2,3]
+
+    y_data = [1,2,3]
+
+    marker_sizeList = [1,2,3]
+
+    color_list = [0.0, 0.25, 1.0]
+
+    plotting_tools.plane_plot(base_path+"//"+"t_0", x_data=x_data, 
+    y_data=y_data, element_style="x", element_size=marker_sizeList, 
+    color=color_list, color_map='coolwarm', plot_type="scatter")
+
+#test()
 
 plot_operators()
