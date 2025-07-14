@@ -13,7 +13,7 @@ import matplotlib.ticker as ticker
 def plane_plot(file_name, data=None, x_data=None, y_data=None, label=
 None, x_label=None, y_label=None, title=None, flag_grid=True, 
 highlight_points=False, color='orange', flag_scientificNotation=False,
-line_styles='-', legend=None):
+element_style='-', legend=None, plot_type="line"):
 
     print("Starts plotting")
 
@@ -159,21 +159,22 @@ line_styles='-', legend=None):
 
         # Verifies line styles
 
-        if isinstance(line_styles, str):
+        if isinstance(element_style, str):
 
-            line_styles = [line_styles for i in range(multiple_curves)]
+            element_style = [element_style for i in range(
+            multiple_curves)]
 
-        elif not isinstance(line_styles, list):
+        elif not isinstance(element_style, list):
 
             raise TypeError("Multiple curves were given to be plotted,"+
-            " but the line_styles variables is neither a string nor a "+
-            "list")
+            " but the element_style variables is neither a string nor "+
+            "a list")
         
-        elif len(line_styles)!=multiple_curves:
+        elif len(element_style)!=multiple_curves:
 
             raise IndexError(str(multiple_curves)+" curves were given "+
-            "to be plotted but "+str(len(line_styles))+" line styles w"+
-            "ere given")
+            "to be plotted but "+str(len(element_style))+" line styles"+
+            " were given")
         
         # Verifies the color vector
 
@@ -193,16 +194,17 @@ line_styles='-', legend=None):
             
     else:
         
-        if isinstance(line_styles, list):
+        if isinstance(element_style, list):
 
-            if len(line_styles)>1:
+            if len(element_style)>1:
 
-                raise IndexError(str(len(line_styles))+" line styles w"+
-                "ere given, but there is only one curve to be plotted")
+                raise IndexError(str(len(element_style))+" line styles"+
+                " were given, but there is only one curve to be plotte"+
+                "d")
             
             else:
 
-                line_styles = line_styles[0]
+                element_style = element_style[0]
         
         if isinstance(color, list):
 
@@ -223,13 +225,41 @@ line_styles='-', legend=None):
 
             for i in range(multiple_curves):
 
-                subplots_tuple.plot(x_data, y_data[i], linestyle=
-                line_styles[i], color=color[i])
+                if plot_type=="line":
+
+                    subplots_tuple.plot(x_data, y_data[i], linestyle=
+                    element_style[i], color=color[i])
+
+                elif plot_type=="scatter":
+
+                    subplots_tuple.scatter(x_data, y_data[i], marker=
+                    element_style[i], color=color[i])
+
+                else:
+
+                    raise ValueError("There are two types of plot: 'li"+
+                    "ne' for data points that are orderly joined by li"+
+                    "nes, and 'scatter' for points that are plotted sc"+
+                    "atter fashion")
 
         else:
 
-            subplots_tuple.plot(x_data, y_data, linestyle=line_styles, 
-            color=color)
+            if plot_type=="line":
+
+                subplots_tuple.plot(x_data, y_data, linestyle=
+                element_style, color=color)
+
+            elif plot_type=="scatter":
+
+                subplots_tuple.scatter(x_data, y_data, marker=
+                element_style, color=color)
+
+            else:
+
+                raise ValueError("There are two types of plot: 'line' "+
+                "for data points that are orderly joined by lines, and"+
+                " 'scatter' for points that are plotted scatter fashio"+
+                "n")
 
     else:
 
@@ -242,14 +272,42 @@ line_styles='-', legend=None):
         if multiple_curves:
 
             for i in range(multiple_curves):
+                
+                if plot_type=="line":
 
-                subplots_tuple.plot(x_data, y_data[i], linestyle=
-                line_styles[i], label=label[i], color=color[i])
+                    subplots_tuple.plot(x_data, y_data[i], linestyle=
+                    element_style[i], color=color[i], label=label[i])
+
+                elif plot_type=="scatter":
+
+                    subplots_tuple.scatter(x_data, y_data[i], marker=
+                    element_style[i], color=color[i], label=label[i])
+
+                else:
+
+                    raise ValueError("There are two types of plot: 'li"+
+                    "ne' for data points that are orderly joined by li"+
+                    "nes, and 'scatter' for points that are plotted sc"+
+                    "atter fashion")
 
         else:
 
-            subplots_tuple.plot(x_data, y_data, linestyle=line_styles, 
-            label=label, color=color)
+            if plot_type=="line":
+
+                subplots_tuple.plot(x_data, y_data, linestyle=
+                element_style, color=color, label=label)
+
+            elif plot_type=="scatter":
+
+                subplots_tuple.scatter(x_data, y_data, marker=
+                element_style, color=color, label=label)
+
+            else:
+
+                raise ValueError("There are two types of plot: 'line' "+
+                "for data points that are orderly joined by lines, and"+
+                " 'scatter' for points that are plotted scatter fashio"+
+                "n")
 
     plt.grid(flag_grid)
 

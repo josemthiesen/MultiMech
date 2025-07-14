@@ -1,7 +1,5 @@
 # Routine to numerically differentiate the tangent operators
 
-# Routine to test a hyperelastic disc
-
 import os
 
 import sys
@@ -38,9 +36,11 @@ def evaluate_tangentOperators(flag_newMesh=False):
 
     # Sets the multiscale boundary conditions for each one of the fields
 
-    multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
-    "llyConstrainedFirstOrderBC"], ["PeriodicFirstOrderBC", "PeriodicF"+
-    "irstOrderBC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
+    #multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
+    #"llyConstrainedFirstOrderBC"], ["PeriodicFirstOrderBC", "PeriodicF"+
+    #"irstOrderBC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
+
+    multiscale_BCsSets = [["LinearFirstOrderBC", "LinearFirstOrderBC"]]
 
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
