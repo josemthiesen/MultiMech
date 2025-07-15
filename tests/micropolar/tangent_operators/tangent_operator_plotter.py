@@ -237,14 +237,19 @@ voigt_conversion, min_component, max_component):
 
     # Plots and saves the figure
 
+    max_magnitude = max(abs(max_component), abs(min_component))
+
+    print(scaling(max_magnitude), scaling(max_magnitude*np.sign(min_component)))
+
     plotting_tools.plane_plot(parent_path+"//"+file_name, x_data=x_data, 
     y_data=y_data, element_style="s", element_size=marker_sizeList, 
     color=color_list, color_map='coolwarm', plot_type="scatter", 
     flag_grid=True, flag_noTicks=True, aspect_ratio='equal', x_grid=[
     3.5, 6.5, 9.5, 12.5, 15.5], y_grid=[3.5, 6.5, 9.5, 12.5, 15.5],
-    color_bar=True, color_barMaximum=scaling(max_component), 
-    color_barMinimum=scaling(min_component), color_barTitle="$sgn\\left(\\|\\cdot\\|\\right)log"+
-    "\\left(\\|\\cdot\\|\\right)$")
+    color_bar=True, color_barMaximum=scaling(max_magnitude), 
+    color_barMinimum=scaling(max_magnitude*np.sign(min_component)), 
+    color_barTitle="$sgn\\left(\\|\\cdot\\|\\right)log\\left(\\|\\cdot"+
+    "\\|\\right)$")
 
 def test():
 

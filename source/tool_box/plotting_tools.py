@@ -515,6 +515,8 @@ None, color_barTicks=None, color_barTitle=None):
 
     # Verifies if a color bar is asked for
 
+    print(color_barMaximum, color_barMinimum)
+
     if color_bar:
         
         # Verifies if the color map has minimum and maximum values
