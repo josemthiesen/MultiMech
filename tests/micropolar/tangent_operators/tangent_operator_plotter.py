@@ -12,6 +12,15 @@ import source.tool_box.plotting_tools as plotting_tools
 
 def plot_operators():
 
+    # Creates a dictionary to convert the current indices to the origi-
+    # nal indices of the tensor
+
+    voigt_conversion = {0: 0, 1: 4, 2: 8, 3: 1, 4: 5, 5: 2, 6: 3, 7: 7,
+    8: 6}
+
+    #voigt_conversion = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7,
+    #8: 8}
+
     # Sets the basic size for the component representative circle
 
     basic_size = 12.0
@@ -19,8 +28,8 @@ def plot_operators():
     # Sets the multiscale boundary conditions for each one of the fields
 
     multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
-    "llyConstrainedFirstOrderBC"], ["PeriodicFirstOrderBC", "PeriodicF"+
-    "irstOrderBC"]]#, ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
+    "llyConstrainedFirstOrderBC"]]#, ["PeriodicFirstOrderBC", "PeriodicF"+
+    #"irstOrderBC"]]#, ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
 
     # Sets the basic path
 
@@ -50,12 +59,12 @@ def plot_operators():
             # Calls the function to read the derivatives of the stress
             # tensors and plot the dispersion of the components
 
-            plot_dispersion(folder_name, basic_size)
+            plot_dispersion(folder_name, basic_size, voigt_conversion)
 
 # Defines a function to read the derivatives of the stress tensors, and 
 # plot the dispersion of the components
 
-def plot_dispersion(folder_name, basic_size):
+def plot_dispersion(folder_name, basic_size, voigt_conversion):
 
     # Reads the derivative files
 
@@ -71,30 +80,19 @@ def plot_dispersion(folder_name, basic_size):
     dPcouple_dGradPhi = file_tools.txt_toList("dPcouple_dGradPhi", 
     parent_path=folder_name)
 
-    # Gets the maximum value of magnitude
+    # Gets the maximum and minimum values of components
 
-    maximum_magnitude = get_maximumMagnitude(dP_dGradU)
+    min_component, max_component = get_maximumMagnitude(dP_dGradU)
 
-    maximum_magnitude = get_maximumMagnitude(dP_dGradPhi, 
-    maximum_magnitude=maximum_magnitude)
+    min_component, max_component = get_maximumMagnitude(dP_dGradPhi, 
+    max_component=max_component, min_component=min_component)
 
-    maximum_magnitude = get_maximumMagnitude(dPcouple_dGradU, 
-    maximum_magnitude=maximum_magnitude)
+    min_component, max_component = get_maximumMagnitude(dPcouple_dGradU, 
+    max_component=max_component, min_component=min_component)
 
-    maximum_magnitude = get_maximumMagnitude(dPcouple_dGradPhi, 
-    maximum_magnitude=maximum_magnitude)
-
-    # Normalizes the components of the tensors
-
-    dP_dGradU = normalize_tensors(dP_dGradU, maximum_magnitude)
-
-    dPcouple_dGradU = normalize_tensors(dPcouple_dGradU, 
-    maximum_magnitude)
-
-    dP_dGradPhi = normalize_tensors(dP_dGradPhi, maximum_magnitude)
-
-    dPcouple_dGradPhi = normalize_tensors(dPcouple_dGradPhi, 
-    maximum_magnitude)
+    min_component, max_component = get_maximumMagnitude(
+    dPcouple_dGradPhi, max_component=max_component, min_component=
+    min_component)
 
     # Iterates through the time points
 
@@ -111,12 +109,13 @@ def plot_dispersion(folder_name, basic_size):
 
         plot_tensor(dP_dGradU[i][1], dP_dGradPhi[i][1], dPcouple_dGradU[
         i][1], dPcouple_dGradPhi[i][1], folder_name, file_name, time, 
-        basic_size)
+        basic_size, voigt_conversion, min_component, max_component)
 
 # Defines a function to get the maximum value of magnitude of a list of
 # tensors
 
-def get_maximumMagnitude(tensors_list, maximum_magnitude=1.0):
+def get_maximumMagnitude(tensors_list, max_component=1.0, min_component=
+0.0):
 
     # Iterates through the time values
 
@@ -128,10 +127,13 @@ def get_maximumMagnitude(tensors_list, maximum_magnitude=1.0):
 
             for j in range(len(time[1][i])):
 
-                maximum_magnitude = max(maximum_magnitude, abs(time[1][i
+                max_component = max(max_component, abs(time[1][i
                 ][j]))
 
-    return maximum_magnitude
+                min_component = min(min_component, abs(time[1][i
+                ][j]))
+
+    return min_component, max_component
 
 # Defines a function to normalize the values of the tensors by the maxi-
 # mum magnitude found
@@ -155,7 +157,8 @@ def normalize_tensors(tensors_list, maximum_magnitude):
 # Deines a function to plot the tensor
 
 def plot_tensor(dP_dGradU, dP_dGradPhi, dPcouple_dGradU, 
-dPcouple_dGradPhi, parent_path, file_name, time, basic_size):
+dPcouple_dGradPhi, parent_path, file_name, time, basic_size,
+voigt_conversion, min_component, max_component):
 
     # Initializes the color list and the marker size list
 
@@ -169,139 +172,79 @@ dPcouple_dGradPhi, parent_path, file_name, time, basic_size):
 
     y_data = []
 
-    # Initializes the counters for the Voigt notation indices
+    # Defines a function to scale the components of the fourth order 
+    # tensor
 
-    row_index = 9
+    def scaling(x):
 
-    column_index = 1
+        if np.abs(x)<10.0:
 
-    # Iterates through the derivative of the first Piola-Kirchhof couple
-    # stress tensor w.r.t. the displacement gradient
+            return np.sign(x)*(np.abs(x)/10)
+                                       
+        else:
 
-    for i in range(len(dPcouple_dGradU)):
+            return np.sign(x)*np.log10(np.abs(x))
 
-        for j in range(len(dPcouple_dGradU[i])):
+    # Creates a function for the conversion of indices
 
-            x_data.append(column_index)
+    def indices_function(i,j):
 
-            y_data.append(row_index)
+        x_data.append(j+1)
 
-            color_list.append(0.5*(dPcouple_dGradU[i][j]+1))
+        y_data.append(18-i)
 
-            #marker_sizeList.append(abs(dPcouple_dGradU[i][j])*basic_size)
+        marker_sizeList.append(basic_size)
 
-            marker_sizeList.append(basic_size)
+        # Verifies if the indices are in the derivative of the first Pi-
+        # ola-Kirchhoff stress tensor w.r.t. the displacement gradient
 
-            # Updates the column counter
+        if i<9 and j<9:
 
-            column_index += 1
+            color_list.append(scaling(dP_dGradU[voigt_conversion[i]][
+            voigt_conversion[j]]))
 
-        # Updates the counter
+        # Verifies if the indices are in the derivative of the first Pi-
+        # ola-Kirchhoff stress tensor w.r.t. the microrotation gradient
 
-        column_index = 1
+        if i<9 and j>8:
 
-        row_index -= 1
+            color_list.append(scaling(dP_dGradPhi[voigt_conversion[i]][
+            voigt_conversion[j-9]]))
 
-    # Iterates through the derivative of the first Piola-Kirchhof couple
-    # stress tensor w.r.t. the microrotation gradient
+        # Verifies if the indices are in the derivative of the first Pi-
+        # ola-Kirchhoff couple stress tensor w.r.t. the displacement 
+        # gradient
 
-    row_index = 9
+        if i>8 and j<9:
 
-    column_index = 10
+            color_list.append(scaling(dPcouple_dGradU[voigt_conversion[i
+            -9]][voigt_conversion[j]]))
 
-    for i in range(len(dPcouple_dGradPhi)):
+        # Verifies if the indices are in the derivative of the first Pi-
+        # ola-Kirchhoff couple stress tensor w.r.t. the microrotation 
+        # gradient
 
-        for j in range(len(dPcouple_dGradPhi[i])):
+        if i>8 and j>8:
 
-            x_data.append(column_index)
+            color_list.append(scaling(dPcouple_dGradPhi[voigt_conversion[
+            i-9]][voigt_conversion[j-9]]))
 
-            y_data.append(row_index)
+    for i in range(18):
 
-            color_list.append(0.5*(dPcouple_dGradPhi[i][j]+1))
+        for j in range(18):
 
-            #marker_sizeList.append(abs(dPcouple_dGradPhi[i][j])*
-            #basic_size)
-
-            marker_sizeList.append(basic_size)
-
-            # Updates the column counter
-
-            column_index += 1
-
-        # Updates the counter
-
-        column_index = 10
-
-        row_index -= 1
-
-    # Iterates through the derivative of the first Piola-Kirchhof stress 
-    # tensor w.r.t. the displacement gradient
-
-    row_index = 18
-
-    column_index = 1
-
-    for i in range(len(dP_dGradU)):
-
-        for j in range(len(dP_dGradU[i])):
-
-            x_data.append(column_index)
-
-            y_data.append(row_index)
-
-            color_list.append(0.5*(dP_dGradU[i][j]+1))
-
-            #marker_sizeList.append(abs(dP_dGradU[i][j])*basic_size)
-
-            marker_sizeList.append(basic_size)
-
-            # Updates the column counter
-
-            column_index += 1
-
-        # Updates the counter
-
-        column_index = 1
-
-        row_index -= 1
-
-    # Iterates through the derivative of the first Piola-Kirchhof stress 
-    # tensor w.r.t. the microrotation gradient
-
-    row_index = 18
-
-    column_index = 10
-
-    for i in range(len(dP_dGradPhi)):
-
-        for j in range(len(dP_dGradPhi[i])):
-
-            x_data.append(column_index)
-
-            y_data.append(row_index)
-
-            color_list.append(0.5*(dP_dGradPhi[i][j]+1))
-
-            #marker_sizeList.append(abs(dP_dGradPhi[i][j])*basic_size)
-
-            marker_sizeList.append(basic_size)
-
-            # Updates the column counter
-
-            column_index += 1
-
-        # Updates the counter
-
-        column_index = 10
-
-        row_index -= 1
+            indices_function(i,j)
 
     # Plots and saves the figure
 
     plotting_tools.plane_plot(parent_path+"//"+file_name, x_data=x_data, 
     y_data=y_data, element_style="s", element_size=marker_sizeList, 
     color=color_list, color_map='coolwarm', plot_type="scatter", 
-    flag_grid=False, flag_noTicks=True)
+    flag_grid=True, flag_noTicks=True, aspect_ratio='equal', x_grid=[
+    3.5, 6.5, 9.5, 12.5, 15.5], y_grid=[3.5, 6.5, 9.5, 12.5, 15.5],
+    color_bar=True, color_barMaximum=scaling(max_component), 
+    color_barMinimum=scaling(min_component), color_barTitle="$sgn\\left(\\|\\cdot\\|\\right)log"+
+    "\\left(\\|\\cdot\\|\\right)$")
 
 def test():
 

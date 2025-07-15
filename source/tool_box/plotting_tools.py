@@ -1,5 +1,7 @@
 # Routine to store methods to plot
 
+import numpy as np
+
 import matplotlib.pyplot as plt
 
 import matplotlib.ticker as ticker
@@ -14,7 +16,9 @@ def plane_plot(file_name, data=None, x_data=None, y_data=None, label=
 None, x_label=None, y_label=None, title=None, flag_grid=True, 
 highlight_points=False, color='orange', flag_scientificNotation=False,
 element_style='-', element_size=1.5,  legend=None, plot_type="line", 
-color_map=False, flag_noTicks=False):
+color_map=False, flag_noTicks=False, aspect_ratio='auto', x_grid=None,
+y_grid=None, color_bar=False, color_barMaximum=None, color_barMinimum=
+None, color_barTicks=None, color_barTitle=None):
 
     print("Starts plotting")
 
@@ -253,12 +257,59 @@ color_map=False, flag_noTicks=False):
         
         elif color_map:
 
+            # Gets the extrema values of the colors
+
+            color_min = None
+
+            color_max = None
+
+            try:
+
+                color_min = min(color)
+
+                color_max = max(color)
+
+                # If the minimum value is not given
+
+                if color_barMinimum is None:
+
+                    color_barMinimum = color_min*1.0
+
+                elif color_min<color_barMinimum:
+
+                    color_barMinimum = color_min*1.0
+
+                # If the maximum is not given
+
+                if color_barMaximum is None:
+
+                    color_barMaximum = color_max*1.0
+
+                elif color_max>color_barMaximum:
+
+                    color_barMaximum = color_max*1.0
+
+            except:
+
+                pass
+
+            # Iterates through the color values
+
             for i in range(len(color)):
 
                 if isinstance(color[i], float) or isinstance(color[i], 
                 int):
                     
-                    color[i] = color_map(color[i])
+                    color[i] = color_map((color[i]-color_barMinimum)/(
+                    color_barMaximum-color_barMinimum))
+
+            # Updates the color map variable to account for the maximum
+            # and minimum values
+
+            if (not (color_min is None)) and (not (color_max is None)):
+
+                color_map = [color_map, color_barMinimum, 
+                color_barMaximum]
             
     else:
 
@@ -301,14 +352,22 @@ color_map=False, flag_noTicks=False):
             
             else:
 
-                if color_map and (isinstance(color, float) or isinstance(
-                color, int)):
+                if color_map and (isinstance(color[0], float) or (
+                isinstance(color[0], int))):
 
                     color = color_map(color[0])
 
                 else:
 
                     color = color[0]
+
+    # Sets the aspect ratio of the plot
+
+    subplots_tuple.set_aspect(aspect_ratio)
+
+    # Inititalizes the plotted entities
+
+    plotted_entities = None
 
     # Plots it
 
@@ -320,9 +379,9 @@ color_map=False, flag_noTicks=False):
 
                 if plot_type=="line":
 
-                    subplots_tuple.plot(x_data, y_data[i], linestyle=
-                    element_style[i], linewidth=element_size[i], color=
-                    color[i])
+                    plotted_entities = subplots_tuple.plot(x_data, 
+                    y_data[i], linestyle=element_style[i], linewidth=
+                    element_size[i], color=color[i])
 
                 elif plot_type=="scatter":
 
@@ -330,18 +389,18 @@ color_map=False, flag_noTicks=False):
 
                     if isinstance(y_data[i], list):
 
-                        subplots_tuple.scatter(x_data, y_data[i], marker=
-                        element_style[i], s=element_size[i]**2, color=
-                        color[i], zorder=3)
+                        plotted_entities = subplots_tuple.scatter(x_data, 
+                        y_data[i], marker=element_style[i], s=
+                        element_size[i]**2, color=color[i], zorder=3)
 
                     # If it is just the default treatment of scatter 
                     # plots
 
                     else:
 
-                        subplots_tuple.scatter(x_data[i], y_data[i], 
-                        marker=element_style[i], s=element_size[i]**2, 
-                        color=color[i], zorder=3)
+                        plotted_entities = subplots_tuple.scatter(x_data[
+                        i], y_data[i], marker=element_style[i], s=
+                        element_size[i]**2, color=color[i], zorder=3)
 
                 else:
 
@@ -354,13 +413,15 @@ color_map=False, flag_noTicks=False):
 
             if plot_type=="line":
 
-                subplots_tuple.plot(x_data, y_data, linestyle=
-                element_style, linewidth=element_size, color=color)
+                plotted_entities = subplots_tuple.plot(x_data, y_data, 
+                linestyle=element_style, linewidth=element_size, color=
+                color)
 
             elif plot_type=="scatter":
 
-                subplots_tuple.scatter(x_data, y_data, marker=
-                element_style, s=element_size**2, color=color, zorder=3)
+                plotted_entities = subplots_tuple.scatter(x_data, y_data, 
+                marker=element_style, s=element_size**2, color=color, 
+                zorder=3)
 
             else:
 
@@ -383,9 +444,9 @@ color_map=False, flag_noTicks=False):
                 
                 if plot_type=="line":
 
-                    subplots_tuple.plot(x_data, y_data[i], linestyle=
-                    element_style[i], linewidth=element_size[i], color=
-                    color[i], label=label[i])
+                    plotted_entities = subplots_tuple.plot(x_data, 
+                    y_data[i], linestyle=element_style[i], linewidth=
+                    element_size[i], color=color[i], label=label[i])
 
                 elif plot_type=="scatter":
 
@@ -393,18 +454,18 @@ color_map=False, flag_noTicks=False):
 
                     if isinstance(y_data[i], list):
 
-                        subplots_tuple.scatter(x_data, y_data[i], marker=
-                        element_style[i], s=element_size[i]**2, color=
-                        color[i], zorder=3)
+                        plotted_entities = subplots_tuple.scatter(x_data, 
+                        y_data[i], marker=element_style[i], s=
+                        element_size[i]**2, color=color[i], zorder=3)
 
                     # If it is just the default treatment of scatter 
                     # plots
 
                     else:
 
-                        subplots_tuple.scatter(x_data[i], y_data[i], 
-                        marker=element_style[i], s=element_size[i]**2, 
-                        color=color[i], zorder=3)
+                        plotted_entities = subplots_tuple.scatter(x_data[
+                        i], y_data[i], marker=element_style[i], s=
+                        element_size[i]**2, color=color[i], zorder=3)
 
                 else:
 
@@ -417,15 +478,15 @@ color_map=False, flag_noTicks=False):
 
             if plot_type=="line":
 
-                subplots_tuple.plot(x_data, y_data, linestyle=
-                element_style, linewidth=element_size, color=color,
-                label=label)
+                plotted_entities = subplots_tuple.plot(x_data, y_data, 
+                linestyle=element_style, linewidth=element_size, color=
+                color, label=label)
 
             elif plot_type=="scatter":
 
-                subplots_tuple.scatter(x_data, y_data, marker=
-                element_style, s=element_size**2, color=color, label=
-                label, zorder=3)
+                plotted_entities = subplots_tuple.scatter(x_data, y_data, 
+                marker=element_style, s=element_size**2, color=color, 
+                label=label, zorder=3)
 
             else:
 
@@ -452,6 +513,69 @@ color_map=False, flag_noTicks=False):
             subplots_tuple.scatter(x_data, y_data, color='black', 
             marker='x', zorder=3)
 
+    # Verifies if a color bar is asked for
+
+    if color_bar:
+        
+        # Verifies if the color map has minimum and maximum values
+
+        if not isinstance(color_map, list):
+
+            raise TypeError("The color map does not have minimum and m"+
+            "aximum values. Either the data has just one curve and, th"+
+            "us cannot possibly have a color map, or a color map has n"+
+            "ot been provided")
+
+        # Creates two artificial points to add the color gradient
+
+        if multiple_curves:
+
+            # Verifies the purely scattered case
+
+            if not isinstance(y_data[0], list):
+
+                plotted_entities = subplots_tuple.scatter(x_data[0:2], 
+                [y_data[0], y_data[1]], c=[color_map[1], color_map[2]], 
+                cmap=color_map[0], vmin=color_map[1], vmax=color_map[2], 
+                marker='x', zorder=3, s=0.001)
+
+            # Otherwise, plots elements of the first curve
+
+            else:
+
+                plotted_entities = subplots_tuple.scatter(x_data[0:2], 
+                y_data[0][0:2], c=[color_map[1], color_map[2]], cmap=
+                color_map[0], vmin=color_map[1], vmax=color_map[2], 
+                marker='x', zorder=3, s=0.001)
+
+        else:
+
+            plotted_entities = subplots_tuple.scatter(x_data[0:2], 
+            y_data[0:2], c=[color_map[1], color_map[2]], cmap=color_map[
+            0], vmin=color_map[1], vmax=color_map[2], marker='x', 
+            zorder=3, s=0.001)
+
+        # Creates the color bar
+
+        color_bar = plt.colorbar(plotted_entities)
+
+        if color_barTitle:
+
+            color_bar.set_label(color_barTitle)
+
+        else:
+
+            color_bar.set_label("Magnitude")
+
+        if color_barTicks:
+
+            color_bar.set_ticks(color_barTicks)
+
+        else:
+
+            color_bar.set_ticks(np.linspace(color_map[1], color_map[2], 
+            5))
+
     # Applies scientific notation to the ticks
 
     if flag_scientificNotation:
@@ -467,9 +591,19 @@ color_map=False, flag_noTicks=False):
 
     elif flag_noTicks:
 
-        subplots_tuple.set_xticks([])
+        subplots_tuple.tick_params(axis='both', which='both', length=0, 
+        labelbottom=False, labelleft=False)
 
-        subplots_tuple.set_yticks([])
+
+    # Sets the grid
+
+    if not (x_grid is None):
+
+        subplots_tuple.set_xticks(x_grid)
+
+    if not (y_grid is None):
+
+        subplots_tuple.set_yticks(y_grid)
 
     # Verifies and uses if necessary other optional attributes
 
