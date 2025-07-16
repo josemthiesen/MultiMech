@@ -515,8 +515,6 @@ None, color_barTicks=None, color_barTitle=None):
 
     # Verifies if a color bar is asked for
 
-    print(color_barMaximum, color_barMinimum)
-
     if color_bar:
         
         # Verifies if the color map has minimum and maximum values
@@ -578,6 +576,21 @@ None, color_barTicks=None, color_barTitle=None):
             color_bar.set_ticks(np.linspace(color_map[1], color_map[2], 
             5))
 
+        # Sets a formatter object to ensure that integer ticks are shown
+        # as integer
+
+        def formatter_function(x, _):
+
+            if abs(x-int(x)) < 1e-6:
+
+                return f"{int(x):>3}"  # format as integer, right-aligned to 3 spaces
+            else:
+                return f"{x:>5.2f}"     # Right-align float, width 5
+
+        color_barFormatter = ticker.FuncFormatter(formatter_function)
+
+        color_bar.ax.yaxis.set_major_formatter(color_barFormatter)
+
     # Applies scientific notation to the ticks
 
     if flag_scientificNotation:
@@ -595,7 +608,6 @@ None, color_barTicks=None, color_barTitle=None):
 
         subplots_tuple.tick_params(axis='both', which='both', length=0, 
         labelbottom=False, labelleft=False)
-
 
     # Sets the grid
 

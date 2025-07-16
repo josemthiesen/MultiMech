@@ -28,13 +28,14 @@ def plot_operators():
     # Sets the multiscale boundary conditions for each one of the fields
 
     multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
-    "llyConstrainedFirstOrderBC"]]#, ["PeriodicFirstOrderBC", "PeriodicF"+
-    #"irstOrderBC"]]#, ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
+    "llyConstrainedFirstOrderBC"], ["PeriodicFirstOrderBC", "PeriodicF"+
+    "irstOrderBC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
 
     # Sets the basic path
 
-    base_path = (os.getcwd()+"//tests//micropolar//tangent_operators//"+
-    "results")
+    base_paths = [(os.getcwd()+"//tests//micropolar//tangent_operators"+
+    "//results_eps_1E_6"), (os.getcwd()+"//tests//micropolar//tangent_"+
+    "operators//results_eps_1E_5")]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
@@ -43,23 +44,29 @@ def plot_operators():
     "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
     "ion_31", "simulation_32", "simulation_33"]
 
-    # Iterates through the multiscale boundary conditions
+    # Iterates through the different perturbation step sizes
 
-    for multiscale_BCs in multiscale_BCsSets:
+    for base_path in base_paths:
 
-        # Iterates through the simulations
+        # Iterates through the multiscale boundary conditions
 
-        for i in range(len(simulations_names)):
+        for multiscale_BCs in multiscale_BCsSets:
 
-            # Gets the folder name
+            # Iterates through the simulations
 
-            folder_name = (base_path+"//"+simulations_names[i]+"//"+
-            multiscale_BCs[0]+"_"+multiscale_BCs[1])
+            for i in range(len(simulations_names)):
 
-            # Calls the function to read the derivatives of the stress
-            # tensors and plot the dispersion of the components
+                # Gets the folder name
 
-            plot_dispersion(folder_name, basic_size, voigt_conversion)
+                folder_name = (base_path+"//"+simulations_names[i]+"//"+
+                multiscale_BCs[0]+"_"+multiscale_BCs[1])
+
+                # Calls the function to read the derivatives of the 
+                # stress tensors and plot the dispersion of the compo-
+                # nents
+
+                plot_dispersion(folder_name, basic_size, 
+                voigt_conversion)  
 
 # Defines a function to read the derivatives of the stress tensors, and 
 # plot the dispersion of the components
@@ -114,7 +121,7 @@ def plot_dispersion(folder_name, basic_size, voigt_conversion):
 # Defines a function to get the maximum value of magnitude of a list of
 # tensors
 
-def get_maximumMagnitude(tensors_list, max_component=1.0, min_component=
+def get_maximumMagnitude(tensors_list, max_component=0.0, min_component=
 0.0):
 
     # Iterates through the time values
@@ -127,11 +134,9 @@ def get_maximumMagnitude(tensors_list, max_component=1.0, min_component=
 
             for j in range(len(time[1][i])):
 
-                max_component = max(max_component, abs(time[1][i
-                ][j]))
+                max_component = max(max_component, time[1][i][j])
 
-                min_component = min(min_component, abs(time[1][i
-                ][j]))
+                min_component = min(min_component, time[1][i][j])
 
     return min_component, max_component
 
@@ -177,13 +182,7 @@ voigt_conversion, min_component, max_component):
 
     def scaling(x):
 
-        if np.abs(x)<10.0:
-
-            return np.sign(x)*(np.abs(x)/10)
-                                       
-        else:
-
-            return np.sign(x)*np.log10(np.abs(x))
+        return np.sign(x)*np.log10(np.abs(x)+1.0)
 
     # Creates a function for the conversion of indices
 
@@ -235,11 +234,31 @@ voigt_conversion, min_component, max_component):
 
             indices_function(i,j)
 
-    # Plots and saves the figure
+    # Gets the extreme values for the color bar
 
     max_magnitude = max(abs(max_component), abs(min_component))
 
-    print(scaling(max_magnitude), scaling(max_magnitude*np.sign(min_component)))
+    # Gets the limit values for the ticks of the color bar
+
+    ticks_min = scaling(min_component)
+
+    ticks_max = scaling(max_component)
+
+    # Gets the initial and final value of the integer ticks
+
+    initial_tick = int(np.ceil(ticks_min)+1)
+
+    final_tick = int(np.floor(ticks_max))
+
+    color_barTicks = [ticks_min]
+
+    for tick in range(initial_tick, final_tick):
+
+        color_barTicks.append(tick)
+
+    color_barTicks.append(ticks_max)
+
+    # Plots and saves the figure
 
     plotting_tools.plane_plot(parent_path+"//"+file_name, x_data=x_data, 
     y_data=y_data, element_style="s", element_size=marker_sizeList, 
@@ -249,7 +268,7 @@ voigt_conversion, min_component, max_component):
     color_bar=True, color_barMaximum=scaling(max_magnitude), 
     color_barMinimum=scaling(max_magnitude*np.sign(min_component)), 
     color_barTitle="$sgn\\left(\\|\\cdot\\|\\right)log\\left(\\|\\cdot"+
-    "\\|\\right)$")
+    "\\|+1\\right)$", color_barTicks=color_barTicks)
 
 def test():
 
