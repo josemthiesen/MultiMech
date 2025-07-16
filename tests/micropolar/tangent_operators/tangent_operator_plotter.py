@@ -4,6 +4,10 @@ import os
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
+import matplotlib.colors as plt_colors
+
 import source.tool_box.file_handling_tools as file_tools
 
 import source.tool_box.plotting_tools as plotting_tools
@@ -11,6 +15,36 @@ import source.tool_box.plotting_tools as plotting_tools
 # Defines a function to run the process
 
 def plot_operators():
+
+    # Sets the color map for the components' plot
+
+    color_map = 'seismic'
+
+    # Sets a custom color 
+    
+    custom_map = True
+
+    if custom_map:
+
+        colors = [(0.2298057, 0.29871797, 0.75368315), (0.127568, 0.566949, 0.550556), (
+        1, 1, 1), (0.993248, 0.906157, 0.143936), (0.70567316, 0.01555616, 0.15023281)]
+
+        """# Gets discrete values for the color mapping
+
+        discrete_values = np.linspace(0, 1, 17)
+
+        original_colorMap = plt.get_cmap(color_map)
+
+        # Samples the corresponding discrete colors
+
+        discrete_colors = original_colorMap(discrete_values)
+
+        # Creates a new discrete colormap
+
+        color_map = plt_colors.ListedColormap(discrete_colors)"""
+
+        color_map = plt_colors.LinearSegmentedColormap.from_list(
+        'rainbow_white', colors, N=17)
 
     # Creates a dictionary to convert the current indices to the origi-
     # nal indices of the tensor
@@ -28,14 +62,15 @@ def plot_operators():
     # Sets the multiscale boundary conditions for each one of the fields
 
     multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
-    "llyConstrainedFirstOrderBC"], ["PeriodicFirstOrderBC", "PeriodicF"+
-    "irstOrderBC"], ["LinearFirstOrderBC", "LinearFirstOrderBC"]]
+    "llyConstrainedFirstOrderBC", "Minimally Constrained"], ["Periodic"+
+    "FirstOrderBC", "PeriodicFirstOrderBC", "Periodic"], ["LinearFirst"+
+    "OrderBC", "LinearFirstOrderBC", "Linear"]] 
 
     # Sets the basic path
 
     base_paths = [(os.getcwd()+"//tests//micropolar//tangent_operators"+
-    "//results_eps_1E_6"), (os.getcwd()+"//tests//micropolar//tangent_"+
-    "operators//results_eps_1E_5")]
+    "//results_eps_1E_6")]#, (os.getcwd()+"//tests//micropolar//tangent_"+
+    #"operators//results_eps_1E_5")]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
@@ -66,12 +101,13 @@ def plot_operators():
                 # nents
 
                 plot_dispersion(folder_name, basic_size, 
-                voigt_conversion)  
+                voigt_conversion, color_map, multiscale_BCs[2])  
 
 # Defines a function to read the derivatives of the stress tensors, and 
 # plot the dispersion of the components
 
-def plot_dispersion(folder_name, basic_size, voigt_conversion):
+def plot_dispersion(folder_name, basic_size, voigt_conversion, color_map,
+title):
 
     # Reads the derivative files
 
@@ -115,8 +151,9 @@ def plot_dispersion(folder_name, basic_size, voigt_conversion):
         # Plots the tensors
 
         plot_tensor(dP_dGradU[i][1], dP_dGradPhi[i][1], dPcouple_dGradU[
-        i][1], dPcouple_dGradPhi[i][1], folder_name, file_name, time, 
-        basic_size, voigt_conversion, min_component, max_component)
+        i][1], dPcouple_dGradPhi[i][1], folder_name, file_name, title, 
+        basic_size, voigt_conversion, min_component, max_component, 
+        color_map)
 
 # Defines a function to get the maximum value of magnitude of a list of
 # tensors
@@ -162,8 +199,8 @@ def normalize_tensors(tensors_list, maximum_magnitude):
 # Deines a function to plot the tensor
 
 def plot_tensor(dP_dGradU, dP_dGradPhi, dPcouple_dGradU, 
-dPcouple_dGradPhi, parent_path, file_name, time, basic_size,
-voigt_conversion, min_component, max_component):
+dPcouple_dGradPhi, parent_path, file_name, title, basic_size,
+voigt_conversion, min_component, max_component, color_map):
 
     # Initializes the color list and the marker size list
 
@@ -262,13 +299,13 @@ voigt_conversion, min_component, max_component):
 
     plotting_tools.plane_plot(parent_path+"//"+file_name, x_data=x_data, 
     y_data=y_data, element_style="s", element_size=marker_sizeList, 
-    color=color_list, color_map='coolwarm', plot_type="scatter", 
+    color=color_list, color_map=color_map, plot_type="scatter",
     flag_grid=True, flag_noTicks=True, aspect_ratio='equal', x_grid=[
     3.5, 6.5, 9.5, 12.5, 15.5], y_grid=[3.5, 6.5, 9.5, 12.5, 15.5],
     color_bar=True, color_barMaximum=scaling(max_magnitude), 
     color_barMinimum=scaling(max_magnitude*np.sign(min_component)), 
     color_barTitle="$sgn\\left(\\|\\cdot\\|\\right)log\\left(\\|\\cdot"+
-    "\\|+1\\right)$", color_barTicks=color_barTicks)
+    "\\|+1\\right)$", color_barTicks=color_barTicks, title=title)
 
 def test():
 

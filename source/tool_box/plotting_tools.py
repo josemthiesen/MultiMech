@@ -172,14 +172,16 @@ None, color_barTicks=None, color_barTitle=None):
 
     if color_map:
 
-        try:
+        if isinstance(color_map, str):
 
-            color_map = plt.get_cmap(color_map)
+            try:
 
-        except Exception as error_message:
+                color_map = plt.get_cmap(color_map)
 
-            print("Error Message:"+str(error_message)+"\nProbably this"+
-            " color map does not exist")
+            except Exception as error_message:
+
+                print("Error Message:"+str(error_message)+"\nProbably "+
+                "this color map does not exist")
 
     # Creates the figure and the subplots
 
