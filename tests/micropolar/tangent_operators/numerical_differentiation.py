@@ -50,7 +50,7 @@ def evaluate_tangentOperators(flag_newMesh=False):
     # Reads the parameters set
 
     base_path = (os.getcwd()+"//tests//micropolar//tangent_operators//"+
-    "results_E_"+str(abs(pertubation_step)))
+    "characteristic_length_1//results_E_"+str(abs(pertubation_step)))
 
     parameters_sets = file_tools.txt_toList("parameters_sets", 
     parent_path=base_path)

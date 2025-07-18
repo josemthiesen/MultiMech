@@ -16,6 +16,65 @@ import source.tool_box.plotting_tools as plotting_tools
 
 def plot_operators():
 
+    # Sets the scaling function to show the data in a meaningful way
+
+    x_c = 1E6
+
+    kappa = 0.8
+
+    kappa = np.sqrt(kappa)
+
+    delta_y = (2*x_c)/np.log((1+kappa)/(1-kappa))
+
+    def scaling_filter(x):
+
+        if abs(x)>x_c:
+
+            return x
+        
+        else:
+
+            return 0.0
+
+        #return x-(delta_y*np.tanh(x/delta_y))
+
+    # Sets a logarithmic scaling with a high-pass filter
+
+    cut_out = 5
+    
+    def scaling_log(x):
+
+        value = np.log10(np.abs(x)+1.0)
+
+        if value >=cut_out:
+
+            return np.sign(x)*(value-cut_out) 
+        
+        else:
+
+            return 0.0
+
+        return 
+    
+    scaling = scaling_log
+
+    # Sets if the color bar will be in scientific notation or not
+
+    flag_scientificNotation = False
+
+    # Sets if the color bar ticks will be integers or not
+
+    color_barIntegerTicks = False
+    
+    # Sets the title of the color bar
+
+    color_barTitle = ("$sgn\\left(\\|\\cdot\\|\\right)\\left(log\\left"+
+    "(\\|\\cdot\\|+1\\right)-\\alpha\\right)$")
+    
+    # Defines the number of ticks in the color bar
+
+    max_ticksColorBar = 21
+
     # Sets the color map for the components' plot
 
     color_map = 'seismic'
@@ -28,6 +87,17 @@ def plot_operators():
 
         colors = [(0.2298057, 0.29871797, 0.75368315), (0.127568, 0.566949, 0.550556), (
         1, 1, 1), (0.993248, 0.906157, 0.143936), (0.70567316, 0.01555616, 0.15023281)]
+
+        colors = ["#003f5c", "#2f4b7c", "#a0a0c0", "#ffffff", "#ffffff", 
+        "#fbb282", "#f95d6a", "#d62728"]
+
+        colors = ["#1f77b4","#ff7f0e","#2ca02c","#ffffff", "#ffffff","#9467bd",
+        "#8c564b","#e377c2"]
+
+        discrete_values = np.concatenate([np.linspace(0, 0.45, int(len(
+        colors)*0.5)), np.linspace(0.55, 1, int(len(colors)*0.5))])
+
+        print(discrete_values)
 
         """# Gets discrete values for the color mapping
 
@@ -44,7 +114,8 @@ def plot_operators():
         color_map = plt_colors.ListedColormap(discrete_colors)"""
 
         color_map = plt_colors.LinearSegmentedColormap.from_list(
-        'rainbow_white', colors, N=17)
+        'rainbow_white', list(zip(discrete_values, colors)), N=
+        max_ticksColorBar-1)
 
     # Creates a dictionary to convert the current indices to the origi-
     # nal indices of the tensor
@@ -69,8 +140,9 @@ def plot_operators():
     # Sets the basic path
 
     base_paths = [(os.getcwd()+"//tests//micropolar//tangent_operators"+
-    "//results_eps_1E_6")]#, (os.getcwd()+"//tests//micropolar//tangent_"+
-    #"operators//results_eps_1E_5")]
+    "//characteristic_length_1//results_eps_1E_6"), (os.getcwd()+"//te"+
+    "sts//micropolar//tangent_operators//characteristic_length_1//resu"+
+    "lts_eps_1E_5")]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
@@ -101,13 +173,16 @@ def plot_operators():
                 # nents
 
                 plot_dispersion(folder_name, basic_size, 
-                voigt_conversion, color_map, multiscale_BCs[2])  
+                voigt_conversion, color_map, multiscale_BCs[2], scaling,
+                max_ticksColorBar, color_barTitle, 
+                flag_scientificNotation, color_barIntegerTicks)  
 
 # Defines a function to read the derivatives of the stress tensors, and 
 # plot the dispersion of the components
 
 def plot_dispersion(folder_name, basic_size, voigt_conversion, color_map,
-title):
+title, scaling, max_ticksColorBar, color_barTitle, 
+flag_scientificNotation, color_barIntegerTicks):
 
     # Reads the derivative files
 
@@ -153,7 +228,8 @@ title):
         plot_tensor(dP_dGradU[i][1], dP_dGradPhi[i][1], dPcouple_dGradU[
         i][1], dPcouple_dGradPhi[i][1], folder_name, file_name, title, 
         basic_size, voigt_conversion, min_component, max_component, 
-        color_map)
+        color_map, scaling, max_ticksColorBar, color_barTitle,
+        flag_scientificNotation, color_barIntegerTicks)
 
 # Defines a function to get the maximum value of magnitude of a list of
 # tensors
@@ -200,7 +276,9 @@ def normalize_tensors(tensors_list, maximum_magnitude):
 
 def plot_tensor(dP_dGradU, dP_dGradPhi, dPcouple_dGradU, 
 dPcouple_dGradPhi, parent_path, file_name, title, basic_size,
-voigt_conversion, min_component, max_component, color_map):
+voigt_conversion, min_component, max_component, color_map, scaling,
+max_ticksColorBar, color_barTitle, flag_scientificNotation,
+color_barIntegerTicks):
 
     # Initializes the color list and the marker size list
 
@@ -213,13 +291,6 @@ voigt_conversion, min_component, max_component, color_map):
     x_data = []
 
     y_data = []
-
-    # Defines a function to scale the components of the fourth order 
-    # tensor
-
-    def scaling(x):
-
-        return np.sign(x)*np.log10(np.abs(x)+1.0)
 
     # Creates a function for the conversion of indices
 
@@ -265,64 +336,59 @@ voigt_conversion, min_component, max_component, color_map):
             color_list.append(scaling(dPcouple_dGradPhi[voigt_conversion[
             i-9]][voigt_conversion[j-9]]))
 
+    print("Initializes the assembly and scaling of the tensor colors")
+
     for i in range(18):
 
         for j in range(18):
 
             indices_function(i,j)
 
+    print("Finishes the assembly and scaling of the tensor colors")
+
     # Gets the extreme values for the color bar
 
     max_magnitude = max(abs(max_component), abs(min_component))
 
-    # Gets the limit values for the ticks of the color bar
-
-    ticks_min = scaling(min_component)
-
-    ticks_max = scaling(max_component)
-
-    # Gets the initial and final value of the integer ticks
-
-    initial_tick = int(np.ceil(ticks_min)+1)
-
-    final_tick = int(np.floor(ticks_max))
-
-    color_barTicks = [ticks_min]
-
-    for tick in range(initial_tick, final_tick):
-
-        color_barTicks.append(tick)
-
-    color_barTicks.append(ticks_max)
-
     # Plots and saves the figure
 
-    plotting_tools.plane_plot(parent_path+"//"+file_name, x_data=x_data, 
-    y_data=y_data, element_style="s", element_size=marker_sizeList, 
-    color=color_list, color_map=color_map, plot_type="scatter",
-    flag_grid=True, flag_noTicks=True, aspect_ratio='equal', x_grid=[
-    3.5, 6.5, 9.5, 12.5, 15.5], y_grid=[3.5, 6.5, 9.5, 12.5, 15.5],
-    color_bar=True, color_barMaximum=scaling(max_magnitude), 
+    plotting_tools.plane_plot(file_name=parent_path+"//"+file_name, 
+    x_data=x_data, y_data=y_data, element_style="s", element_size=
+    marker_sizeList, color=color_list, color_map=color_map, plot_type=
+    "scatter", flag_grid=True, flag_noTicks=True, aspect_ratio='equal', 
+    x_grid=[3.5, 6.5, 9.5, 12.5, 15.5], y_grid=[3.5, 6.5, 9.5, 12.5, 
+    15.5], color_bar=True, color_barMaximum=scaling(max_magnitude), 
     color_barMinimum=scaling(max_magnitude*np.sign(min_component)), 
-    color_barTitle="$sgn\\left(\\|\\cdot\\|\\right)log\\left(\\|\\cdot"+
-    "\\|+1\\right)$", color_barTicks=color_barTicks, title=title)
+    color_barTitle=color_barTitle, title=title, 
+    color_barIncludeMinMaxTicks=True, color_barIntegerTicks=
+    color_barIntegerTicks, color_barNumberOfTicks=max_ticksColorBar, 
+    flag_scientificNotation=flag_scientificNotation)
 
 def test():
 
-    base_path = (os.getcwd()+"//tests//micropolar//tangent_operators//"+
-    "results//simulation_11//LinearFirstOrderBC_LinearFirstOrderBC")
+    t = np.linspace(-50.0, 50.0, 200)
 
-    x_data = [1,2,3]
+    x_c = 30
 
-    y_data = [1,2,3]
+    kappa = 0.8
 
-    marker_sizeList = [1,2,3]
+    kappa = np.sqrt(kappa)
 
-    color_list = [0.0, 0.25, 1.0]
+    delta_y = (2*x_c)/np.log((1+kappa)/(1-kappa))
 
-    plotting_tools.plane_plot(base_path+"//"+"t_0", x_data=x_data, 
-    y_data=y_data, element_style="x", element_size=marker_sizeList, 
-    color=color_list, color_map='coolwarm', plot_type="scatter")
+    def scaling(x):
+
+        return x-(delta_y*np.tanh(x/delta_y))
+    
+    y_data = np.zeros((len(t), 2))
+    
+    for i in range(len(t)):
+
+        y_data[i,0] = t[i]
+
+        y_data[i,1] = scaling(t[i])
+
+    plotting_tools.plane_plot(x_data=t, y_data=y_data)
 
 #test()
 

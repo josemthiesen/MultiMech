@@ -12,13 +12,85 @@ import matplotlib.ticker as ticker
 
 # Defines a function to plot curves in the XY plane
 
-def plane_plot(file_name, data=None, x_data=None, y_data=None, label=
-None, x_label=None, y_label=None, title=None, flag_grid=True, 
+def plane_plot(file_name=None, data=None, x_data=None, y_data=None, 
+label=None, x_label=None, y_label=None, title=None, flag_grid=True, 
 highlight_points=False, color='orange', flag_scientificNotation=False,
 element_style='-', element_size=1.5,  legend=None, plot_type="line", 
 color_map=False, flag_noTicks=False, aspect_ratio='auto', x_grid=None,
 y_grid=None, color_bar=False, color_barMaximum=None, color_barMinimum=
-None, color_barTicks=None, color_barTitle=None):
+None, color_barTicks=None, color_barTitle=None, color_barIntegerTicks=
+False, color_barNumberOfTicks=5, color_barIncludeMinMaxTicks=False):
+    
+    """
+    You can provide an array of data, where the first column will be in
+    terpreted as the x points, and the remaining columns will be diffe
+    rent curves with corresponding y points. You can provide x and y da
+    ta separately as well. The keyword arguments are:
+
+    label                                 - label for the curve
+
+    x_label and y_label                   - labels for the x and y axes
+
+    title                                 - title for the whole plot
+
+    flag_grid                             - True (default) if a grid is 
+    to be shown
+
+    highlight_points                      - True if the truly provided
+    data points are to be highlighted with X markers; False (default) o
+    therwise
+
+    color                                 - can be a string with the name
+    or a list of values or names
+
+    flag_scientificNotation               - True if the axes are to be 
+    numbered using scientific notation; False (default) otherwise
+
+    element_style                         - string with the type of line 
+    or marker, the default value is '-' (line)
+
+    element_size                          - float with the width of the 
+    line or the area of the marker. 1.5 as default
+
+    legend                                - text for the legend. None is 
+    the default value
+
+    plot_type                             - informs if the plot is with 
+    lines ("line"), or scattered ("scatter")
+
+    color_map                             - informs the color map, can 
+    be a string or a matplotlib color map function
+
+    flag_noTicks                          - True if no ticks are to be 
+    shown on the axes. False (default) otherwise
+
+    aspect_ratio                          - string or float with the as
+    pect ratio of the frame. 'auto' is the default value
+
+    x_grid and y_grid                     - list of coordinates where to 
+    cross the grid lines. The default values are None
+
+    color_bar                             - True if a color bar is to be 
+    shown. False (default) otherwise
+
+    color_barMaximum and color_barMinimum - maximum and minimum values 
+    for the color bar
+
+    color_barTicks                        - list with the ticks for the 
+    color bar. None is the default value
+
+    color_barTitle                        - title of the color bar
+
+    color_barIntegerTicks                 - True if the color bar ticks 
+    must be integer. False (default) otherwise
+
+    color_barNumberOfTicks                - number of ticks to be shown 
+    on the color bar. 5 is the default value
+
+    color_barIncludeMinMaxTicks           - True if the maximum and min
+    imum values of the color bar are to be put in. False (default) o
+    therwise
+    """
 
     print("Starts plotting")
 
@@ -569,25 +641,91 @@ None, color_barTicks=None, color_barTitle=None):
 
             color_bar.set_label("Magnitude")
 
-        if color_barTicks:
+        if isinstance(color_barTicks, list):
 
             color_bar.set_ticks(color_barTicks)
 
         else:
 
-            color_bar.set_ticks(np.linspace(color_map[1], color_map[2], 
-            5))
+            # Verifies if the ticks must be integers
+
+            if color_barIntegerTicks:
+
+                initial_tick = int(np.ceil(color_barMinimum)+1)
+
+                final_tick = int(np.floor(color_barMaximum))
+
+                tick_step = ((final_tick-initial_tick)/(
+                color_barNumberOfTicks+1))
+
+                color_barTicks = []
+
+                if color_barIncludeMinMaxTicks:
+
+                    color_barTicks.append(color_barMinimum)
+
+                # Iterates through the ticks
+
+                for i in range(color_barNumberOfTicks):
+
+                    current_tick = int(initial_tick+np.floor((i+1)*
+                    tick_step))
+
+                    if not (current_tick in color_barTicks):
+
+                        color_barTicks.append(current_tick)
+
+                # If the maximum value is to be added as a tick
+
+                if color_barIncludeMinMaxTicks:
+
+                    color_barTicks.append(color_barMaximum)
+
+                # Sets the ticks
+
+                color_bar.set_ticks(color_barTicks)
+
+            else:
+
+                # Creates the ticks list using linspace
+
+                color_bar.set_ticks(np.linspace(color_barMinimum, 
+                color_barMaximum, color_barNumberOfTicks))
 
         # Sets a formatter object to ensure that integer ticks are shown
         # as integer
 
         def formatter_function(x, _):
 
+            if flag_scientificNotation:
+
+                # Tests for null input
+
+                if x==0:
+
+                    return r"$ 0$"
+                
+                # Otherwise, evaluates the exponent and the component
+                
+                exponent = int(np.floor(np.log10(abs(x))))
+
+                coefficient = x/(10**exponent)
+
+                # Adds padding for positive coefficients
+
+                formatted_base = f"{coefficient:{12}.{3}f}"
+
+                return fr"${formatted_base} \times 10^{{{exponent}}}$"
+
             if abs(x-int(x)) < 1e-6:
 
                 return f"{int(x):>3}"  # format as integer, right-aligned to 3 spaces
+            
+            # Right-align float, width 5
+            
             else:
-                return f"{x:>5.2f}"     # Right-align float, width 5
+
+                return f"{x:>5.2f}" 
 
         color_barFormatter = ticker.FuncFormatter(formatter_function)
 
@@ -595,7 +733,7 @@ None, color_barTicks=None, color_barTitle=None):
 
     # Applies scientific notation to the ticks
 
-    if flag_scientificNotation:
+    if flag_scientificNotation and (not flag_noTicks):
 
         subplots_tuple.yaxis.set_major_formatter(ticker.ScalarFormatter(
         useMathText=True))
@@ -649,8 +787,14 @@ None, color_barTicks=None, color_barTitle=None):
 
     plt.tight_layout()
 
-    # Saves the plot
+    # Saves the plot or shows it
 
-    plt.savefig(file_name)
+    if file_name is None:
+
+        plt.show()
+
+    else:
+
+        plt.savefig(file_name)
 
     print("Finishes plotting\n")
