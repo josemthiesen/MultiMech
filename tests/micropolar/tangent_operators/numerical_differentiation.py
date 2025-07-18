@@ -26,7 +26,7 @@ def evaluate_tangentOperators(flag_newMesh=False):
 
     # Sets the perturbation step
 
-    pertubation_step = -5
+    pertubation_step = -6
 
     # Sets the mesh refinement
 
@@ -49,11 +49,11 @@ def evaluate_tangentOperators(flag_newMesh=False):
 
     # Reads the parameters set
 
-    base_path = (os.getcwd()+"//tests//micropolar//tangent_operators//"+
-    "characteristic_length_1//results_E_"+str(abs(pertubation_step)))
-
-    parameters_sets = file_tools.txt_toList("parameters_sets", 
-    parent_path=base_path)
+    base_paths = [(os.getcwd()+"//tests//micropolar//tangent_operators"+
+    "//characteristic_length_0_01//results_eps_1E_"+str(abs(
+    pertubation_step))), (os.getcwd()+"//tests//micropolar//tangent_op"+
+    "erators//characteristic_length_0_5//results_eps_1E_"+str(abs(
+    pertubation_step)))]
 
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
@@ -62,43 +62,50 @@ def evaluate_tangentOperators(flag_newMesh=False):
     "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
     "ion_31", "simulation_32", "simulation_33"]
 
-    # Iterates through the multiscale boundary conditions
+    # Iterates through the simulation paths
 
-    counter = 0
+    for base_path in base_paths:
 
-    for multiscale_BCs in multiscale_BCsSets:
+        parameters_sets = file_tools.txt_toList("parameters_sets", 
+        parent_path=base_path)
 
-        # Iterates through the simulations
+        # Iterates through the multiscale boundary conditions
 
-        for i in range(min([len(parameters_sets),len(simulations_names)]
-        )):
+        counter = 0
 
-            # Makes a new mesh just for the first test and if a new mesh 
-            # is asked for
+        for multiscale_BCs in multiscale_BCsSets:
 
-            flag_mesh = False
+            # Iterates through the simulations
 
-            if flag_newMesh and counter==0:
+            for i in range(min([len(parameters_sets),len(
+            simulations_names)])):
 
-                flag_mesh = True
+                # Makes a new mesh just for the first test and if a new 
+                # mesh is asked for
 
-            counter += 1
+                flag_mesh = False
 
-            # Calls the numerical derivation scheme
+                if flag_newMesh and counter==0:
 
-            subfolder_name = [simulations_names[i], multiscale_BCs[0]+
-            "_"+multiscale_BCs[1]]
+                    flag_mesh = True
 
-            BVP_arguments = [multiscale_BCs[0], multiscale_BCs[1],
-            base_path, *parameters_sets[i][0:10]]
+                counter += 1
 
-            BVP_keywordArguments = [*parameters_sets[i][10:18], flag_mesh,
-            subfolder_name, fluctuation_field, transfinite_directions,
-            bias_directions]
+                # Calls the numerical derivation scheme
 
-            central_differencesTangentOperators(base_path, 
-            subfolder_name, 10**(pertubation_step), BVP_arguments, 
-            BVP_keywordArguments)
+                subfolder_name = [simulations_names[i], multiscale_BCs[0
+                ]+"_"+multiscale_BCs[1]]
+
+                BVP_arguments = [multiscale_BCs[0], multiscale_BCs[1],
+                base_path, *parameters_sets[i][0:10]]
+
+                BVP_keywordArguments = [*parameters_sets[i][10:18], 
+                flag_mesh, subfolder_name, fluctuation_field, 
+                transfinite_directions, bias_directions]
+
+                central_differencesTangentOperators(base_path, 
+                subfolder_name, 10**(pertubation_step), BVP_arguments, 
+                BVP_keywordArguments)
 
 # Defines a function to perturbate the macroscale gradients to get the
 # tangent operators numerically evaluated using central finite differen-
