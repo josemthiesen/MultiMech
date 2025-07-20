@@ -46,7 +46,7 @@ fluctuation_field=False):
     # lue is another dictionary, which has keys for necessary informa-
     # tion to create finite elements
 
-    elements_dictionary = {"displacement": {"field type": "vector", "i"+
+    elements_dictionary = {"Displacement": {"field type": "vector", "i"+
     "nterpolation function": "Lagrange", "polynomial degree": 
     polynomial_degree}}
 
@@ -63,7 +63,7 @@ fluctuation_field=False):
 
     multiscale_BCsDict = dict()
 
-    multiscale_BCsDict["displacement"] = {"boundary condition": 
+    multiscale_BCsDict["Displacement"] = {"boundary condition": 
     displacement_multiscaleBC, "macro information": {"macro field file":
     macro_displacementFileName, "macro field gradient file":
     macro_gradDisplacementFileName}}
@@ -85,7 +85,7 @@ fluctuation_field=False):
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    "displacement", solution_fields, variation_fields, 
+    "Displacement", solution_fields, variation_fields, 
     constitutive_model, mesh_dataClass)
 
     ####################################################################

@@ -144,6 +144,9 @@ def plot_operators():
     "sts//micropolar//tangent_operators//characteristic_length_1//resu"+
     "lts_eps_1E_5")]
 
+    base_paths = [(os.getcwd()+"//tests//micropolar//tangent_operators"+
+    "//cauchy_hyperelastic//results_eps_1E_6")]
+
     # Sets a list of names for each set of parameters, which will yield
     # different simulations
 

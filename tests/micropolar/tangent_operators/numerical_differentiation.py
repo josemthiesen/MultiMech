@@ -12,7 +12,11 @@ from mshr import *
 
 import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 
+import source.constitutive_models.hyperelasticity.isotropic_hyperelasticity as cauchy_constitutiveModels
+
 import source.multiscale.multiscale_micropolar as variational_framework
+
+import source.multiscale.multiscale_hyperelasticity as cauchy_variationalFramework
 
 import source.tool_box.file_handling_tools as file_tools
 
@@ -23,6 +27,11 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 # Defines a function to try multiple parameters
 
 def evaluate_tangentOperators(flag_newMesh=False):
+
+    # Sets the problem to be solved (BVP_solution for micropolar or 
+    # Cauchy_BVPsolution for Cauchy hyperelasticity)
+
+    BVP_function = Cauchy_BVPsolution
 
     # Sets the perturbation step
 
@@ -50,9 +59,7 @@ def evaluate_tangentOperators(flag_newMesh=False):
     # Reads the parameters set
 
     base_paths = [(os.getcwd()+"//tests//micropolar//tangent_operators"+
-    "//characteristic_length_0_01//results_eps_1E_"+str(abs(
-    pertubation_step))), (os.getcwd()+"//tests//micropolar//tangent_op"+
-    "erators//characteristic_length_0_5//results_eps_1E_"+str(abs(
+    "//cauchy_hyperelastic//results_eps_1E_"+str(abs(
     pertubation_step)))]
 
     # Sets a list of names for each set of parameters, which will yield
@@ -105,14 +112,14 @@ def evaluate_tangentOperators(flag_newMesh=False):
 
                 central_differencesTangentOperators(base_path, 
                 subfolder_name, 10**(pertubation_step), BVP_arguments, 
-                BVP_keywordArguments)
+                BVP_keywordArguments, BVP_function)
 
 # Defines a function to perturbate the macroscale gradients to get the
 # tangent operators numerically evaluated using central finite differen-
 # ces
 
 def central_differencesTangentOperators(base_path, subfolder_name, 
-pertubation_step, BVP_arguments, BVP_keywordArguments):
+pertubation_step, BVP_arguments, BVP_keywordArguments, BVP_function):
     
     # Gets the path to the simulation data
 
@@ -150,13 +157,15 @@ pertubation_step, BVP_arguments, BVP_keywordArguments):
 
             P_ahead, P_coupleAhead = gradients_perturbation(base_path, 
             results_pathText, subfolder_name, [k,l], "Displacement", 
-            pertubation_step, BVP_arguments, BVP_keywordArguments)
+            pertubation_step, BVP_arguments, BVP_keywordArguments,
+            BVP_function)
 
             # Again, but perturbating backwards
 
             P_abaft, P_coupleAbaft = gradients_perturbation(base_path, 
             results_pathText, subfolder_name, [k,l], "Displacement", 
-            -pertubation_step, BVP_arguments, BVP_keywordArguments)
+            -pertubation_step, BVP_arguments, BVP_keywordArguments,
+            BVP_function)
 
             # Subtracts and divides them by the step to get the finite
             # differences
@@ -226,13 +235,15 @@ pertubation_step, BVP_arguments, BVP_keywordArguments):
 
             P_ahead, P_coupleAhead = gradients_perturbation(base_path, 
             results_pathText, subfolder_name, [k,l], "Microrotation", 
-            pertubation_step, BVP_arguments, BVP_keywordArguments)
+            pertubation_step, BVP_arguments, BVP_keywordArguments,
+            BVP_function)
 
             # Again, but perturbating backwards
 
             P_abaft, P_coupleAbaft = gradients_perturbation(base_path, 
             results_pathText, subfolder_name, [k,l], "Microrotation", 
-            -pertubation_step, BVP_arguments, BVP_keywordArguments)
+            -pertubation_step, BVP_arguments, BVP_keywordArguments,
+            BVP_function)
 
             # Subtracts and divides them by the step to get the finite
             # differences
@@ -271,7 +282,7 @@ pertubation_step, BVP_arguments, BVP_keywordArguments):
 
 def gradients_perturbation(base_path, results_pathText, subfolder_name, 
 perturbed_indices, perturbed_field, pertubation_step, BVP_arguments, 
-BVP_keywordArguments):
+BVP_keywordArguments, BVP_function):
     
     # Reads the displacement gradient
 
@@ -330,7 +341,7 @@ BVP_keywordArguments):
 
     print(BVP_keywordArguments)
 
-    BVP_solution(*BVP_arguments, gamma_matrix=BVP_keywordArguments[0], 
+    BVP_function(*BVP_arguments, gamma_matrix=BVP_keywordArguments[0], 
     gamma_fiber=BVP_keywordArguments[1], RVE_width=BVP_keywordArguments[
     2], RVE_length=BVP_keywordArguments[3], fiber_radius=
     BVP_keywordArguments[4], RVE_localizationX=BVP_keywordArguments[5], 
@@ -381,12 +392,6 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3],
 bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
 
     ####################################################################
-    ####################################################################
-    ##                    User defined parameters                     ##
-    ####################################################################
-    ####################################################################
-
-    ####################################################################
     #                        Simulation results                        #
     ####################################################################
 
@@ -397,6 +402,27 @@ bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
     for name in subfolder_name:
 
         results_pathText += "//"+name
+    
+    # Sets the data of the simulation in a txt file for further verifi-
+    # cation
+
+    file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
+    "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
+    "N_micropolarMatrix:": N_micropolarMatrix, "N_micropolarFiber:": 
+    N_micropolarFiber, "characteristic_lengthMatrix:": 
+    characteristic_lengthMatrix, "characteristic_lengthFiber:": 
+    characteristic_lengthFiber, "flag_bending:": flag_bending, "gamma_"+
+    "matrix:": gamma_matrix, "gamma_fiber:": gamma_fiber, "RVE_width:": 
+    RVE_width, "RVE_length:": RVE_length, "fiber_radius:": fiber_radius, 
+    "RVE_localizationX": RVE_localizationX, "RVE_localizationY": 
+    RVE_localizationY, "RVE_localizationZ": RVE_localizationZ}), "00_p"+
+    "arameters", parent_path=results_pathText)
+
+    ####################################################################
+    ####################################################################
+    ##                    User defined parameters                     ##
+    ####################################################################
+    ####################################################################
     
     homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
     "xt", "homogenized_couple_first_piola_microscale.txt"]
@@ -556,5 +582,161 @@ bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
     polynomial_degreeDisplacement, polynomial_degreeMicrorotation=
     polynomial_degreeMicrorotation, verbose=verbose, fluctuation_field=
     fluctuation_field)
+
+# Defines a function to test a purely Cauchy hyperelastic problem
+
+def Cauchy_BVPsolution(displacement_multiscaleBC, microrotation_multiscaleBC,
+base_path, E_matrix, E_fiber, nu_matrix, nu_fiber, N_micropolarMatrix, 
+N_micropolarFiber, characteristic_lengthMatrix, 
+characteristic_lengthFiber, flag_bending, load_case, gamma_matrix=0.0, 
+gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
+n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
+1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name=["simulation"],
+fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3], 
+bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
+
+    ####################################################################
+    #                        Simulation results                        #
+    ####################################################################
+
+    results_pathText = ""
+    
+    results_pathText += base_path
+
+    for name in subfolder_name:
+
+        results_pathText += "//"+name
+    
+    # Sets the data of the simulation in a txt file for further verifi-
+    # cation
+
+    file_tools.list_toTxt(file_tools.named_list({"E_matrix:": E_matrix, 
+    "E_fiber:": E_fiber, "nu_matrix:": nu_matrix, "nu_fiber:": nu_fiber, 
+    "RVE_width:": RVE_width, "RVE_length:": RVE_length, "fiber_radius:": 
+    fiber_radius, "RVE_localizationX": RVE_localizationX, "RVE_localiz"+
+    "ationY": RVE_localizationY, "RVE_localizationZ": RVE_localizationZ}
+    ), "00_parameters_purely_cauchy", parent_path=results_pathText)
+
+    ####################################################################
+    ####################################################################
+    ##                    User defined parameters                     ##
+    ####################################################################
+    ####################################################################
+    
+    homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
+    "xt"]
+
+    post_processes = [["Displacement", dict()]]
+
+    post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
+    "ry path": results_pathText, "file name": 
+    homogenized_piolaFileName[0], "subdomain":""}
+
+    ####################################################################
+    #                       Material properties                        #
+    ####################################################################
+
+    # Saves the properties into a dictionary for the matrix
+
+    material_propertiesMatrix = dict()
+
+    material_propertiesMatrix["E"] = E_matrix
+
+    material_propertiesMatrix["nu"] = nu_matrix
+
+    # And for the fiber
+
+    material_propertiesFiber = dict()
+
+    material_propertiesFiber["E"] = E_fiber
+
+    material_propertiesFiber["nu"] = nu_fiber
+
+    # Sets the material as a HGO material
+
+    constitutive_model = dict()
+
+    constitutive_model["RVE matrix"] = cauchy_constitutiveModels.Neo_Hookean(
+    material_propertiesMatrix)
+
+    constitutive_model["RVE fiber"] = cauchy_constitutiveModels.Neo_Hookean(
+    material_propertiesFiber)
+
+    ####################################################################
+    #                               Mesh                               #
+    ####################################################################
+
+    # Defines the name of the file to save the mesh in. Do not write the 
+    # file termination, e.g. .msh or .xdmf; both options will be saved 
+    # automatically
+
+    file_directory = os.getcwd()+"//tests//test_meshes"
+
+    mesh_fileName = "micropolar_beam_with_fibers_microscale"
+
+    if flag_newMesh:
+
+        beam_gmsh.case_1(RVE_width, RVE_length, fiber_radius, n_RVEsX, 
+        n_RVEsY, n_RVEsZ, RVE_localizationX, RVE_localizationY, 
+        RVE_localizationZ, mesh_fileName=mesh_fileName, file_directory=
+        file_directory, transfinite_directions=transfinite_directions,
+        translation=[RVE_length*(RVE_localizationX-1), RVE_width*(
+        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)],
+        bias_directions=bias_directions)
+
+    ####################################################################
+    #                          Function space                          #
+    ####################################################################
+
+    # Defines the shape functions degree
+
+    polynomial_degreeDisplacement = 2
+
+    ####################################################################
+    #                         Solver parameters                        #
+    ####################################################################
+
+    # Sets the solver parameters in a dictionary
+
+    solver_parameters = dict()
+
+    solver_parameters["linear_solver"] = "mumps"
+
+    solver_parameters["newton_relative_tolerance"] = 1e-6
+
+    solver_parameters["newton_absolute_tolerance"] = 1e-4
+
+    solver_parameters["newton_maximum_iterations"] = 30
+
+    ####################################################################
+    #                        Boundary conditions                       #
+    ####################################################################
+
+    # Defines the paths to the macro quantities files
+
+    macro_displacementName = (base_path+"//"+subfolder_name[0]+"//homo"+
+    "genized_displacement")
+
+    macro_gradDisplacementName= (base_path+"//"+subfolder_name[0]+"//h"+
+    "omogenized_displacement_gradient")
+
+    ####################################################################
+    ####################################################################
+    ##                    Calculation and solution                    ##
+    ####################################################################
+    ####################################################################
+
+    # Defines a flag to print every step
+
+    verbose = True
+
+    # Solves the variational 
+    
+    cauchy_variationalFramework.hyperelastic_microscale(
+    displacement_multiscaleBC, macro_displacementName, 
+    macro_gradDisplacementName, constitutive_model, post_processes, 
+    file_directory+"//"+mesh_fileName, solver_parameters, 
+    polynomial_degree=polynomial_degreeDisplacement, verbose=verbose, 
+    fluctuation_field=fluctuation_field)
 
 evaluate_tangentOperators(flag_newMesh=False)

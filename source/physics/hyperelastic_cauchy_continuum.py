@@ -47,7 +47,7 @@ body_forcesDict=None):
     # the corresponding value is another dictionary, which has keys for
     # necessary information to create finite elements
 
-    elements_dictionary = {"displacement": {"field type": "vector", "i"+
+    elements_dictionary = {"Displacement": {"field type": "vector", "i"+
     "nterpolation function": "CG", "polynomial degree": 
     polynomial_degree}}
 
@@ -80,20 +80,20 @@ body_forcesDict=None):
     # Constructs the variational form for the inner work
 
     internal_VarForm = variational_tools.hyperelastic_internalWorkFirstPiola(
-    "displacement", solution_fields, variation_fields, 
+    "Displacement", solution_fields, variation_fields, 
     constitutive_model, mesh_dataClass)
 
     # Constructs the variational forms for the traction work
 
     traction_VarForm, neumann_loads = variational_tools.traction_work(
-    traction_dictionary, "displacement", solution_fields, 
+    traction_dictionary, "Displacement", solution_fields, 
     variation_fields, solution_new, fields_namesDict, mesh_dataClass, 
     neumann_loads)
 
     # Constructs the variational form for the work of the body forces
 
     body_forcesVarForm, neumann_loads = variational_tools.body_forcesWork(
-    body_forcesDict, "displacement", solution_fields, variation_fields, 
+    body_forcesDict, "Displacement", solution_fields, variation_fields, 
     solution_new, fields_namesDict, mesh_dataClass, neumann_loads)
 
     ####################################################################

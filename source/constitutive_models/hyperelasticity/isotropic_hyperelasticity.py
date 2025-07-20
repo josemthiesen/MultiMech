@@ -59,7 +59,7 @@ class Neo_Hookean(HyperelasticMaterialModel):
         # Sets the names of the fields that are necessary to compute 
         # this model
 
-        self.required_fieldsNames = ["displacement"]
+        self.required_fieldsNames = ["Displacement"]
 
         # Checks the keys of the dictionary of material parameters
 
