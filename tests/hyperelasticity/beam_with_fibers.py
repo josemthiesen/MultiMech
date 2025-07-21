@@ -39,6 +39,11 @@ post_processes["SaveCauchyStressField"] = {"directory path":
 results_path, "file name": "cauchy_stress.xdmf", "polynomia"+
 "l degree": 1}
 
+post_processes["SecondElasticityTensorAtPoint"] = {
+"directory path": results_path, "file name": 
+"first_elasticity_tensor_dS_dC", "polynomial degree": 1,
+"point coordinates": [0.5, 0.5, 1.0], "flag plotting": False}
+
 ########################################################################
 #                         Material properties                          #
 ########################################################################
@@ -70,7 +75,7 @@ constitutive_model = constitutive_models.Neo_Hookean(material_properties)
 # le termination, e.g. .msh or .xdmf; both options will be saved automa-
 # tically
 
-mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers"
+mesh_fileName = "tests//test_meshes//micropolar_beam_with_fibers_bending"
 
 ########################################################################
 #                            Function space                            #
@@ -116,7 +121,7 @@ t_final = 1.0
 
 # Sets the maximum number of steps of loading
 
-maximum_loadingSteps = 11
+maximum_loadingSteps = 5
 
 ########################################################################
 #                          Boundary conditions                         #
@@ -124,53 +129,27 @@ maximum_loadingSteps = 11
 
 # Defines a load expression
 
-maximum_load = -2E5#1E-1
+maximum_load = -2E6#1E-1
 
-load = Expression("(t/t_final)*maximum_load", t=0.0, t_final=t_final,
-maximum_load=maximum_load, degree=0)
-
-# Assembles this load into the list of Neumann boundary conditions
-
-neumann_loads = [load]
-
-# Assemble the traction vector using this load expression
-
-traction_boundary = as_vector([0.0, load, 0.0])
+traction_boundary = {"load case": "UniformReferentialTraction", "ampli"+
+"tude_tractionX": 0.0, "amplitude_tractionY": maximum_load, "amplitude"+
+"_tractionZ": 0.0, "t": t, "t_final": t_final}#"""
 
 # Defines a dictionary of tractions
 
 traction_dictionary = dict()
 
-traction_dictionary["lower"] = traction_boundary
+traction_dictionary["upper"] = traction_boundary
 
-# Defines a load expression for prescribed displacement
+# Defines a dictionary of boundary conditions. Each key is a physical
+# group and each value is another dictionary or a list of dictionaries 
+# with the boundary conditions' information. Each of these dictionaries
+# must have the key "BC case", which carries the name of the function 
+# that builds this boundary condition
 
-maximum_displacement = 1E-1
+bcs_dictionary = dict()
 
-displacement_load = Expression("(t/t_final)*maximum_displacement", t=t,
-t_final=t_final, maximum_displacement=maximum_displacement, degree=0)
-
-# Assembles this prescribed displacement into the list of Dirichlet 
-# boundary conditions
-
-dirichlet_loads = [displacement_load]
-
-# Sets the dictionary of prescribed displacement. Each key is a physical
-# group or a tuple of physical groups, and the value is a list in either
-# one of the following formats:
-# value = [load_expression]        -> applies the load to all DOFs
-# value = [1, load_expression]     -> applies the load to one DOF
-# value = [[0,1], load_expression] -> applies the load to a list of DOFs
-
-prescribed_displacement = dict()
-
-#prescribed_displacement["bottom"] = [1, displacement_load]
-
-# Defines the boundary physical groups to apply fixed support boundary
-# condition. This variable can be either a list of physical groups tags
-# or simply a tag
-
-fixed_supportPhysicalGroups = "back"
+bcs_dictionary["back"] = {"BC case": "FixedSupportDirichletBC"}
 
 ########################################################################
 ########################################################################
@@ -182,7 +161,6 @@ fixed_supportPhysicalGroups = "back"
 
 variational_framework.hyperelasticity_displacementBased(
 constitutive_model, traction_dictionary, maximum_loadingSteps, t_final, 
-post_processes, mesh_fileName, solver_parameters, neumann_loads=
-neumann_loads, dirichlet_loads=dirichlet_loads, prescribed_displacement=
-prescribed_displacement, polynomial_degree=polynomial_degree, t=t, 
-fixed_supportPhysicalGroups=fixed_supportPhysicalGroups, verbose=True)
+post_processes, mesh_fileName, solver_parameters, polynomial_degree=
+polynomial_degree, t=t, dirichlet_boundaryConditions=bcs_dictionary, 
+verbose=True)

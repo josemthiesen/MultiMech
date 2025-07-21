@@ -325,3 +325,54 @@ class Micropolar_Neo_Hookean(HyperelasticMaterialModel):
         result = {"cauchy": sigma, "couple_cauchy": sigma_couple}
 
         return result
+    
+    # Defines a function to get the first elasticity tensor, i.e. dP/dF
+
+    def first_elasticityTensor(self, fields_list):
+
+        # Retrieves the fields
+
+        u, phi, *_  = fields_list
+
+        # Evaluates the deformation gradient
+
+        I = Identity(3)
+
+        F = variable(grad(u)+I) 
+
+        # Evaluates the rotation tensor using phi
+
+        R_bar = tensor_tools.rotation_tensorEulerRodrigues(phi)
+
+        # Evaluates the micropolar stretch and the jacobian
+    
+        V_bar = F*(R_bar.T)
+
+        # Evaluates the derivative replacing the already precompiled de-
+        # rivative
+
+        evaluate_diffSigma = ufl.replace(self.dpsi_dVt, {Identity(3): 
+        V_bar.T})
+
+        sigma = V_bar*evaluate_diffSigma
+        
+        # Evaluates the determinant of the deformation gradient
+
+        J = ufl.det(F)
+
+        # Uses the Piola transformation
+
+        P = J*sigma*(inv(F).T)
+
+        # Evaluates the first elasticity tensor by differentiating the
+        # first Piola-Kirchhoff stress tensor w.r.t. the deformation 
+        # gradient
+
+        C_first = diff(P, F)
+        
+        # Stores the tensors inside the a dictionary so the variational
+        # form and the post-processes can distinguish between them
+
+        result = {"first_elasticity_tensor": C_first}
+
+        return result

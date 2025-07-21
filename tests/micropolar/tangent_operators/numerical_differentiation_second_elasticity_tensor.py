@@ -1,6 +1,10 @@
-# Routine to numerically differentiate the tangent operators
+# Routine to numerically differentiate the second elasticity tensor, i.e.
+# the derivative of the second Piola-Kirchhoff stress tensor w.r.t the
+# right Cauchy-Green tensor
 
 import os
+
+from copy import deepcopy
 
 import sys
 
@@ -135,16 +139,15 @@ pertubation_step, BVP_arguments, BVP_keywordArguments, BVP_function):
         results_pathText += "//"+name
     
     # Initializes the fourth order tensors for the derivatives of the
-    # stress tensors with respect to the displacement and microrotation
-    # gradients
+    # stress tensors with respect to the displacement gradient
 
-    dP_dGradU = []
+    dS_dGradU = []
 
-    dP_dGradPhi = []
+    # Evaluates the inverses of the derivative of the right Cauchy-Green
+    # strain tensor w.r.t. the deformation gradient and of the deforma-
+    # tion gradient itself
 
-    dPcouple_dGradU = []
-
-    dPcouple_dGradPhi = []
+    dCdF_inverse, F_inverse = inv_dCdF(base_path, subfolder_name)
 
     # Differentiates with respect to the displacement gradient
 
@@ -158,51 +161,37 @@ pertubation_step, BVP_arguments, BVP_keywordArguments, BVP_function):
             # Solves the boundary value problem and gets the stress ten-
             # sor perturbating ahead
 
-            P_ahead, P_coupleAhead = gradients_perturbation(base_path, 
-            results_pathText, subfolder_name, [k,l], "Displacement", 
-            pertubation_step, BVP_arguments, BVP_keywordArguments,
-            BVP_function)
+            S_ahead = gradients_perturbation(base_path, results_pathText,
+            subfolder_name, [k,l], "Displacement", pertubation_step, 
+            BVP_arguments, BVP_keywordArguments, BVP_function, F_inverse)
 
             # Again, but perturbating backwards
 
-            P_abaft, P_coupleAbaft = gradients_perturbation(base_path, 
-            results_pathText, subfolder_name, [k,l], "Displacement", 
-            -pertubation_step, BVP_arguments, BVP_keywordArguments,
-            BVP_function)
+            S_abaft = gradients_perturbation(base_path, results_pathText, 
+            subfolder_name, [k,l], "Displacement", -pertubation_step, 
+            BVP_arguments, BVP_keywordArguments, BVP_function, F_inverse)
 
             # Subtracts and divides them by the step to get the finite
             # differences
 
-            P_diff = subtract_dividesTensorLists(P_ahead, P_abaft, 2*
-            pertubation_step)
-
-            P_coupleDiff = subtract_dividesTensorLists(P_coupleAhead, 
-            P_coupleAbaft, 2*pertubation_step)
+            S_diff = subtract_dividesTensorLists(S_ahead, S_abaft,
+            2*pertubation_step)
 
             # Verifies if the fourth order tensor is empty
 
-            if len(dP_dGradU)==0:
+            if len(dS_dGradU)==0:
 
                 # Initializes a list of tensors for each required tensor
                 # using Voigt notation
 
-                for m in range(len(P_ahead)):
+                for m in range(len(S_ahead)):
 
-                    dP_dGradU.append([P_ahead[m][0], [([0.0 for p in (
+                    dS_dGradU.append([S_ahead[m][0], [([0.0 for p in (
                     range(9))]) for n in range(9)]])
-
-                    dP_dGradPhi.append([P_ahead[m][0], [([0.0 for p in (
-                    range(9))]) for n in range(9)]])
-
-                    dPcouple_dGradU.append([P_ahead[m][0], [([0.0 for (p
-                    ) in range(9)]) for n in range(9)]])
-
-                    dPcouple_dGradPhi.append([P_ahead[m][0], [([0.0 for (
-                    p) in range(9)]) for n in range(9)]])
 
             # Iterates through the time points
 
-            for t_step in range(len(P_diff)):
+            for t_step in range(len(S_diff)):
 
                 # Iterates through the stress indices
 
@@ -210,82 +199,29 @@ pertubation_step, BVP_arguments, BVP_keywordArguments, BVP_function):
 
                     for j in range(3):
 
-                        dP_dGradU[t_step][1][int((3*i)+j)][int((3*k)+l)
-                        ] += P_diff[t_step][1][i][j]
-
-                        dPcouple_dGradU[t_step][1][int((3*i)+j)][int((3*
-                        k)+l)] += P_coupleDiff[t_step][1][i][j]
+                        dS_dGradU[t_step][1][int((3*i)+j)][int((3*k)+l)
+                        ] += S_diff[t_step][1][i][j]
 
             # Writes the tensors
 
-            file_tools.list_toTxt(dP_dGradU, "dP_dGradU", parent_path=
+            file_tools.list_toTxt(dS_dGradU, "dS_dGradU", parent_path=
             results_pathText)
 
-            file_tools.list_toTxt(dPcouple_dGradU, "dPcouple_dGradU", 
-            parent_path=results_pathText)
+    # Multiplies the derivative of the second Piola-Kirchhoff stress 
+    # tensor by the derivative of the right Cauchy-Green strain tensor
+    # to get the derivative of the second Piola w.r.t. the latter
 
-    # Differentiates with respect to the microrotation gradient
+    dS_dC = muiltiply_dCdS(dS_dGradU, dCdF_inverse)
 
-    # Iterates through the components of the microrotation gradient ten-
-    # sor
+    # Writes the tensor
 
-    for k in range(3):
-
-        for l in range(3):
-
-            # Solves the boundary value problem and gets the stress ten-
-            # sor perturbating ahead
-
-            P_ahead, P_coupleAhead = gradients_perturbation(base_path, 
-            results_pathText, subfolder_name, [k,l], "Microrotation", 
-            pertubation_step, BVP_arguments, BVP_keywordArguments,
-            BVP_function)
-
-            # Again, but perturbating backwards
-
-            P_abaft, P_coupleAbaft = gradients_perturbation(base_path, 
-            results_pathText, subfolder_name, [k,l], "Microrotation", 
-            -pertubation_step, BVP_arguments, BVP_keywordArguments,
-            BVP_function)
-
-            # Subtracts and divides them by the step to get the finite
-            # differences
-
-            P_diff = subtract_dividesTensorLists(P_ahead, P_abaft, 2*
-            pertubation_step)
-
-            P_coupleDiff = subtract_dividesTensorLists(P_coupleAhead, 
-            P_coupleAbaft, 2*pertubation_step)
-
-            # Iterates through the time points
-
-            for t_step in range(len(P_diff)):
-
-                # Iterates through the stress indices
-
-                for i in range(3):
-
-                    for j in range(3):
-
-                        dP_dGradPhi[t_step][1][int((3*i)+j)][int((3*k)+l
-                        )] += P_diff[t_step][1][i][j]
-
-                        dPcouple_dGradPhi[t_step][1][int((3*i)+j)][int((
-                        3*k)+l)] += (P_coupleDiff[t_step][1][i][j])
-
-            # Writes the tensors
-
-            file_tools.list_toTxt(dP_dGradPhi, "dP_dGradPhi", parent_path=
-            results_pathText)
-
-            file_tools.list_toTxt(dPcouple_dGradPhi, "dPcouple_dGradPhi", 
-            parent_path=results_pathText)
+    file_tools.list_toTxt(dS_dC, "dS_dC", parent_path=results_pathText)
 
 # Defines a function to perturbate a quantity
 
 def gradients_perturbation(base_path, results_pathText, subfolder_name, 
 perturbed_indices, perturbed_field, pertubation_step, BVP_arguments, 
-BVP_keywordArguments, BVP_function):
+BVP_keywordArguments, BVP_function, F_inv):
     
     # Reads the displacement gradient
 
@@ -359,17 +295,37 @@ BVP_keywordArguments, BVP_function):
     first_piola = file_tools.txt_toList("homogenized_first_piola_micro"+
     "scale", parent_path=results_pathText)
 
-    couple_firstPiola = file_tools.txt_toList("homogenized_couple_firs"+
-    "t_piola_microscale", parent_path=results_pathText)
+    # Initializes a list for the second Piola-Kirchhoff stress tensor in 
+    # time
+
+    second_piola = []
+
+    # Iterates through the time points and premultiplies by the inverse 
+    # of the deformation gradient
+
+    for t in range(len(first_piola)):
+
+        # Gets the first Piola into a numpy array
+
+        first_piolaNumPy = np.array(first_piola[t][1])
+
+        # Multiplies it by the inverse of the deformation gradient
+
+        first_piolaNumPy = np.matmul(F_inv[t][1], first_piolaNumPy)
+
+        # Converst it to list and saves it into the list
+
+        second_piola.append([first_piola[t][0], first_piolaNumPy.tolist(
+        )])
 
     # Returns the stress tensors
 
-    return first_piola, couple_firstPiola
+    return second_piola
 
 # Defines a function to subtract two lists of tensors one from the other
 # and divides by a scalar
 
-def subtract_dividesTensorLists(list1, list2, scalar):
+def subtract_dividesTensorLists(list1, list2, scalar, dCdF_inverse):
 
     for t in range(len(list1)):
 
@@ -380,7 +336,119 @@ def subtract_dividesTensorLists(list1, list2, scalar):
                 list1[t][1][i][j] = ((list1[t][1][i][j]-list2[t][1][i][j
                 ])/scalar)
 
+        # Multiplies by the derivative of the right Cauchy-Green tensor
+
+        C_material = np.matmul(np.array(list1[t][1]), dCdF_inverse[t][1])
+
+        # Appends to the list as a list
+
+        list1[t][1] = C_material.tolist()
+
     return list1
+
+# Defines a function to multiply the finite difference of the second 
+# Piola-Kirchhoff stress tensor by the derivative of the right Cauchy-
+# Green strain tensor
+
+def muiltiply_dCdS(dS_dU, dCdF_inverse):
+
+    for t in range(len(dS_dU)):
+
+        # Multiplies by the derivative of the right Cauchy-Green tensor
+
+        C_material = np.matmul(np.array(dS_dU[t][1]), dCdF_inverse[t][1])
+
+        # Appends to the list as a list
+
+        dS_dU[t][1] = C_material.tolist()
+
+    return dS_dU
+
+# Defines the Kronecker's delta
+
+def kronecker_delta(i,j):
+
+    if i==j:
+
+        return 1.0
+    
+    else:
+
+        return 0.0
+
+# Defines a function to evaluate the derivative of the right Cauchy-Green
+# strain tensor w.r.t. the deformation gradient, and stores it into a 
+# matrix following the convention 11, 12, 13, 21, 22, 23, 31, 32, 33
+
+def inv_dCdF(base_path, subfolder_name):
+
+    # Reads the displacement gradient
+
+    displacement_gradient = file_tools.txt_toList("original_homogenize"+
+    "d_displacement_gradient", parent_path=base_path+"//"+
+    subfolder_name[0])
+
+    # Evaluates the deformation gradient from the displacement gradient
+
+    F_list = []
+
+    for i in range(len(displacement_gradient)):
+
+        # Converts the displacement gradient to numpy array
+
+        nabla_u = np.array(displacement_gradient[i][1])
+
+        # Sums the identity
+
+        nabla_u += np.eye(3)
+
+        # Stores it into the list
+
+        F_list.append([displacement_gradient[i][0], nabla_u])
+
+    # Initializes a list of these derivatives with time
+
+    inv_dCList = []
+
+    # Iterates through the time steps
+
+    for t in range(len(F_list)):
+
+        # Creates the Voigt representation of the derivative
+
+        dC = np.zeros((9,9))
+
+        # Iterates through the indices
+
+        for i in range(3):
+
+            for j in range(3):
+
+                for k in range(3):
+
+                    for l in range(3):
+
+                        dC[int((3*i)+j), int((3*k)+l)] += ((F_list[t][1
+                        ][k,j]*kronecker_delta(i,l))+(F_list[t][1][k,i]*
+                        kronecker_delta(j,l)))
+
+        print(F_list[t][1])
+
+        print(dC)
+
+        # inverts and appends it to the list
+
+        inv_dCList.append([F_list[t][0], np.linalg.inv(dC)])
+
+    # Evaluates the inverse of the deformation gradient
+
+    for t in range(len(F_list)):
+
+        # Stores it into the list
+
+        F_list[t][1] = np.linalg.inv(F_list[t][1])
+
+    return inv_dCList, F_list
 
 # Defines a function to solve the BVP in the microscale
 

@@ -705,3 +705,150 @@ stress_method, fields_namesDict):
         output_object.result.write(traction_fieldFunction, time)
 
     return output_object
+
+########################################################################
+#                      Saving of elasticity tensor                     #
+########################################################################
+
+# Defines a function to save the first elasticity tensor (dP/dF)
+
+def save_elasticityTensor(output_object, field, time, tensor_method,
+tensor_name, fields_namesDict):
+    
+    # Verifies if the output object has the attribute with the names of 
+    # the required fields
+
+    if not hasattr(output_object, "required_fieldsNames"):
+
+        raise AttributeError("The class of data for the post-process o"+
+        "f saving the pressure field at a point does not have the attr"+
+        "ibute 'required_fieldsNames'. This class must have it")
+
+    # Verifies if the domain is homogeneous
+
+    if isinstance(output_object.constitutive_model, dict):
+
+        # Initializes a list of pairs of constitutive models and inte-
+        # gration domain
+
+        integration_pairs = []
+
+        # If the domain is heterogeneous, the stress field must be pro-
+        # jected for each subdomain
+
+        for subdomain, local_constitutiveModel in output_object.constitutive_model.items():
+
+            # Gets the fields for this constitutive model
+
+            retrieved_fields = functional_tools.select_fields(field, 
+            output_object.required_fieldsNames[subdomain], 
+            fields_namesDict)
+
+            # Gets the first elasticity tensor field
+
+            dP_dF = programming_tools.get_result(getattr(
+            local_constitutiveModel, tensor_method)(
+            retrieved_fields), tensor_name)
+
+            # Verifies if more than one physical group is given for the
+            # same constitutive model
+
+            if isinstance(subdomain, tuple):
+
+                # Iterates though the elements of the tuple
+
+                for sub in subdomain:
+
+                    # Converts the subdomain to an integer tag
+
+                    sub = variational_tools.verify_physicalGroups(sub, 
+                    output_object.physical_groupsList, 
+                    output_object.physical_groupsNamesToTags,
+                    throw_error=False)
+
+                    # Checks if this subdomain is in the domain physical
+                    # groups 
+
+                    if sub in output_object.physical_groupsList:
+
+                        # Adds this pair of constitutive model and inte-
+                        # gration domain to the list of such pairs. Gets
+                        # the trace divided by 3 to get the pressure
+
+                        integration_pairs.append([dP_dF, sub])
+
+            else:
+
+                # Converts the subdomain to an integer tag
+
+                subdomain = variational_tools.verify_physicalGroups(
+                subdomain, output_object.physical_groupsList, 
+                output_object.physical_groupsNamesToTags, throw_error=
+                False)
+
+                # Checks if this subdomain is in the domain physical
+                # groups 
+
+                if subdomain in output_object.physical_groupsList:
+
+                    # Adds this pair of constitutive model and integra-
+                    # tion domain to the list of such pairs. Gets the 
+                    # trace divided by 3 to get the pressure
+
+                    integration_pairs.append([dP_dF, subdomain])
+
+        # Projects this piecewise continuous field of elasticity tensor
+        # into a FE space
+
+        elasticity_tensorFunction = variational_tools.project_piecewiseField(
+        integration_pairs, output_object.dx, output_object.W, 
+        output_object.physical_groupsList, 
+        output_object.physical_groupsNamesToTags)
+
+        # Updates the pressure by evaluating it the field at a point
+
+        output_object.result.append([time, elasticity_tensorFunction(
+        Point(output_object.point_coordinates))])
+
+    else:
+
+        # Gets the fields for this constitutive model
+
+        retrieved_fields = functional_tools.select_fields(field, 
+        output_object.required_fieldsNames, fields_namesDict)
+
+        # Gets the elasticity tensor field
+
+        elasticity_tensor = programming_tools.get_result(getattr(
+        output_object.constitutive_model, tensor_method)(
+        retrieved_fields), tensor_name)
+
+        # Projects the elasticity tensor into a function taking the tra-
+        # ce to get the pressure
+
+        elasticity_tensorFunction = project(elasticity_tensor, 
+        output_object.W)
+
+        # Updates the pressure by evaluating it the field at a point
+
+        output_object.result.append([time, elasticity_tensorFunction(
+        Point(output_object.point_coordinates))])
+
+    # Saves the elasticity tensor at a point to a txt file
+
+    file_tools.list_toTxt(output_object.result, output_object.file_name, 
+    add_extension=True)
+
+    # If it is to plot the data
+
+    if output_object.flag_plotting:
+
+        """plotting_tools.plane_plot(output_object.file_name+".pdf", data=
+        output_object.result,  x_label=r"$t$", y_label=r"$p$", title=
+        r"pressure at $x="+str(output_object.point_coordinates[0])+",\;"+
+        "y="+str(output_object.point_coordinates[1])+",\;z="+str(
+        output_object.point_coordinates[2])+"$", highlight_points=True)"""
+
+        pass
+
+    return output_object

@@ -137,3 +137,87 @@ class Neo_Hookean(HyperelasticMaterialModel):
         sigma = constitutive_tools.push_forwardS(S, u)
 
         return sigma
+    
+    # Defines a function to get the first elasticity tensor, i.e. dP/dF
+
+    def first_elasticityTensor(self, u):
+
+        # Evaluates the deformation gradient
+
+        I = Identity(3)
+
+        F = variable(grad(u)+I) 
+
+        # Evaluates the right Cauchy-Green strain tensor, C. Makes C a 
+        # variable to differentiate the Helmholtz potential with respect 
+        # to C
+
+        C = (F.T)*F
+        
+        C = variable(C)  
+
+        # Evaluates the Helmholtz potential
+
+        W = self.strain_energy(C)
+
+        # Evaluates the second Piola-Kirchhoff stress tensor differenti-
+        # ating the potential w.r.t. C
+
+        S = 2*diff(W,C)
+
+        # Gets the first Piola-Kirchhoff stress tensor from the second
+
+        P = F*S
+
+        # Evaluates the first elasticity tensor by differentiating the
+        # first Piola-Kirchhoff stress tensor w.r.t. the deformation 
+        # gradient
+
+        C_first = diff(P, F)
+        
+        # Stores the tensors inside the a dictionary so the variational
+        # form and the post-processes can distinguish between them
+
+        result = {"first_elasticity_tensor": C_first}
+
+        return result
+    
+    # Defines a function to get the second elasticity tensor, i.e. dS/dC
+
+    def second_elasticityTensor(self, u):
+
+        # Evaluates the deformation gradient
+
+        I = Identity(3)
+
+        F = grad(u)+I
+
+        # Evaluates the right Cauchy-Green strain tensor, C. Makes C a 
+        # variable to differentiate the Helmholtz potential with respect 
+        # to C
+
+        C = (F.T)*F
+        
+        C = variable(C)  
+
+        # Evaluates the Helmholtz potential
+
+        W = self.strain_energy(C)
+
+        # Evaluates the second Piola-Kirchhoff stress tensor differenti-
+        # ating the potential w.r.t. C
+
+        S = 2*diff(W,C)
+
+        # Evaluates the second elasticity tensor by differentiating the
+        # second Piola-Kirchhoff stress tensor w.r.t. the right Cauchy-
+        # Green strain tensor
+
+        C_second = diff(S, C)
+        
+        # Stores the tensors inside a dictionary so the variational form
+        # and the post-processes can distinguish between them
+
+        result = {"second_elasticity_tensor": C_second}
+
+        return result

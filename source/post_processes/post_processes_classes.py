@@ -292,3 +292,37 @@ class HomogenizeCoupleCauchy(PostProcessMethod):
         "path", "file name", "subdomain"], [context.dx, 
         context.physical_groupsList, 
         context.domain_physGroupsNamesToTags, context.constitutive_model])
+
+# Sets a class for the method to get the first elasticity tensor (dP/dF)
+
+class FirstElasticityTensorAtPoint(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_firstElasticityTensor, 
+        post_functions.update_firstElasticityTensor, ["directory path", 
+        "file name", "polynomial degree", "point coordinates", "flag p"+
+        "lotting"], [context.mesh, context.constitutive_model, 
+        context.dx, context.physical_groupsList, 
+        context.domain_physGroupsNamesToTags])
+
+# Sets a class for the method to get the second elasticity tensor (dS/dC)
+
+class SecondElasticityTensorAtPoint(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_secondElasticityTensor, 
+        post_functions.update_secondElasticityTensor, ["directory path", 
+        "file name", "polynomial degree", "point coordinates", "flag p"+
+        "lotting"], [context.mesh, context.constitutive_model, 
+        context.dx, context.physical_groupsList, 
+        context.domain_physGroupsNamesToTags])

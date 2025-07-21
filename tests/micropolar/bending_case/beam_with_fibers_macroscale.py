@@ -42,9 +42,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     n_RVEsX = 1
 
-    n_RVEsY = 7
+    n_RVEsY = 1#7
 
-    n_RVEsZ = 25
+    n_RVEsZ = 2#25
 
     # Sets the Young modulus and the Poisson ration from psi to MPa
 
@@ -67,7 +67,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     RVE_localizationX = int(np.ceil(0.5*n_RVEsX))
 
-    RVE_localizationY = 6#n_RVEsY#np.ceil(0.5*n_RVEsY)
+    RVE_localizationY = n_RVEsY#6#np.ceil(0.5*n_RVEsY)
 
     RVE_localizationZ = int(np.ceil(0.5*n_RVEsZ))
 
@@ -164,15 +164,18 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
     "ion_31", "simulation_32", "simulation_33"]
 
+    simulations_names = ["simulation_11"]
+
     # Saves the parameters set
 
     base_path = os.getcwd()+"//tests//micropolar//bending_case//results"
 
-    file_tools.list_toTxt(parameters_sets, base_path+"//parameters_sets")
+    file_tools.list_toTxt(parameters_sets, "parameters_sets", 
+    parent_path=base_path)
 
     # Iterates through the simulations
 
-    for i in range(len(parameters_sets)):
+    for i in range(min(len(parameters_sets), len(simulations_names))):
 
         # Makes a new mesh just for the first test and if a new mesh is
         # asked for
@@ -355,6 +358,13 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             "directory path": results_pathText, "file name": 
             homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
+
+            post_processes[-1][-1]["FirstElasticityTensorAtPoint"] = {
+            "directory path": results_pathText, "file name": 
+            "first_elasticity_tensor_dP_dF", "polynomial degree": 1,
+            "point coordinates": [RVE_length*(RVE_localizationX-1), 
+            RVE_width*(RVE_localizationY-1), RVE_width*(
+            RVE_localizationZ-1)], "flag plotting": False}
 
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes
@@ -567,4 +577,4 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
     post_processesSubmesh, verbose=verbose, dirichlet_boundaryConditions=
     bcs_dictionary)
 
-case1_varyingMicropolarNumber(flag_newMesh=False)
+case1_varyingMicropolarNumber(flag_newMesh=True)
