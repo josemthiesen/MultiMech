@@ -334,9 +334,12 @@ stress_solutionPlotNames, stress_name, stress_method, fields_namesDict):
 
             # Gets the stress field
 
-            stress_field = programming_tools.get_result(getattr(
-            local_constitutiveModel, stress_method)(retrieved_fields), 
-            stress_name)
+            stress_field = programming_tools.get_result(
+            programming_tools.get_attribute(local_constitutiveModel, 
+            stress_method, "The constitutive model\n"+str(
+            local_constitutiveModel)+"\ndoes not have the attribute '"+
+            str(stress_method)+"', thus the stress field cannot be upd"+
+            "ated")(retrieved_fields), stress_name)
 
             # Verifies if more than one physical group is given for the
             # same constitutive model
@@ -409,9 +412,12 @@ stress_solutionPlotNames, stress_name, stress_method, fields_namesDict):
 
         # Gets the stress field
 
-        stress_field = programming_tools.get_result(getattr(
-        output_object.constitutive_model, stress_method)(field), 
-        stress_name)
+        stress_field = programming_tools.get_result(
+        programming_tools.get_attribute(output_object.constitutive_model, 
+        stress_method, "The constitutive model\n"+str(
+        output_object.constitutive_model)+"\ndoes not have the attribu"+
+        "te '"+str(stress_method)+"', thus the stress field cannot be "+
+        "updated")(field), stress_name)
 
         # Projects the stress into a function
 
@@ -466,9 +472,12 @@ stress_method, fields_namesDict):
 
             # Gets the stress field
 
-            stress_field = programming_tools.get_result(getattr(
-            local_constitutiveModel, stress_method)(retrieved_fields), 
-            stress_name)
+            stress_field = programming_tools.get_result(
+            programming_tools.get_attribute(local_constitutiveModel, 
+            stress_method, "The constitutive model\n"+str(
+            local_constitutiveModel)+"\ndoes not have the attribute '"+
+            str(stress_method)+"', thus the pressure at a point cannot"+
+            " be updated")(retrieved_fields), stress_name)
 
             # Verifies if more than one physical group is given for the
             # same constitutive model
@@ -541,9 +550,12 @@ stress_method, fields_namesDict):
 
         # Gets the stress field
 
-        stress_field = programming_tools.get_result(getattr(
-        output_object.constitutive_model, stress_method)(
-        retrieved_fields), stress_name)
+        stress_field = programming_tools.get_result(
+        programming_tools.get_attribute(output_object.constitutive_model, 
+        stress_method, "The constitutive model\n"+str(
+        output_object.constitutive_model)+"\ndoes not have the attribu"+
+        "te '"+str(stress_method)+"', thus the pressure at a point can"+
+        "not be updated")(retrieved_fields), stress_name)
 
         # Projects the stress into a function taking the trace to get 
         # the pressure
@@ -611,9 +623,12 @@ stress_method, fields_namesDict):
 
             # Gets the stress field
 
-            stress_field = programming_tools.get_result(getattr(
-            local_constitutiveModel, stress_method)(retrieved_fields), 
-            stress_name)
+            stress_field = programming_tools.get_result(
+            programming_tools.get_attribute(local_constitutiveModel, 
+            stress_method, "The constitutive model\n"+str(
+            local_constitutiveModel)+"\ndoes not have the attribute '"+
+            str(stress_method)+"', thus the referential traction canno"+
+            "t be updated")(retrieved_fields), stress_name)
 
             # Verifies if more than one physical group is given for the
             # same constitutive model
@@ -686,9 +701,12 @@ stress_method, fields_namesDict):
 
         # Gets the stress field
 
-        stress_field = programming_tools.get_result(getattr(
-        output_object.constitutive_model, stress_method)(
-        retrieved_fields), stress_name)
+        stress_field = programming_tools.get_result(
+        programming_tools.get_attribute(output_object.constitutive_model, 
+        stress_method, "The constitutive model\n"+str(
+        output_object.constitutive_model)+"\ndoes not have the attribu"+
+        "te '"+str(stress_method)+"', thus the referential traction ca"+
+        "nnot be updated")(retrieved_fields), stress_name)
 
         # Projects the stress into a function taking the trace to get 
         # the pressure
@@ -757,9 +775,12 @@ tensor_name, fields_namesDict):
 
             # Gets the elasticity tensor field
 
-            dStress_dStrain = programming_tools.get_result(getattr(
-            local_constitutiveModel, tensor_method)(
-            retrieved_fields), tensor_name)
+            dStress_dStrain = programming_tools.get_result(
+            programming_tools.get_attribute(local_constitutiveModel, 
+            tensor_method, "The constitutive model\n"+str(
+            local_constitutiveModel)+"\ndoes not have the attribute '"+
+            str(tensor_method)+"', thus the elasticity tensor cannot b"+
+            "e evaluated")(retrieved_fields), tensor_name)
 
             # Verifies if more than one physical group is given for the
             # same constitutive model
@@ -850,9 +871,11 @@ tensor_name, fields_namesDict):
         # Gets the elasticity tensor field
 
         elasticity_tensor = programming_tools.get_result(
-        programming_tools.get_attribute(
-        output_object.constitutive_model, tensor_method)(
-        retrieved_fields), tensor_name)
+        programming_tools.get_attribute(output_object.constitutive_model, 
+        tensor_method, "The constitutive model\n"+str(
+        output_object.constitutive_model)+"\ndoes not have the attribu"+
+        "te '"+str(tensor_method)+"', thus the elasticity tensor canno"+
+        "t be evaluated")(retrieved_fields), tensor_name)
 
         # Iterates through the components
 

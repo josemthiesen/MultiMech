@@ -193,8 +193,8 @@ def get_attribute(class_object, attribute_name, error_message):
 
     """
     Arguments: class_object, a class instance; attribute_name, a string 
-    with the attribute name; error_message, a string with the error mes-
-    sage in case the class does not have this attribute. This function
+    with the attribute name; error_message, a string with the error
+    message in case the class does not have this attribute. This function
     is meant to give meaningful error messages"""
 
     # Verifies whether this class has this attribute
