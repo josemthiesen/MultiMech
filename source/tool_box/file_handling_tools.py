@@ -580,6 +580,10 @@ def list_toDict(original_list):
 
 def float_toString(number):
 
+    if isinstance(number, int):
+
+        return str(number)
+
     # Converts the number to string
 
     number = str(number)

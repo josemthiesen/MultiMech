@@ -6,6 +6,10 @@ from dolfin import *
 
 import ufl_legacy as ufl
 
+from copy import deepcopy
+
+import numpy as np
+
 import source.tool_box.tensor_tools as tensor_tools
 
 import source.tool_box.programming_tools as programming_tools
@@ -753,6 +757,8 @@ tensor_name, fields_namesDict):
     0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
 
+    full_tensor = np.zeros((3,3,3,3))
+
     # Verifies if the domain is homogeneous
 
     if isinstance(output_object.constitutive_model, dict):
@@ -879,6 +885,7 @@ tensor_name, fields_namesDict):
 
         # Iterates through the components
 
+        #"""
         for i in range(9):
 
             for j in range(9):
@@ -896,11 +903,25 @@ tensor_name, fields_namesDict):
                 # Stores the component
 
                 tensor_voigt[i][j] = elasticity_tensorFunction(Point(
-                output_object.point_coordinates))
+                output_object.point_coordinates))#"""
+        
+        """for i in range(3):
+
+            for j in range(3):
+
+                for k in range(3):
+
+                    for l in range(3):
+
+                        full_tensor[i,j,k,l] = project(elasticity_tensor[
+                        i,j,k,l], output_object.W)(Point(
+                        output_object.point_coordinates))"""
 
     # Updates the tensor as a list
 
     output_object.result.append([time, tensor_voigt])
+
+    #output_object.result.append([time, full_tensor.tolist()])
 
     # Saves the elasticity tensor at a point to a txt file
 
@@ -911,12 +932,82 @@ tensor_name, fields_namesDict):
 
     if output_object.flag_plotting:
 
-        """plotting_tools.plane_plot(output_object.file_name+".pdf", data=
-        output_object.result,  x_label=r"$t$", y_label=r"$p$", title=
-        r"pressure at $x="+str(output_object.point_coordinates[0])+",\;"+
-        "y="+str(output_object.point_coordinates[1])+",\;z="+str(
-        output_object.point_coordinates[2])+"$", highlight_points=True)"""
+        # Gets the title and the basic name of the file
 
-        pass
+        base_file_name = ""
+
+        title = ""
+
+        if tensor_name=="first_elasticity_tensor":
+
+            title = ("$\\frac{\\partial\\boldsymbol{P}}{\\partial\\bol"+
+            "dsymbol{F}}$\n")
+
+            base_file_name = "first_elasticity_tensor_dP_dF"
+
+        elif tensor_name=="second_elasticity_tensor":
+
+            title = ("$\\frac{\\partial\\boldsymbol{S}}{\\partial\\bol"+
+            "dsymbol{C}}$\n")
+
+            base_file_name = "second_elasticity_tensor_dS_dC"
+
+        elif tensor_name=="third_elasticity_tensor":
+
+            title = ("$\\frac{\\partial\\boldsymbol{\\sigma}}{\\partia"+
+            "l\\boldsymbol{b}}$\n")
+
+            base_file_name = "third_elasticity_tensor_dsigma_db"
+
+        # Gets the optional arguments
+
+        scaling_function = output_object.optional_arguments["scaling f"+
+        "unction"]
+
+        scaling_functionAdditionalParams = output_object.optional_arguments[
+        "scaling function additional parameters"]
+
+        color_map = output_object.optional_arguments["color map"]
+
+        max_ticksColorBar = output_object.optional_arguments["maximum "+
+        "ticks on color bar"]
+
+        # Sets the scientific notation flag
+
+        flag_scientificNotation = True
+
+        if scaling_function=="logarithmic filter":
+
+            flag_scientificNotation = False
+
+        # Gets the ticks values from the Voigt notation
+
+        x_ticksLabels = {}
+
+        y_ticksLabels = {}
+
+        for i in range(9):
+
+            index = output_object.voigt_notation[(i,0)]
+
+            x_ticksLabels[i+1] = str(index[0]+1)+str(index[1]+1)
+
+        for i in range(9):
+
+            index = output_object.voigt_notation[(i,0)]
+
+            y_ticksLabels[9-i] = str(index[0]+1)+str(index[1]+1)
+
+        # Plots the elasticity tensor
+
+        plotting_tools.plot_matrix(deepcopy(output_object.result), 
+        output_object.parent_path, base_file_name, include_time=True, 
+        scaling_function=scaling_function, color_map=color_map, title=
+        title, flag_scientificNotation=flag_scientificNotation, 
+        scaling_functionAdditionalParams=
+        scaling_functionAdditionalParams, max_ticksColorBar=
+        max_ticksColorBar, x_grid=[3.5, 6.5], y_grid=[3.5, 6.5],
+        element_size=23, x_ticksLabels=x_ticksLabels, y_ticksLabels=
+        y_ticksLabels)
 
     return output_object

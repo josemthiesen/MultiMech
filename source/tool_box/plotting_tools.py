@@ -4,7 +4,13 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+import matplotlib.colors as plt_colors
+
 import matplotlib.ticker as ticker
+
+import source.tool_box.numerical_tools as numerical_tools
+
+import source.tool_box.file_handling_tools as file_tools
 
 ########################################################################
 #                          Bidimensional plots                         #
@@ -19,7 +25,8 @@ element_style='-', element_size=1.5,  legend=None, plot_type="line",
 color_map=False, flag_noTicks=False, aspect_ratio='auto', x_grid=None,
 y_grid=None, color_bar=False, color_barMaximum=None, color_barMinimum=
 None, color_barTicks=None, color_barTitle=None, color_barIntegerTicks=
-False, color_barNumberOfTicks=5, color_barIncludeMinMaxTicks=False):
+False, color_barNumberOfTicks=5, color_barIncludeMinMaxTicks=False,
+x_ticksLabels=None, y_ticksLabels=None):
     
     """
     You can provide an array of data, where the first column will be in
@@ -755,9 +762,43 @@ False, color_barNumberOfTicks=5, color_barIncludeMinMaxTicks=False):
 
         subplots_tuple.set_xticks(x_grid)
 
+        subplots_tuple.set_xticklabels([])
+
+        subplots_tuple.grid(True, axis='x')
+
     if not (y_grid is None):
 
         subplots_tuple.set_yticks(y_grid)
+
+        subplots_tuple.set_yticklabels([])
+
+        subplots_tuple.grid(True, axis='y')
+
+    # Sets the tick labels
+
+    if isinstance(x_ticksLabels, dict):
+
+        # Gets the tick values and the location
+
+        tick_location = list(x_ticksLabels.keys())
+
+        tick_names = list(x_ticksLabels.values())
+
+        subplots_tuple.set_xticks(tick_location, minor=True)
+
+        subplots_tuple.set_xticklabels(tick_names, minor=True)
+
+    if isinstance(y_ticksLabels, dict):
+
+        # Gets the tick values and the location
+
+        tick_location = list(y_ticksLabels.keys())
+
+        tick_names = list(y_ticksLabels.values())
+
+        subplots_tuple.set_yticks(tick_location, minor=True)
+
+        subplots_tuple.set_yticklabels(tick_names, minor=True)
 
     # Verifies and uses if necessary other optional attributes
 
@@ -798,3 +839,259 @@ False, color_barNumberOfTicks=5, color_barIncludeMinMaxTicks=False):
         plt.savefig(file_name)
 
     print("Finishes plotting\n")
+
+########################################################################
+#                          Matrices plotting                           #
+########################################################################
+
+# Defines a function to make a grid plot of the values of a matrix
+
+def plot_matrix(list_of_matrices, parent_path, base_file_name,
+include_time=True, scaling_function="linear", color_map="seismic", title=
+None, flag_scientificNotation=False, scaling_functionAdditionalParams=
+None, max_ticksColorBar=3, x_grid=None, y_grid=None, element_size=12,
+x_ticksLabels=None, y_ticksLabels=None):
+
+    """
+    Function to plot matrices relative components.
+    
+    Arguments:
+    
+    list_of_matrices: list of matrices on the format [[t0, matrix0], [
+    t1, matrix1], ..., [tn, matrixn]], or on format [matrix0, matrix1,
+    ..., matrixn]
+
+    parent_path: path to the directory where the files will be stored
+
+    base_file_name: basic name for the files without any termination, li
+    ke .pdf or .png. This routine will automatically add the time step
+    and the termination
+    
+    include_time: flag for informing whether the time value is supplied
+    within each list, like t0 in [t0, matrix0]. The default value is True
+
+    scaling_function: string with the name of the chosen scaling func
+    tion
+
+    scaling_functionAdditionalParams: dictionary with the additional pa
+    rameters for the scaling function
+    """
+
+    # Scales the list of matrices
+
+    (scaled_matrices, min_component, max_component, scaling_function,
+    scaling_functionTitle) = scale_matricesForPlotting(list_of_matrices, 
+    include_time=include_time, scaling_function=scaling_function,
+    scaling_functionAdditionalParams=scaling_functionAdditionalParams)
+
+    # Gets the minimum and maximum values for the color bar
+
+    color_barMaximum = max_component*1.0 
+
+    color_barMinimum = min_component*1.0 
+
+    if max_component>0 and min_component<0:
+
+        color_barMaximum = max(max_component, abs(min_component))
+
+        color_barMinimum = -max(max_component, abs(min_component))
+
+    # Iterates through the list of matrices to get each matrix
+
+    for t in range(len(scaled_matrices)):
+
+        # Initializes the x data and the y data, which are the position 
+        # of each component of the matrices
+
+        x_data = []
+
+        y_data = []
+
+        # Initializes the color values, which are the components of the 
+        # matrix
+
+        colors = []
+
+        # Gets the matrix itself and the time value
+
+        time = t+1
+
+        matrix = None
+
+        if include_time:
+
+            time = scaled_matrices[t][0]
+
+            matrix = scaled_matrices[t][1]
+
+        else:
+
+            matrix = scaled_matrices[t]
+
+        # Iterates through the matrix
+
+        for i in range(len(matrix)):
+
+            for j in range(len(matrix[i])):
+
+                x_data.append(j+1)
+
+                y_data.append(len(matrix)-i)
+
+                colors.append(matrix[i][j])
+
+        # Converts the time value to integer
+
+        time = file_tools.float_toString(time)
+
+        # Plots and saves the figure
+
+        plane_plot(file_name=parent_path+"//"+base_file_name+"_t_"+time
+        +".pdf", x_data=x_data, y_data=y_data, element_style="s", 
+        element_size=element_size, color=colors, color_map=
+        color_mapBuilder(color_map, max_ticksColorBar=max_ticksColorBar
+        ), plot_type="scatter", flag_grid=True, flag_noTicks=False, 
+        aspect_ratio='equal', x_grid=x_grid, y_grid=y_grid, color_bar=
+        True, color_barMaximum=color_barMaximum, color_barMinimum=
+        color_barMinimum, color_barTitle=scaling_functionTitle, title=
+        title, color_barIncludeMinMaxTicks=True, color_barIntegerTicks=
+        False, color_barNumberOfTicks=max_ticksColorBar, 
+        flag_scientificNotation=flag_scientificNotation, x_ticksLabels=
+        x_ticksLabels, y_ticksLabels=y_ticksLabels)
+
+########################################################################
+#                              Color maps                              #
+########################################################################
+
+# Defines a function to get a fully built color map from a string
+
+def color_mapBuilder(color_map_name, max_ticksColorBar=3):
+
+    if color_map_name=="blue orange green white purple brown pink":
+
+        # Sets the colors list
+
+        colors = ["#1f77b4","#ff7f0e","#2ca02c","#ffffff", 
+        "#ffffff","#9467bd","#8c564b","#e377c2"]
+
+        # Sets their divisions along the [0,1] interval
+
+        discrete_values = np.concatenate([np.linspace(0, 0.45, int(len(
+        colors)*0.5)), np.linspace(0.55, 1, int(len(colors)*0.5))])
+
+        # Makes the custom color map
+
+        return plt_colors.LinearSegmentedColormap.from_list(
+        color_map_name, list(zip(discrete_values, colors)), N=
+        max_ticksColorBar-1)
+    
+    # If it is not one of the custom color maps, returns the name to try
+    # and pick up one from matplotlib
+    
+    else:
+
+        return color_map_name
+
+########################################################################
+#                              Utilities                               #
+########################################################################
+
+# Defines a function to scale and prepare tensors for plotting. It must
+# receive a list of matrices
+
+def scale_matricesForPlotting(list_of_matrices, include_time=True,
+scaling_function="linear", scaling_functionAdditionalParams=None):
+
+    """
+    Function to prepare and scale matrices for plotting.
+    
+    Arguments:
+    
+    list_of_matrices: list of matrices on the format [[t0, matrix0], [
+    t1, matrix1], ..., [tn, matrixn]], or on format [matrix0, matrix1,
+    ..., matrixn]
+    
+    include_time: flag for informing whether the time value is supplied
+    within each list, like t0 in [t0, matrix0]. The default value is True
+
+    scaling_function: string with the name of the chosen scaling func
+    tion
+
+    scaling_functionAdditionalParams: dictionary with the additional pa
+    rameters for the scaling function
+    """
+
+    print("Starts scaling the list of matrices\n")
+
+    # If the additional parameters are "default"
+
+    if scaling_functionAdditionalParams=="default":
+
+        scaling_functionAdditionalParams = None
+
+    # Gets the scaling function
+
+    scaling_function, scaling_functionTitle = numerical_tools.generate_scalingFunctions(
+    scaling_function, additional_parameters=
+    scaling_functionAdditionalParams)
+
+    # Iterates through the list of matrices to get the mininum and maxi-
+    # mum components
+
+    min_component = 0.0
+
+    max_component = 0.0
+
+    for i in range(len(list_of_matrices)):
+
+        # Takes the list from the step information
+
+        list_array = None
+
+        if include_time:
+
+            list_array = list_of_matrices[i][1]
+            
+        else:
+
+            list_array = list_of_matrices[i]
+
+        # Converts the list to a numpy array
+
+        try:
+
+            list_array = np.array(list_array)
+
+        except:
+
+            raise ValueError("The list "+str(list_array)+" has not a p"+
+            "roper format to be converted into a numpy array")
+        
+        # Checks for the minimum and maximum values
+
+        min_component = min(np.min(list_array), min_component)
+
+        max_component = max(np.max(list_array), max_component)
+
+        # Scales each component of the matrix using the vectorize func-
+        # tionality of numpy. Then, allocates it into the list of matri-
+        # ces
+
+        if include_time:
+
+            list_of_matrices[i][1] = np.vectorize(scaling_function)(
+            list_array)
+
+        else:
+
+            list_of_matrices[i] = np.vectorize(scaling_function)(
+            list_array)
+
+    print("Finishes scaling the list of matrices\n")
+
+    # Returns the scaled list of matrices and scales the minimum and ma-
+    # ximum components
+
+    return (list_of_matrices, scaling_function(min_component), 
+    scaling_function(max_component), scaling_function, 
+    scaling_functionTitle)

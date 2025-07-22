@@ -1,12 +1,6 @@
 # Routine to test a hyperelastic disc
 
-from dolfin import *
-
 import os
-
-from mpi4py import MPI
-
-from mshr import *
 
 #import periodic_structure as mesher
 
@@ -39,11 +33,23 @@ post_processes["SaveCauchyStressField"] = {"directory path":
 results_path, "file name": "cauchy_stress.xdmf", "polynomia"+
 "l degree": 1}
 
-post_processes["ThirdElasticityTensorAtPoint"] = {
-"directory path": results_path, "file name": 
-"third_elasticity_tensor_dsigma_db", "polynomial degree": 1,
-"point coordinates": [0.5, 0.5, 1.0], "flag plotting": False, "voigt n"+
-"otation": "conventional"}
+post_processes["FirstElasticityTensorAtPoint"] = {"directory path": 
+results_path, "file name": "first_elasticity_tensor_dP_dF", "polynomia"+
+"l degree": 1, "point coordinates": [0.5, 0.5, 1.0], "flag plotting": 
+False, "voigt notation": "conventional", "plotting arguments": {"scalin"+
+"g function additional parameters": {"alpha":5}}}
+
+post_processes["SecondElasticityTensorAtPoint"] = {"directory path": 
+results_path, "file name": "second_elasticity_tensor_dS_dC", "polynomi"+
+"al degree": 1, "point coordinates": [0.5, 0.5, 1.0], "flag plotting": 
+False, "voigt notation": "conventional", "plotting arguments": {"scalin"+
+"g function additional parameters": {"alpha":5}}}
+
+post_processes["ThirdElasticityTensorAtPoint"] = {"directory path": 
+results_path, "file name": "third_elasticity_tensor_dsigma_db", "polyn"+
+"omial degree": 1, "point coordinates": [0.5, 0.5, 1.0], "flag plottin"+
+"g": False, "voigt notation": "natural", "plotting arguments": {"s"+
+"caling function additional parameters": {"alpha":5}}}
 
 ########################################################################
 #                         Material properties                          #

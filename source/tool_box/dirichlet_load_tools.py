@@ -13,10 +13,6 @@ import source.tool_box.numerical_tools as numerical_tools
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
-import source.tool_box.tensor_tools as tensor_tools
-
-import source.multiscale.multiscale_boundary_conditions.multiscale_expressions as custom_expressions
-
 # Defines a function to construct a Dirichlet boundary condition that a
 # surface is rotated and translated
 

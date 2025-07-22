@@ -306,7 +306,7 @@ class FirstElasticityTensorAtPoint(PostProcessMethod):
         super().__init__(post_functions.initialize_firstElasticityTensor, 
         post_functions.update_firstElasticityTensor, ["directory path", 
         "file name", "polynomial degree", "point coordinates", "flag p"+
-        "lotting", "voigt notation"], [context.mesh, 
+        "lotting", "voigt notation", "plotting arguments"], [context.mesh, 
         context.constitutive_model, 
         context.dx, context.physical_groupsList, 
         context.domain_physGroupsNamesToTags])
@@ -324,7 +324,7 @@ class SecondElasticityTensorAtPoint(PostProcessMethod):
         super().__init__(post_functions.initialize_secondElasticityTensor, 
         post_functions.update_secondElasticityTensor, ["directory path", 
         "file name", "polynomial degree", "point coordinates", "flag p"+
-        "lotting", "voigt notation"], [context.mesh, 
+        "lotting", "voigt notation", "plotting arguments"], [context.mesh, 
         context.constitutive_model, 
         context.dx, context.physical_groupsList, 
         context.domain_physGroupsNamesToTags])
@@ -343,7 +343,7 @@ class ThirdElasticityTensorAtPoint(PostProcessMethod):
         super().__init__(post_functions.initialize_thirdElasticityTensor, 
         post_functions.update_thirdElasticityTensor, ["directory path", 
         "file name", "polynomial degree", "point coordinates", "flag p"+
-        "lotting", "voigt notation"], [context.mesh, 
+        "lotting", "voigt notation", "plotting arguments"], [context.mesh, 
         context.constitutive_model, context.dx, 
         context.physical_groupsList, 
         context.domain_physGroupsNamesToTags])

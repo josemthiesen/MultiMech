@@ -13,6 +13,8 @@ import source.tool_box.constitutive_tools as constitutive_tools
 
 import source.tool_box.mesh_handling_tools as mesh_tools
 
+import source.tool_box.numerical_tools as numerical_tools
+
 ########################################################################
 #                      Post-processing tools list                      #
 ########################################################################
@@ -1358,8 +1360,22 @@ submesh_flag):
 
     else:
 
-        W = FunctionSpace(mesh, "CG", polynomial_degree)#, shape=(3,
-        #3,3,3))
+        W = FunctionSpace(mesh, "CG", polynomial_degree)
+
+    # Gets the optional arguments for the plot of the tensor, and 
+    # checks them against the default ones
+
+    optional_arguments = data[6]
+
+    if optional_arguments=="default":
+
+        optional_arguments = None
+
+    optional_arguments = numerical_tools.check_additionalParameters(
+    optional_arguments, {"scaling function": "logarithmic filter",
+    "scaling function additional parameters": {"alpha": 3}, "color"+
+    " map": "blue orange green white purple brown pink", "maximum "+
+    "ticks on color bar": 24})
 
     # Gets the name of the file with the path to it
 
@@ -1386,7 +1402,8 @@ submesh_flag):
         def __init__(self, file_name, W, constitutive_model, dx, 
         physical_groupsList, physical_groupsNamesToTags, 
         parent_toChildMeshResult, point_coordinates, 
-        elasticity_tensorList, flag_plotting, voigt_notation):
+        elasticity_tensorList, flag_plotting, voigt_notation, 
+        parent_path, optional_arguments):
 
             self.W = W 
 
@@ -1408,6 +1425,10 @@ submesh_flag):
 
             self.voigt_notation = voigt_notation
 
+            self.parent_path = parent_path
+
+            self.optional_arguments = optional_arguments
+
             # Gets the names of the fields that are actually necessary
             # to the evaluation of stress
 
@@ -1417,7 +1438,8 @@ submesh_flag):
     output_object = output_object = OutputObject(file_name, W, 
     constitutive_model, dx, physical_groupsList, 
     physical_groupsNamesToTags, 0.0, point_coordinates, 
-    elasticity_tensorList, flag_plotting, voigt_notation)
+    elasticity_tensorList, flag_plotting, voigt_notation, parent_path,
+    optional_arguments)
 
     return output_object
 

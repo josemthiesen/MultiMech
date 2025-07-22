@@ -249,7 +249,9 @@ class Neo_Hookean(HyperelasticMaterialModel):
         # Evaluates the Cauchy stress tensor differentiating the poten-
         # tial w.r.t. b
 
-        sigma = 2*diff(W,b)
+        J = ufl.sqrt(det(b))
+
+        sigma = (2/J)*b*diff(W,b)
 
         # Evaluates the third elasticity tensor by differentiating the
         # Cauchy stress tensor w.r.t. the left Cauchy-Green strain ten-
