@@ -306,7 +306,8 @@ class FirstElasticityTensorAtPoint(PostProcessMethod):
         super().__init__(post_functions.initialize_firstElasticityTensor, 
         post_functions.update_firstElasticityTensor, ["directory path", 
         "file name", "polynomial degree", "point coordinates", "flag p"+
-        "lotting"], [context.mesh, context.constitutive_model, 
+        "lotting", "voigt notation"], [context.mesh, 
+        context.constitutive_model, 
         context.dx, context.physical_groupsList, 
         context.domain_physGroupsNamesToTags])
 
@@ -323,6 +324,26 @@ class SecondElasticityTensorAtPoint(PostProcessMethod):
         super().__init__(post_functions.initialize_secondElasticityTensor, 
         post_functions.update_secondElasticityTensor, ["directory path", 
         "file name", "polynomial degree", "point coordinates", "flag p"+
-        "lotting"], [context.mesh, context.constitutive_model, 
+        "lotting", "voigt notation"], [context.mesh, 
+        context.constitutive_model, 
         context.dx, context.physical_groupsList, 
+        context.domain_physGroupsNamesToTags])
+
+# Sets a class for the method to get the third elasticity tensor 
+# (dsigma/db)
+
+class ThirdElasticityTensorAtPoint(PostProcessMethod):
+
+    def __init__(self, context: PostProcessContext):
+
+        # Initializes the parent template class and already passes to it
+        # the initialization function, the update function, the additio-
+        # nal data names, and the code-provided information
+
+        super().__init__(post_functions.initialize_thirdElasticityTensor, 
+        post_functions.update_thirdElasticityTensor, ["directory path", 
+        "file name", "polynomial degree", "point coordinates", "flag p"+
+        "lotting", "voigt notation"], [context.mesh, 
+        context.constitutive_model, context.dx, 
+        context.physical_groupsList, 
         context.domain_physGroupsNamesToTags])

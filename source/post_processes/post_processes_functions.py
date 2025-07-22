@@ -1300,18 +1300,66 @@ submesh_flag):
 
     flag_plotting = data[4]
 
+    # Gets the Voigt notation
+
+    indices = None 
+
+    # Tests if the Voigt notation is the conventional one
+
+    if data[5]=="conventional":
+
+        # Iterates through the indices to generate the notation 1111,
+        # 1122, 1133, 1112, 1123, 1113, 2211, 2222...
+
+        indices = [[0,0], [1,1], [2,2], [0,1], [1,2], [0,2], [1,0], [2,1
+        ], [2,0]]
+
+    # Tests if the Voig notation is the Paraview/Fenics one, called na-
+    # tural
+
+    elif data[5]=="natural":
+
+        # Iterates through the indices to generate the notation 1111,
+        # 1112, 1113, 1121, 1122, 1123, 1131, 1132, 1133, 1211...
+
+        indices = [[0,0], [0,1], [0,2], [1,0], [1,1], [1,2], [2,0], [2,1
+        ], [2,2]]
+
+    else:
+
+        raise TypeError("The Voigt notation information for the evalua"+
+        "tion of elasticity tensors must be 'conventional' or 'natural"+
+        "'. The given value is: "+str(data[5])+".\n'conventional' is 1"+
+        "111, 1122, 1133, 1112, 1123, 1113, 2211, 2222... whereas 'nat"+
+        "ural' is 1111, 1112, 1113, 1121, 1122, 1123, 1131, 1132, 1133"+
+        ", 1211...")
+
+    # Initializes the Voigt notation object as dictionary of tuple keys 
+    # and lists as values
+
+    voigt_notation = {}
+
+    # Populates the Voigt dictionary
+
+    for i in range(9):
+
+        for j in range(9):
+
+            voigt_notation[(i,j)] = [indices[i][0], indices[i][1],
+            indices[j][0], indices[j][1]]
+
     # Creates the function space for the stress as a tensor
 
     W = 0.0
 
     if polynomial_degree==0:
 
-        W = TensorFunctionSpace(mesh, "DG", 0, shape=(3,3,3,3))
+        W = FunctionSpace(mesh, "DG", 0)
 
     else:
 
-        W = TensorFunctionSpace(mesh, "CG", polynomial_degree, shape=(3,
-        3,3,3))
+        W = FunctionSpace(mesh, "CG", polynomial_degree)#, shape=(3,
+        #3,3,3))
 
     # Gets the name of the file with the path to it
 
@@ -1338,7 +1386,7 @@ submesh_flag):
         def __init__(self, file_name, W, constitutive_model, dx, 
         physical_groupsList, physical_groupsNamesToTags, 
         parent_toChildMeshResult, point_coordinates, 
-        elasticity_tensorList, flag_plotting):
+        elasticity_tensorList, flag_plotting, voigt_notation):
 
             self.W = W 
 
@@ -1358,6 +1406,8 @@ submesh_flag):
 
             self.flag_plotting = flag_plotting
 
+            self.voigt_notation = voigt_notation
+
             # Gets the names of the fields that are actually necessary
             # to the evaluation of stress
 
@@ -1367,7 +1417,7 @@ submesh_flag):
     output_object = output_object = OutputObject(file_name, W, 
     constitutive_model, dx, physical_groupsList, 
     physical_groupsNamesToTags, 0.0, point_coordinates, 
-    elasticity_tensorList, flag_plotting)
+    elasticity_tensorList, flag_plotting, voigt_notation)
 
     return output_object
 
@@ -1387,109 +1437,8 @@ time, fields_namesDict, flag_parentMeshReuse=False):
 def initialize_secondElasticityTensor(data, direct_codeData, 
 submesh_flag):
 
-    # Gets the directory and the name of the file
-
-    parent_path = data[0]
-
-    file_name = data[1]
-
-    # Gets the polynomial degree of the interpolation function
-
-    polynomial_degree = data[2]
-
-    # Gets the mesh, the constitutive model, and the volume integrator
-    # from the data directly provided by the code
-
-    mesh = direct_codeData[0]
-
-    constitutive_model = direct_codeData[1]
-
-    dx = direct_codeData[2]
-
-    physical_groupsList = direct_codeData[3] 
-    
-    physical_groupsNamesToTags = direct_codeData[4]
-
-    # Gets the coordinates of the point and already finds the closest 
-    # node to it
-
-    point_coordinates = mesh_tools.find_nodeClosestToPoint(mesh, data[3],
-    None, None)[1]
-
-    # Gets the flag for plotting or not
-
-    flag_plotting = data[4]
-
-    # Creates the function space for the stress as a tensor
-
-    W = 0.0
-
-    if polynomial_degree==0:
-
-        W = TensorFunctionSpace(mesh, "DG", 0, shape=(3,3,3,3))
-
-    else:
-
-        W = TensorFunctionSpace(mesh, "CG", polynomial_degree, shape=(3,
-        3,3,3))
-
-    # Gets the name of the file with the path to it
-
-    file_name = file_tools.verify_path(parent_path, file_name)
-
-    # Verifies if an extension has been added to the file name
-
-    if len(file_name)>4:
-
-        if file_name[-4:len(file_name)]==".txt":
-
-            file_name = file_name[0:-4]
-
-    # Initializes the list of elasticity  values along the loading steps
-
-    elasticity_tensorList = []
-
-    # Assembles the file and the function space into a class. This post-
-    # process does have a variable that can be shared with a submesh, 
-    # and it is the stress field
-
-    class OutputObject:
-
-        def __init__(self, file_name, W, constitutive_model, dx, 
-        physical_groupsList, physical_groupsNamesToTags, 
-        parent_toChildMeshResult, point_coordinates, 
-        elasticity_tensorList, flag_plotting):
-
-            self.W = W 
-
-            self.constitutive_model = constitutive_model
-
-            self.dx = dx 
-
-            self.file_name = file_name
-
-            self.physical_groupsList = physical_groupsList 
-
-            self.physical_groupsNamesToTags = physical_groupsNamesToTags
-
-            self.point_coordinates = point_coordinates
-
-            self.result = elasticity_tensorList
-
-            self.flag_plotting = flag_plotting
-
-            # Gets the names of the fields that are actually necessary
-            # to the evaluation of stress
-
-            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
-            self.constitutive_model)
-
-    output_object = output_object = OutputObject(file_name, W, 
-    constitutive_model, dx, physical_groupsList, 
-    physical_groupsNamesToTags, 0.0, point_coordinates, 
-    elasticity_tensorList, flag_plotting)
-
-    return output_object
+    return initialize_firstElasticityTensor(data, direct_codeData, 
+    submesh_flag)
 
 # Defines a function to update the second elasticity tensor
 
@@ -1500,4 +1449,23 @@ time, fields_namesDict, flag_parentMeshReuse=False):
 
     return constitutive_tools.save_elasticityTensor(output_object, 
     field, time, "second_elasticityTensor", "second_elasticity_tensor",
+    fields_namesDict)
+
+# Defines a function to initialize the third elasticity tensor
+
+def initialize_thirdElasticityTensor(data, direct_codeData, 
+submesh_flag):
+
+    return initialize_firstElasticityTensor(data, direct_codeData, 
+    submesh_flag)
+
+# Defines a function to update the third elasticity tensor
+
+def update_thirdElasticityTensor(output_object, field, field_number, 
+time, fields_namesDict, flag_parentMeshReuse=False):
+    
+    print("Updates the saving of the third elasticity tensor\n")
+
+    return constitutive_tools.save_elasticityTensor(output_object, 
+    field, time, "third_elasticityTensor", "third_elasticity_tensor",
     fields_namesDict)

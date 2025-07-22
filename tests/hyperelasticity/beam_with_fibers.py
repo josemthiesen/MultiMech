@@ -39,10 +39,11 @@ post_processes["SaveCauchyStressField"] = {"directory path":
 results_path, "file name": "cauchy_stress.xdmf", "polynomia"+
 "l degree": 1}
 
-post_processes["SecondElasticityTensorAtPoint"] = {
+post_processes["ThirdElasticityTensorAtPoint"] = {
 "directory path": results_path, "file name": 
-"first_elasticity_tensor_dS_dC", "polynomial degree": 1,
-"point coordinates": [0.5, 0.5, 1.0], "flag plotting": False}
+"third_elasticity_tensor_dsigma_db", "polynomial degree": 1,
+"point coordinates": [0.5, 0.5, 1.0], "flag plotting": False, "voigt n"+
+"otation": "conventional"}
 
 ########################################################################
 #                         Material properties                          #

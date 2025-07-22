@@ -221,3 +221,45 @@ class Neo_Hookean(HyperelasticMaterialModel):
         result = {"second_elasticity_tensor": C_second}
 
         return result
+    
+    # Defines a function to get the third elasticity tensor, i.e. 
+    # dsigma/db
+
+    def third_elasticityTensor(self, u):
+
+        # Evaluates the deformation gradient
+
+        I = Identity(3)
+
+        F = grad(u)+I
+
+        # Evaluates the left Cauchy-Green strain tensor, b. Makes b a 
+        # variable to differentiate the Helmholtz potential with respect 
+        # to b
+
+        b = F*(F.T)
+        
+        b = variable(b)  
+
+        # Evaluates the Helmholtz potential with b, because b and C have
+        # the same eigenvalues, thus, the same invariants
+
+        W = self.strain_energy(b)
+
+        # Evaluates the Cauchy stress tensor differentiating the poten-
+        # tial w.r.t. b
+
+        sigma = 2*diff(W,b)
+
+        # Evaluates the third elasticity tensor by differentiating the
+        # Cauchy stress tensor w.r.t. the left Cauchy-Green strain ten-
+        # sor
+
+        C_third = diff(sigma, b)
+        
+        # Stores the tensors inside a dictionary so the variational form
+        # and the post-processes can distinguish between them
+
+        result = {"third_elasticity_tensor": C_third}
+
+        return result

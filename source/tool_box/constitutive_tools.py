@@ -723,6 +723,17 @@ tensor_name, fields_namesDict):
         raise AttributeError("The class of data for the post-process o"+
         "f saving the pressure field at a point does not have the attr"+
         "ibute 'required_fieldsNames'. This class must have it")
+    
+    # Initializes the tensor as a list in Voigt notation (1111, 1112, 
+    # 1113, 1121, 1122, 1123, 1131, 1132, 1133, 1211, 1212...)
+
+    tensor_voigt = [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 
+    0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 
+    0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+    0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
 
     # Verifies if the domain is homogeneous
 
@@ -797,18 +808,36 @@ tensor_name, fields_namesDict):
 
                     integration_pairs.append([dP_dF, subdomain])
 
-        # Projects this piecewise continuous field of elasticity tensor
-        # into a FE space
+        # Iterates through the components
 
-        elasticity_tensorFunction = variational_tools.project_piecewiseField(
-        integration_pairs, output_object.dx, output_object.W, 
-        output_object.physical_groupsList, 
-        output_object.physical_groupsNamesToTags)
+        for i in range(9):
 
-        # Updates the pressure by evaluating it the field at a point
+            for j in range(9):
 
-        output_object.result.append([time, elasticity_tensorFunction(
-        Point(output_object.point_coordinates))])
+                # Gets the indices from the Voigt notation
+
+                indices = output_object.voigt_notation[(i,j)]
+
+                # Initializes the integration pairs for this index
+
+                index_integrationPairs = []
+
+                for pair in integration_pairs:
+
+                    index_integrationPairs.append([pair[0][indices[0], 
+                    indices[1], indices[2], indices[3]], pair[1]])
+
+                # Projects the component into a FE space
+
+                elasticity_tensorFunction = variational_tools.project_piecewiseField(
+                index_integrationPairs, output_object.dx, 
+                output_object.W, output_object.physical_groupsList, 
+                output_object.physical_groupsNamesToTags)
+
+                # Stores the component
+
+                tensor_voigt[i][j] = elasticity_tensorFunction(Point(
+                output_object.point_coordinates))
 
     else:
 
@@ -823,16 +852,30 @@ tensor_name, fields_namesDict):
         output_object.constitutive_model, tensor_method)(
         retrieved_fields), tensor_name)
 
-        # Projects the elasticity tensor into a function taking the tra-
-        # ce to get the pressure
+        # Iterates through the components
 
-        elasticity_tensorFunction = project(elasticity_tensor, 
-        output_object.W)
+        for i in range(9):
 
-        # Updates the pressure by evaluating it the field at a point
+            for j in range(9):
 
-        output_object.result.append([time, elasticity_tensorFunction(
-        Point(output_object.point_coordinates))])
+                # Gets the indices from the Voigt notation
+
+                indices = output_object.voigt_notation[(i,j)]
+
+                # Projects the component
+
+                elasticity_tensorFunction = project(elasticity_tensor[
+                indices[0], indices[1], indices[2], indices[3]], 
+                output_object.W)
+
+                # Stores the component
+
+                tensor_voigt[i][j] = elasticity_tensorFunction(Point(
+                output_object.point_coordinates))
+
+    # Updates the tensor as a list
+
+    output_object.result.append([time, tensor_voigt])
 
     # Saves the elasticity tensor at a point to a txt file
 
