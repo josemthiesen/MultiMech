@@ -755,9 +755,9 @@ tensor_name, fields_namesDict):
             output_object.required_fieldsNames[subdomain], 
             fields_namesDict)
 
-            # Gets the first elasticity tensor field
+            # Gets the elasticity tensor field
 
-            dP_dF = programming_tools.get_result(getattr(
+            dStress_dStrain = programming_tools.get_result(getattr(
             local_constitutiveModel, tensor_method)(
             retrieved_fields), tensor_name)
 
@@ -786,7 +786,7 @@ tensor_name, fields_namesDict):
                         # gration domain to the list of such pairs. Gets
                         # the trace divided by 3 to get the pressure
 
-                        integration_pairs.append([dP_dF, sub])
+                        integration_pairs.append([dStress_dStrain, sub])
 
             else:
 
@@ -806,7 +806,8 @@ tensor_name, fields_namesDict):
                     # tion domain to the list of such pairs. Gets the 
                     # trace divided by 3 to get the pressure
 
-                    integration_pairs.append([dP_dF, subdomain])
+                    integration_pairs.append([dStress_dStrain, 
+                    subdomain])
 
         # Iterates through the components
 
@@ -848,7 +849,8 @@ tensor_name, fields_namesDict):
 
         # Gets the elasticity tensor field
 
-        elasticity_tensor = programming_tools.get_result(getattr(
+        elasticity_tensor = programming_tools.get_result(
+        programming_tools.get_attribute(
         output_object.constitutive_model, tensor_method)(
         retrieved_fields), tensor_name)
 
