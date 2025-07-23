@@ -154,33 +154,30 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
-    parameters_sets = [test11, test12, test13, test21, test22, test23, 
-    test31, test32, test33]
+    # Sets a dictionary with names and parameters sets
 
-    # Sets a list of names for each set of parameters, which will yield
-    # different simulations
-
-    simulations_names = ["simulation_11", "simulation_12", "simulation"+
-    "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
-    "ion_31", "simulation_32", "simulation_33"]
+    parameters_sets = {"simulation_11": test11, "simulation_13": test13, 
+    "simulation_31": test31, "simulation_33": test33}
 
     # Saves the parameters set
 
     base_path = os.getcwd()+"//tests//micropolar//torsion_case//results"
 
-    file_tools.list_toTxt(parameters_sets, "parameters_sets", 
-    parent_path=base_path)
+    file_tools.list_toTxt(file_tools.named_list(parameters_sets), "par"+
+    "ameters_sets", parent_path=base_path)
 
     # Iterates through the simulations
 
-    for i in range(len(parameters_sets)):
+    counter = 0
+
+    for simulation_name, parameters_set in parameters_sets.items():
 
         # Makes a new mesh just for the first test and if a new mesh is
         # asked for
 
         flag_mesh = False
 
-        if flag_newMesh and i==0:
+        if flag_newMesh and counter==0:
 
             flag_mesh = True
 
@@ -188,21 +185,20 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         try:
 
-            beam_case_1(base_path, *parameters_sets[i][0:10], 
-            gamma_matrix=parameters_sets[i][10], gamma_fiber=
-            parameters_sets[i][11], RVE_width=parameters_sets[i][12], 
-            RVE_length=parameters_sets[i][13], fiber_radius=
-            parameters_sets[i][14], n_RVEsX=n_RVEsX, n_RVEsY=n_RVEsY, 
-            n_RVEsZ=n_RVEsZ, RVE_localizationX=RVE_localizationX, 
-            RVE_localizationY=RVE_localizationY, RVE_localizationZ=
-            RVE_localizationZ, flag_newMesh=flag_mesh, subfolder_name=
-            simulations_names[i])
+            beam_case_1(base_path, *parameters_set[0:10], gamma_matrix=
+            parameters_set[10], gamma_fiber=parameters_set[11], 
+            RVE_width=parameters_set[12], RVE_length=parameters_set[13], 
+            fiber_radius=parameters_set[14], n_RVEsX=n_RVEsX, n_RVEsY=
+            n_RVEsY, n_RVEsZ=n_RVEsZ, RVE_localizationX=
+            RVE_localizationX, RVE_localizationY=RVE_localizationY, 
+            RVE_localizationZ=RVE_localizationZ, flag_newMesh=flag_mesh, 
+            subfolder_name=simulation_name)
 
         # Shows the exception and keeps going
 
         except Exception as error_message:
 
-            print("\n\nSimulation did not converge")
+            print("\n\nSimulation "+simulation_name+" did not converge")
 
             print("Error Message:", str(error_message))
 
