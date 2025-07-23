@@ -355,14 +355,14 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
 
-            post_processes[-1][-1]["FirstElasticityTensorAtPoint"] = {
+            """post_processes[-1][-1]["FirstElasticityTensorAtPoint"] = {
             "directory path": results_pathText, "file name": 
             "first_elasticity_tensor_dP_dF", "polynomial degree": 1,
             "point coordinates": [RVE_length*(RVE_localizationX-0.5), 
             RVE_width*(RVE_localizationY-0.5), RVE_width*(
             RVE_localizationZ-0.5)], "flag plotting": True, "voigt not"+
             "ation": "conventional", "plotting arguments": {"scaling f"+
-            "unction additional parameters": {"alpha":5}}}
+            "unction additional parameters": {"alpha":5}}}"""
 
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes

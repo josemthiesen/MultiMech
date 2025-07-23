@@ -362,6 +362,18 @@ def string_toList(saved_string):
                             print("Could not convert", read_element, 
                             "to a number\n")
 
+                            if isinstance(read_element, str):
+
+                                if len(read_element)>1:
+
+                                    if read_element[0]=="'":
+
+                                        read_element = read_element[1:]
+
+                                    if read_element[-1]=="'":
+
+                                        read_element = read_element[0:-1]
+
                 # Appends the element to the list using the list of in-
                 # dexes
 
@@ -751,6 +763,20 @@ def txt_toList(file_name, parent_path=None):
     read_list = string_toList(saved_string)
 
     return read_list
+
+# Defines a function to read a txt file and convert it into a dictionary
+
+def txt_toDict(file_name, parent_path=None):
+
+    # Reads as a list first
+
+    read_list = txt_toList(file_name, parent_path=parent_path)
+
+    print(read_list)
+
+    # Converts to dictionary and returns it
+
+    return list_toDict(read_list)
 
 ########################################################################
 #                           Recursion tools                            #
