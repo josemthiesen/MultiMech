@@ -45,15 +45,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     base_path = os.getcwd()+"//tests//micropolar//torsion_case//results"
 
-    parameters_sets = file_tools.txt_toList(base_path+"//parameters_se"+
-    "ts")
-
-    # Sets a list of names for each set of parameters, which will yield
-    # different simulations
-
-    simulations_names = ["simulation_11", "simulation_12", "simulation"+
-    "_13", "simulation_21", "simulation_22", "simulation_23", "simulat"+
-    "ion_31", "simulation_32", "simulation_33"]
+    parameters_sets = file_tools.txt_toDict("parameters_sets", 
+    parent_path=base_path)
 
     # Defines a list of lists, each list is a set of material parameters:
     # 0.  Young modulus of the matrix
@@ -78,8 +71,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
         # Iterates through the simulations
 
-        for i in range(min([len(parameters_sets),len(simulations_names)]
-        )):
+        for simulation_name, parameters_set in parameters_sets.items():
 
             # Makes a new mesh just for the first test and if a new mesh 
             # is asked for
@@ -95,17 +87,17 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
             # Calls the simulation for bending 
 
             beam_case_1(multiscale_BCs[0], multiscale_BCs[1], base_path, 
-            *parameters_sets[i][0:10], gamma_matrix=parameters_sets[i][
-            10], gamma_fiber=parameters_sets[i][11], RVE_width=
-            parameters_sets[i][12], RVE_length=parameters_sets[i][13], 
-            fiber_radius=parameters_sets[i][14], flag_newMesh=flag_mesh, 
-            subfolder_name=[simulations_names[i], multiscale_BCs[0]+"_"+
-            multiscale_BCs[1]], fluctuation_field=fluctuation_field, 
-            transfinite_directions=transfinite_directions,
-            RVE_localizationX=parameters_sets[i][15], RVE_localizationY=
-            parameters_sets[i][16], RVE_localizationZ=parameters_sets[i
-            ][17], n_RVEsXMacro=parameters_sets[i][18], n_RVEsYMacro=
-            parameters_sets[i][19], n_RVEsZMacro=parameters_sets[i][20])
+            *parameters_set[0:10], gamma_matrix=parameters_set[10], 
+            gamma_fiber=parameters_set[11], RVE_width=parameters_set[12
+            ], RVE_length=parameters_set[13], fiber_radius=
+            parameters_set[14], flag_newMesh=flag_mesh, subfolder_name=[
+            simulation_name, multiscale_BCs[0]+"_"+multiscale_BCs[1]], 
+            fluctuation_field=fluctuation_field, transfinite_directions=
+            transfinite_directions, RVE_localizationX=parameters_set[15
+            ], RVE_localizationY=parameters_set[16], RVE_localizationZ=
+            parameters_set[17], n_RVEsXMacro=parameters_set[18], 
+            n_RVEsYMacro=parameters_set[19], n_RVEsZMacro=
+            parameters_set[20])
 
 # Defines a function to try different parameters
 
@@ -200,13 +192,13 @@ n_RVEsXMacro=1, n_RVEsYMacro=1, n_RVEsZMacro=1):
     if (displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and microrotation_multiscaleBC!="PeriodicFirstOrderBC"):
     
-        fields_names.extend(["displacement_lagrange_multiplier", "disp"+
+        fields_names.extend(["Displacement_lagrange_multiplier", "Disp"+
         "lacement_gradient_lagrange_multiplier"]) 
 
     if (microrotation_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and displacement_multiscaleBC!="PeriodicFirstOrderBC"):
     
-        fields_names.extend(["microrotation_lagrange_multiplier", "mic"+
+        fields_names.extend(["Microrotation_lagrange_multiplier", "Mic"+
         "rorotation_gradient_lagrange_multiplier"])
 
     # Iterates through the fields (displacement and microrotation)
@@ -423,4 +415,4 @@ n_RVEsXMacro=1, n_RVEsYMacro=1, n_RVEsZMacro=1):
     polynomial_degreeMicrorotation, verbose=verbose, fluctuation_field=
     fluctuation_field)
 
-case1_varyingMicropolarNumber(flag_newMesh=True)
+case1_varyingMicropolarNumber(flag_newMesh=False)
