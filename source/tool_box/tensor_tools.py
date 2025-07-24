@@ -32,15 +32,33 @@ def L2_normVector(vector):
 
 def skew_2OrderTensor(axial_vector):
    
-   # Evaluates the permutation third order tensor
-   
-   perm = ufl.PermutationSymbol(3)
+    # Evaluates the permutation third order tensor
+    
+    perm = ufl.PermutationSymbol(3)
 
-   # Constructs the skew second order tensor W
-   
-   W = ufl.as_tensor(perm[j,i,k]*axial_vector[k], (i,j))
+    # Constructs the skew second order tensor W
+    
+    W = ufl.as_tensor(perm[j,i,k]*axial_vector[k], (i,j))
 
-   return W
+    return W
+
+# Defines a function to get the tensor product of the axial vector of a
+# tensor with the position vector
+
+def tensor_productAxialByPosition(original_tensor, position_vector):
+   
+    # Evaluates the permutation third order tensor
+    
+    perm = ufl.PermutationSymbol(3)
+
+    # Gets the axial vector
+
+    axial_vector = ufl.as_vector(0.5*perm[j,i,k]*(original_tensor[j,k]+
+    original_tensor[k,j]), (i))
+
+    # Gets the tensor product
+
+    return ufl.as_tensor(axial_vector[i]*position_vector[j], (i,j))
 
 ########################################################################
 #                               Rotation                               #

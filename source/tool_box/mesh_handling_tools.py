@@ -574,11 +574,22 @@ domain_physicalGroupsNameToTag=None):
     print("The submesh has the following physical groups:\n"+
     physical_groupsList)
 
+    # Creates a position vector field for the submesh
+
+    V_positionVector = VectorFunctionSpace(sub_mesh, "CG", 1)
+
+    x_submesh = Function(V_positionVector)
+
+    # Assign the mesh coordinates to the function
+
+    x_submesh.interpolate(Expression(("x[0]", "x[1]", "x[2]"), degree=1, 
+    element=V_positionVector.ufl_element()))
+
     # Returns the submesh, the updated cell markers, and the DOF mappings
 
     return (sub_mesh, submesh_meshFunction, submesh_functionSpace, 
     sub_meshMapping, parent_meshMapping, submesh_function, 
-    sub_toParentCellMap, dx_submesh)
+    sub_toParentCellMap, dx_submesh, x_submesh)
 
 # Defines a function to update the field parameters vector of a submesh 
 # given the corresponding vector at the parent mesh

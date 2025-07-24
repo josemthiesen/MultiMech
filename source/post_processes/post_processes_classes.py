@@ -15,7 +15,7 @@ class PostProcessContext:
 
     # Sets the common information provided to the class by the system
 
-    def __init__(self, mesh, constitutive_model, dx, 
+    def __init__(self, mesh, constitutive_model, dx, position_vector,
     domain_physGroupsNamesToTags, ds, boundary_physGroupsNamesToTags,
     referential_normal):
 
@@ -24,6 +24,8 @@ class PostProcessContext:
         self.constitutive_model = constitutive_model
         
         self.dx = dx
+
+        self.position_vector = position_vector
         
         self.domain_physGroupsNamesToTags = domain_physGroupsNamesToTags
 
@@ -259,7 +261,8 @@ class HomogenizeCoupleFirstPiola(PostProcessMethod):
         post_functions.update_coupleFirstPiolaHomogenization, ["direct"+
         "ory path", "file name", "subdomain"], [context.dx, 
         context.physical_groupsList, 
-        context.domain_physGroupsNamesToTags, context.constitutive_model])
+        context.domain_physGroupsNamesToTags, context.constitutive_model,
+        context.position_vector])
 
 # Sets a class for the method to homogenize the Cauchy stress tensor
 

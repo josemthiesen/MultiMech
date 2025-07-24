@@ -4,19 +4,11 @@ import os
 
 import sys
 
-import numpy as np
-
-from dolfin import *
-
-from mshr import *
-
 import source.constitutive_models.hyperelasticity.micropolar_hyperelasticity as micropolar_constitutiveModels
 
 import source.multiscale.multiscale_micropolar as variational_framework
 
 import source.tool_box.file_handling_tools as file_tools
-
-from source.tool_box.file_handling_tools import float_toString
 
 sys.path.insert(1, '/home/matheus-janczkowski/Github')
 
@@ -29,6 +21,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     # Sets the mesh refinement
 
     transfinite_directions = [12, 12, 6, 6, 6]
+
+    bias_directions = {"cylinder radial": 1.3, "box radial": 1.1}
 
     # Sets the multiscale boundary conditions for each one of the fields
 
@@ -95,7 +89,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
             fluctuation_field=fluctuation_field, transfinite_directions=
             transfinite_directions, RVE_localizationX=parameters_set[15
             ], RVE_localizationY=parameters_set[16], RVE_localizationZ=
-            parameters_set[17])
+            parameters_set[17], bias_directions=bias_directions)
 
 # Defines a function to try different parameters
 
@@ -106,7 +100,8 @@ characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0,
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=1, RVE_localizationX=1, RVE_localizationY=
 1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name=["simulation"],
-fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
+fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3], 
+bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
 
     ####################################################################
     ####################################################################
@@ -132,55 +127,58 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     if fluctuation_field:
 
-        saving_fileNames = ["displacement_microscale_fluctuation.xdmf", "microrotation"+
-        "_microscale_fluctuation.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
-        "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
-        "ation.xdmf"]
+        saving_fileNames = ["displacement_microscale_fluctuation.xdmf", 
+        "microrotation_microscale_fluctuation.xdmf", "lambda_displacem"+
+        "ent.xdmf", "lambda_grad_displacement.xdmf", "lambda_microrota"+
+        "tion.xdmf", "lambda_grad_microrotation.xdmf"]
 
-        homogenized_displacementFileName = ["homogenized_displacement_micr"+
-        "oscale_fluctuation.txt", "homogenized_microrotation_microscale.txt"]
+        homogenized_displacementFileName = ["homogenized_displacement_"+
+        "microscale_fluctuation.txt", "homogenized_microrotation_micro"+
+        "scale.txt"]
 
-        homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
-        "gradient_microscale_fluctuation.txt", "homogenized_microrotation_grad_microsc"+
-        "ale.txt"]
+        homogenized_gradDisplacementFileName = ["homogenized_displacem"+
+        "ent_gradient_microscale_fluctuation.txt", "homogenized_micror"+
+        "otation_grad_microscale.txt"]
 
-        homogenized_piolaFileName = ["homogenized_first_piola_microscale_fluctuation.t"+
-        "xt", "homogenized_couple_first_piola_microscale.txt"]
+        homogenized_piolaFileName = ["homogenized_first_piola_microsca"+
+        "le_fluctuation.txt", "homogenized_couple_first_piola_microsca"+
+        "le.txt"]
 
-        homogenized_cauchyFileName = ["homogenized_cauchy_microscale_fluctuation.t"+
-        "xt", "homogenized_couple_cauchy_microscale.txt"]
+        homogenized_cauchyFileName = ["homogenized_cauchy_microscale_f"+
+        "luctuation.txt", "homogenized_couple_cauchy_microscale.txt"]
 
     else:
 
-        saving_fileNames = ["displacement_microscale.xdmf", "microrotation"+
-        "_microscale.xdmf", "lambda_displacement.xdmf", "lambda_grad_displ"+
-        "acement.xdmf", "lambda_microrotation.xdmf", "lambda_grad_microrot"+
-        "ation.xdmf"]
+        saving_fileNames = ["displacement_microscale.xdmf", "microrota"+
+        "tion_microscale.xdmf", "lambda_displacement.xdmf", "lambda_gr"+
+        "ad_displacement.xdmf", "lambda_microrotation.xdmf", "lambda_g"+
+        "rad_microrotation.xdmf"]
 
-        homogenized_displacementFileName = ["homogenized_displacement_micr"+
-        "oscale.txt", "homogenized_microrotation_microscale.txt"]
+        homogenized_displacementFileName = ["homogenized_displacement_"+
+        "microscale.txt", "homogenized_microrotation_microscale.txt"]
 
-        homogenized_gradDisplacementFileName = ["homogenized_displacement_"+
-        "gradient_microscale.txt", "homogenized_microrotation_grad_microsc"+
-        "ale.txt"]
+        homogenized_gradDisplacementFileName = ["homogenized_displacem"+
+        "ent_gradient_microscale.txt", "homogenized_microrotation_grad"+
+        "_microscale.txt"]
 
-        homogenized_piolaFileName = ["homogenized_first_piola_microscale.t"+
-        "xt", "homogenized_couple_first_piola_microscale.txt"]
+        homogenized_piolaFileName = ["homogenized_first_piola_microsca"+
+        "le.txt", "homogenized_couple_first_piola_microscale.txt"]
 
         homogenized_cauchyFileName = ["homogenized_cauchy_microscale.t"+
         "xt", "homogenized_couple_cauchy_microscale.txt"]
 
     if fluctuation_field:
 
-        stress_fieldFileName = ["cauchy_stress_microscale_fluctuation.xdmf", "couple_c"+
-        "auchy_stress_microscale_fluctuation.xdmf", "first_piola_stress_microscale.xdmf",
-        "couple_first_piola_stress_microscale.xdmf"]
+        stress_fieldFileName = ["cauchy_stress_microscale_fluctuation."+
+        "xdmf", "couple_cauchy_stress_microscale_fluctuation.xdmf", "f"+
+        "irst_piola_stress_microscale.xdmf", "couple_first_piola_stres"+
+        "s_microscale.xdmf"]
 
     else:
 
-        stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "couple_c"+
-        "auchy_stress_microscale.xdmf", "first_piola_stress_microscale.xdmf",
-        "couple_first_piola_stress_microscale.xdmf"]
+        stress_fieldFileName = ["cauchy_stress_microscale.xdmf", "coup"+
+        "le_cauchy_stress_microscale.xdmf", "first_piola_stress_micros"+
+        "cale.xdmf", "couple_first_piola_stress_microscale.xdmf"]
 
     post_processes = []
 
@@ -236,6 +234,14 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
             post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
             "directory path": results_pathGraphics, "file name": 
             stress_fieldFileName[1], "polynomial degree": 1}
+
+            post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
+            "rectory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[2], "polynomial degree": 1}
+
+            post_processes[-1][-1]["SaveCoupleFirstPiolaStressField"] = {
+            "directory path": results_pathGraphics, "file name": 
+            stress_fieldFileName[3], "polynomial degree": 1}
 
             post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
             "ry path": results_pathText, "file name": 
@@ -321,7 +327,7 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
 
     file_directory = os.getcwd()+"//tests//test_meshes"
 
-    mesh_fileName = "micropolar_beam_with_fibers_microscale"
+    mesh_fileName = "micropolar_beam_with_fibers_microscale_bending"
 
     if flag_newMesh:
 
@@ -330,7 +336,8 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
         RVE_localizationZ, mesh_fileName=mesh_fileName, file_directory=
         file_directory, transfinite_directions=transfinite_directions,
         translation=[RVE_length*(RVE_localizationX-1), RVE_width*(
-        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)])
+        RVE_localizationY-1), RVE_width*(RVE_localizationZ-1)], 
+        bias_directions=bias_directions)
 
     ####################################################################
     #                          Function space                          #
@@ -410,4 +417,4 @@ fluctuation_field=False, transfinite_directions=[6, 6, 3, 4, 3]):
     polynomial_degreeMicrorotation, verbose=verbose, fluctuation_field=
     fluctuation_field)
 
-case1_varyingMicropolarNumber(flag_newMesh=True)
+case1_varyingMicropolarNumber(flag_newMesh=False)

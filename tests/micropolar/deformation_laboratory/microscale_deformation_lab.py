@@ -526,7 +526,8 @@ bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
 
     file_directory = os.getcwd()+"//tests//test_meshes"
 
-    mesh_fileName = "micropolar_beam_with_fibers_microscale"
+    mesh_fileName = ("micropolar_beam_with_fibers_microscale_deformati"+
+    "on_lab")
 
     if flag_newMesh:
 

@@ -1065,9 +1065,130 @@ time, fields_namesDict):
 
 def initialize_coupleFirstPiolaHomogenization(data, direct_codeData, 
 submesh_flag):
+
+    # Gets the directory and the name of the file
+
+    parent_path = data[0]
+
+    file_name = data[1]
+
+    # Gets the subdomain to integrate
+
+    subdomain = data[2]
+
+    # Gets the integration measure
+
+    dx = direct_codeData[0]
+
+    physical_groupsList = direct_codeData[1] 
     
-    return initialize_firstPiolaHomogenization(data, direct_codeData, 
-    submesh_flag)
+    physical_groupsNamesToTags = direct_codeData[2]
+
+    constitutive_model = direct_codeData[3]
+
+    position_vector = direct_codeData[4]
+
+    # Evaluates the volume of the domain
+
+    volume = 0.0
+
+    # If the solution comes from a submesh, there can be no domain
+
+    if submesh_flag:
+
+        if (isinstance(subdomain, int) or isinstance(subdomain, tuple)
+        or isinstance(subdomain, list)):
+            
+            raise ValueError("This solution comes from a submesh and t"+
+            "he subdomain "+str(subdomain)+" is solicited. Subdomains "+
+            "cannot be used in fields from submeshes, for theses meshe"+
+            "s do not have physical groups.")
+
+    # If a physical group of the mesh is given or a tuple of physical 
+    # groups
+
+    if isinstance(subdomain, list):
+
+        subdomain = tuple(subdomain)
+
+    if isinstance(subdomain, int):
+
+        volume = assemble(1*dx(subdomain))
+
+    elif isinstance(subdomain, tuple):
+
+        for sub in subdomain:
+
+            if isinstance(sub, str):
+
+                volume += assemble(1*dx(variational_tools.verify_physicalGroups(
+                sub, physical_groupsList, physical_groupsNamesToTags=
+                physical_groupsNamesToTags)))
+
+            else:
+
+                volume += assemble(1*dx(sub))
+
+    # Otherwise, integrates over the whole domain to get the volume
+
+    elif isinstance(subdomain, str):
+
+        if len(subdomain)==0:
+
+            volume = assemble(1*dx)
+
+        else:
+
+            volume = assemble(1*dx(variational_tools.verify_physicalGroups(
+            subdomain, physical_groupsList, physical_groupsNamesToTags=
+            physical_groupsNamesToTags)))
+
+    # Initializes the homogenized field list
+
+    homogenized_firstPiolaList = []
+
+    # Gets the name of the file with the path to it
+
+    file_name = file_tools.verify_path(parent_path, file_name)
+
+    # Assembles the output. This post-process does not have a variable
+    # that can be shared with a submesh
+
+    class OutputObject:
+
+        def __init__(self, homogenized_firstPiolaList, inverse_volume, dx, 
+        subdomain, file_name, constitutive_model, physical_groupsList,
+        physical_groupsNamesToTags, position_vector):
+            
+            self.result = homogenized_firstPiolaList
+
+            self.inverse_volume = inverse_volume
+
+            self.dx = dx 
+
+            self.position_vector = position_vector
+
+            self.subdomain = subdomain 
+
+            self.file_name = file_name
+
+            self.constitutive_model = constitutive_model
+
+            self.physical_groupsList = physical_groupsList
+    
+            self.physical_groupsNamesToTags = physical_groupsNamesToTags
+
+            # Gets the names of the fields that are actually necessary
+            # to the evaluation of stress
+
+            self.required_fieldsNames = constitutive_tools.get_constitutiveModelFields(
+            self.constitutive_model)
+
+    output_object = OutputObject(homogenized_firstPiolaList, (1.0/volume
+    ), dx, subdomain, file_name, constitutive_model, physical_groupsList,
+    physical_groupsNamesToTags, position_vector)
+
+    return output_object
 
 # Defines a function to update the homogenization of the couple first 
 # Piola-Kirchhof
@@ -1078,11 +1199,19 @@ field_number, time, fields_namesDict):
     print("Updates the homogenization of the couple first Piola-Kirchh"+
     "off stress field\n")
 
-    output_object.result = homogenization_tools.homogenize_stressTensor(
+    """output_object.result = homogenization_tools.homogenize_stressTensor(
     field, output_object.constitutive_model, "couple_first_piola_kirch"+
     "hoff", "first_piolaStress", output_object.result, time, 
     output_object.inverse_volume, output_object.dx, 
     output_object.subdomain,output_object.file_name, 
+    output_object.physical_groupsList, 
+    output_object.physical_groupsNamesToTags, fields_namesDict, 
+    output_object.required_fieldsNames)"""
+
+    output_object.result = homogenization_tools.homogenize_coupleFirstPiola(
+    field, output_object.constitutive_model, output_object.result, time, 
+    output_object.position_vector, output_object.inverse_volume, 
+    output_object.dx, output_object.subdomain, output_object.file_name, 
     output_object.physical_groupsList, 
     output_object.physical_groupsNamesToTags, fields_namesDict, 
     output_object.required_fieldsNames)
