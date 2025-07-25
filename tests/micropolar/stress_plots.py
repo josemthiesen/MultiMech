@@ -24,6 +24,11 @@ def plot_stress():
 
     homogenized_files = []
 
+    # Defines a list of simulations to be considered
+
+    simulations = ["simulation_11", "simulation_13", "simulation_31", 
+    "simulation_33"]
+
     # Defines a list of the stress files to be considered, and the com-
     # ponents of the deformation gradient, and a list of components of
     # stress
@@ -52,32 +57,28 @@ def plot_stress():
 
     base_pathTorsion = base_path+"//torsion_case//results//text"
 
-    for i in range(3):
+    for simulation in simulations:
 
-        for j in range(3):
+        for file_name in files_list:
 
-            for file_name in files_list:
+            micro_files = []
 
-                micro_files = []
+            if isinstance(file_name[2], list):
 
-                if isinstance(file_name[2], list):
+                for micro_file in file_name[2]:
 
-                    for micro_file in file_name[2]:
+                    micro_files.append(base_pathTorsion+"//"+simulation+
+                    "//"+micro_file)
 
-                        micro_files.append(base_pathTorsion+"//simulat"+
-                        "ion_"+str(i+1)+str(j+1)+"//"+micro_file)
+            else:
 
-                else:
+                micro_files = (base_pathTorsion+"//"+simulation+"//"+
+                file_name[2])
 
-                    micro_files = base_pathTorsion+"//simulation_"+str(i
-                    +1)+str(j+1)+"//"+file_name[2]
-
-                homogenized_files.append([base_pathTorsion+"//simulati"+
-                "on_"+str(i+1)+str(j+1)+"//"+file_name[0], 
-                base_pathTorsion+"//simulation_"+str(i+1)+str(j+1)+"//"+
-                file_name[1], micro_files, base_pathTorsion+"//simulat"+
-                "ion_"+str(i+1)+str(j+1)+"//"+file_name[3], *file_name[4
-                :len(file_name)]])
+            homogenized_files.append([base_pathTorsion+"//"+simulation+
+            "//"+file_name[0], base_pathTorsion+"//"+simulation+"//"+
+            file_name[1], micro_files, base_pathTorsion+"//"+simulation+
+            "//"+file_name[3], *file_name[4:len(file_name)]])
 
     # Defines a list of the stress files to be considered, and the com-
     # ponents of the deformation gradient, and a list of components of
@@ -107,32 +108,28 @@ def plot_stress():
 
     base_pathBending = base_path+"//bending_case//results//text"
 
-    for i in range(3):
+    for simulation in simulations:
 
-        for j in range(3):
+        for file_name in files_list:
 
-            for file_name in files_list:
+            micro_files = []
 
-                micro_files = []
+            if isinstance(file_name[2], list):
 
-                if isinstance(file_name[2], list):
+                for micro_file in file_name[2]:
 
-                    for micro_file in file_name[2]:
+                    micro_files.append(base_pathBending+"//"+simulation+
+                    "//"+micro_file)
 
-                        micro_files.append(base_pathBending+"//simulat"+
-                        "ion_"+str(i+1)+str(j+1)+"//"+micro_file)
+            else:
 
-                else:
+                micro_files = (base_pathBending+"//"+simulation+"//"+
+                file_name[2])
 
-                    micro_files = base_pathBending+"//simulation_"+str(i
-                    +1)+str(j+1)+"//"+file_name[2]
-
-                homogenized_files.append([base_pathBending+"//simulati"+
-                "on_"+str(i+1)+str(j+1)+"//"+file_name[0], 
-                base_pathBending+"//simulation_"+str(i+1)+str(j+1)+"//"+
-                file_name[1], micro_files, base_pathBending+"//simulat"+
-                "ion_"+str(i+1)+str(j+1)+"//"+file_name[3], *file_name[4
-                :len(file_name)]])
+            homogenized_files.append([base_pathBending+"//"+simulation+
+            "//"+file_name[0], base_pathBending+"//"+simulation+"//"+
+            file_name[1], micro_files, base_pathBending+"//"+simulation+
+            "//"+file_name[3], *file_name[4:len(file_name)]])
 
     # Reads the files
 
