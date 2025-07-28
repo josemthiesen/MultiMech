@@ -4,7 +4,162 @@ import functools
 
 import inspect
 
+import os
+
+import subprocess
+
 from collections import OrderedDict
+
+########################################################################
+#               Handler and executioner of other scripts               #
+########################################################################
+
+# Defines a function to run a script as if you would run it yourself in
+# a terminal. This helper function is useful to run files that require
+# special python interpreters
+
+def script_executioner(file_name, python_interpreter="python3",
+function_name=None, arguments_list=None, keyword_argumentsDict=None,
+parent_path=None, execution_rootPath=None, verbose=True):
+    
+    # Verifies the existence of the parent path
+
+    if not (parent_path is None):
+
+        if not os.path.exists(parent_path):
+
+            raise FileNotFoundError("The parent path '"+str(parent_path
+            )+"' was not found, and, thus, cannot be used to run the s"+
+            "cript '"+str(file_name)+"'")
+        
+        elif not os.path.exists(parent_path+"//"+file_name):
+
+            raise FileNotFoundError("The file at '"+str(parent_path)+
+            "' by the name '"+str(file_name)+"' was not found, and, th"+
+            "us, cannot be run externally")
+    
+        # Gets the path together
+
+        file_name = os.path.join(parent_path, file_name)
+        
+    else:
+
+        # Verifies the existence of the file
+        
+        if not os.path.exists(file_name):
+
+            raise FileNotFoundError("The file at '"+str(file_name)+
+            "' was not found, and, thus, cannot be run externally")
+        
+    # Verifies if the file name has the termination .py
+
+    if len(file_name)>2:
+
+        if file_name[-3:len(file_name)]!=".py":
+
+            raise NameError("The file name '"+str(file_name)+"' does n"+
+            "ot end with '.py', thus, cannot be run externally")
+        
+    else:
+
+        raise NameError("The file name '"+str(file_name)+"' does not h"+
+        "ave at least 3 characters. Hence, it is not possibly a runnab"+
+        "le file")
+        
+    # Gets the arguments of the execution
+
+    exe_arguments = [python_interpreter, file_name]
+
+    # Verifies if a specific function must be run
+
+    if not (function_name is None):
+
+        # Checks if the function name is a string
+
+        if not isinstance(function_name, str):
+
+            raise TypeError("The function "+str(function_name)+" is no"+
+            "t a string. To execute functions externally in script_exe"+
+            "cutioner, the function_name argument must be a string")
+
+        exe_arguments.append(function_name)
+
+    # Verifies if positional arguments were given
+
+    if not (arguments_list is None):
+
+        if not isinstance(arguments_list, list):
+
+            raise TypeError("'arguments_list' must be a list, to pass "+
+            "it to the function '"+str(function_name)+"' and run it ex"+
+            "ternally")
+
+        exe_arguments.extend(arguments_list)
+
+    # Verifies if keyword arguments were given
+
+    if not (keyword_argumentsDict is None):
+
+        if not isinstance(keyword_argumentsDict, dict):
+
+            raise TypeError("'keyword_argumentsDict' must be a diction"+
+            "ary, the keys are the names of the keyword arguments and "+
+            "the values are the keyword arguments' values")
+        
+        for key, value in keyword_argumentsDict.items():
+
+            # Disregards None values, because they might be non-desired
+            # keyword arguments in the first place that were automati-
+            # cally put in
+
+            if not (value is None):
+
+                # Transforms the key-value pair into a string
+
+                exe_arguments.append(f"--{key}")
+
+                exe_arguments.append(str(value))
+
+    print(exe_arguments, "\n")
+
+    # If the root path is passed 
+
+    if not (execution_rootPath is None):
+
+        env = os.environ.copy()
+
+        env["PYTHONPATH"] = execution_rootPath+(":"+env.get("PYTHONPAT"+
+        "H", ""))
+    
+        # Executes the file
+
+        execution = subprocess.run(exe_arguments, capture_output=True,
+        text=True, env=env)
+
+    else:
+    
+        # Executes the file
+
+        execution = subprocess.run(exe_arguments, capture_output=True, 
+        text=True)
+
+    # Verifies if there was an error 
+
+    if verbose:
+
+        if execution.returncode!=0:
+
+            print("An error ocurred running "+str(python_interpreter)+
+            " scrip at "+str(file_name)+":\n")
+
+            print(execution.stderr)
+
+        else:
+
+            print("The script at "+str(file_name)+" was successfully r"+
+            "un externally\n")
+
+            print(execution.stdout)
 
 ########################################################################
 #                         Memory-handling tools                        #

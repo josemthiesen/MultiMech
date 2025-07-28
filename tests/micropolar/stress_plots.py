@@ -29,19 +29,27 @@ def plot_stress():
     simulations = ["simulation_11", "simulation_13", "simulation_31", 
     "simulation_33"]
 
-    # Defines a list of the stress files to be considered, and the com-
-    # ponents of the deformation gradient, and a list of components of
-    # stress
+    # Defines a list of lists to each plot to be made. Each sublist con-
+    # tains respectively: the name of the stress file for the macroscale,
+    # the name of the file for the macroscale displacement gradient, the
+    # name of the file for the microscale stress, name of the plot file,
+    # component of the deformation gradient to be used as x axis, compo-
+    # nents of the stress tensor to be plotted, the labels of the curves
 
     files_list = [["homogenized_first_piola", "homogenized_displacemen"+
     "t_gradient", "MinimallyConstrainedFirstOrderBC_MinimallyConstrain"+
     "edFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
     "homogenized_first_piola_minimally_constrained_BC.pdf", "3,2", ["1"+
-    ",2", "1,3", "2,1", "3,1"]], ["homogenized_first_piola", "homogeni"+
-    "zed_displacement_gradient", "LinearFirstOrderBC_LinearFirstOrderB"+
-    "C//homogenized_first_piola_microscale_fluctuation", "homogenized_"+
-    "first_piola_linear_BC.pdf", "3,2", ["1,2", "1,3", "2,1", "3,1"]], [
-    "homogenized_first_piola", "homogenized_displacement_gradient", "P"+
+    ",2", "1,3", "2,1", "3,1"]], ["homogenized_couple_first_piola", "h"+
+    "omogenized_displacement_gradient", "MinimallyConstrainedFirstOrde"+
+    "rBC_MinimallyConstrainedFirstOrderBC//homogenized_couple_first_pi"+
+    "ola_microscale", "homogenized_couple_first_piola_minimally_constr"+
+    "ained_BC.pdf", "3,2", ["1,2", "1,3", "2,1", "3,1"]], [
+    "homogenized_first_piola", "homogenized_displacement_gradient", "L"+
+    "inearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mic"+
+    "roscale_fluctuation", "homogenized_first_piola_linear_BC.pdf", "3"+
+    ",2", ["1,2", "1,3", "2,1", "3,1"]], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", "P"+
     "eriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_first_piola"+
     "_microscale_fluctuation", "homogenized_first_piola_periodic_BC.pd"+
     "f", "3,2", ["1,2", "1,3", "2,1", "3,1"]], ["homogenized_first_pio"+
@@ -80,15 +88,23 @@ def plot_stress():
             file_name[1], micro_files, base_pathTorsion+"//"+simulation+
             "//"+file_name[3], *file_name[4:len(file_name)]])
 
-    # Defines a list of the stress files to be considered, and the com-
-    # ponents of the deformation gradient, and a list of components of
-    # stress
+    # Defines a list of lists to each plot to be made. Each sublist con-
+    # tains respectively: the name of the stress file for the macroscale,
+    # the name of the file for the macroscale displacement gradient, the
+    # name of the file for the microscale stress, name of the plot file,
+    # component of the deformation gradient to be used as x axis, compo-
+    # nents of the stress tensor to be plotted, the labels of the curves
 
     files_list = [["homogenized_first_piola", "homogenized_displacemen"+
     "t_gradient", "MinimallyConstrainedFirstOrderBC_MinimallyConstrain"+
     "edFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
     "homogenized_first_piola_minimally_constrained_BC.pdf", "3,3", ["2"+
-    ",2", "2,3", "3,2", "3,3"]], ["homogenized_first_piola", "homogeni"+
+    ",2", "2,3", "3,2", "3,3"]], ["homogenized_couple_first_piola", "h"+
+    "omogenized_displacement_gradient", "MinimallyConstrainedFirstOrde"+
+    "rBC_MinimallyConstrainedFirstOrderBC//homogenized_couple_first_pi"+
+    "ola_microscale", "homogenized_couple_first_piola_minimally_constr"+
+    "ained_BC.pdf", "3,3", ["1,1", "1,2", "1,3", "2,3"]], 
+    ["homogenized_first_piola", "homogeni"+
     "zed_displacement_gradient", "LinearFirstOrderBC_LinearFirstOrderB"+
     "C//homogenized_first_piola_microscale_fluctuation", "homogenized_"+
     "first_piola_linear_BC.pdf", "3,3", ["2,2", "2,3", "3,2", "3,3"]], [
