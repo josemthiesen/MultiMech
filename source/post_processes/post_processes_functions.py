@@ -35,6 +35,13 @@ def initialize_fieldSaving(data, direct_codeData, submesh_flag):
 
     file_name = data[1]
 
+    intermediate_saving = data[2]
+
+    # Takes out the termination of the file name
+
+    file_name = file_tools.take_outFileNameTermination(
+    file_name)
+
     # Gets the name of the file with the path to it
 
     file_name = file_tools.verify_path(parent_path, file_name)
@@ -44,15 +51,33 @@ def initialize_fieldSaving(data, direct_codeData, submesh_flag):
 
     class OutputObject:
 
-        def __init__(self, file):
+        def __init__(self, file_name):
+
+            # Defines a flag for intermediate saving to allow visualiza-
+            # tion during solution
+
+            self.intermediate_saving = intermediate_saving 
+
+            # Sets a counter of solution steps
+
+            self.solution_steps = 0
+
+            # Creates the file to have all the time steps
             
-            self.result = file
+            self.result = XDMFFile(file_name+".xdmf")
 
-    # Initializes the file
+            # Sets the result. It can be either a single file or a set 
+            # of files when the solution is to be independently saved
 
-    file = XDMFFile(file_name)
+            if self.intermediate_saving:
 
-    output_object = OutputObject(file)
+                # Saves the base name
+
+                self.base_fileName = file_name
+
+    # Initializes the output object
+
+    output_object = OutputObject(file_name)
 
     return output_object
 
@@ -63,25 +88,71 @@ fields_namesDict):
     
     print("Updates the saving of the "+str(field_number)+" field\n")
 
-    # If the problem has a single field
+    # Verifies if each load step must be saved in a separate file to al-
+    # low visualization during simulation
 
-    if field_number==-1:
+    if output_object.intermediate_saving:
 
-        # Writes the field to the file
+        # Updates the counter of solution steps
 
-        output_object.result.write(field, time)
+        output_object.solution_steps += 1
+
+        # Adds a new file to this time step
+
+        file_name = output_object.base_fileName+"_"+str(
+        output_object.solution_steps)+".xdmf"
+
+        current_result = XDMFFile(file_name)
+
+        # If the problem has a single field
+
+        if field_number==-1:
+
+            # Writes the field to the main file
+
+            output_object.result.write(field, time)
+
+            # Writes the field to the extra file
+
+            current_result.write(field, time)
+        
+        # If the problem has multiple fields
+
+        else:
+
+            # Writes the field to the file
+
+            output_object.result.write(field[field_number], time)
+
+            # Writes the field to the extra file
+
+            current_result.write(field[field_number], time)
+
+        # Returns the output class
 
         return output_object
-    
-    # If the problem has multiple fields
 
     else:
 
-        # Writes the field to the file
+        # If the problem has a single field
 
-        output_object.result.write(field[field_number], time)
+        if field_number==-1:
 
-        return output_object
+            # Writes the field to the file
+
+            output_object.result.write(field, time)
+
+            return output_object
+        
+        # If the problem has multiple fields
+
+        else:
+
+            # Writes the field to the file
+
+            output_object.result.write(field[field_number], time)
+
+            return output_object
 
 ########################################################################
 #                          Cauchy stress field                         #

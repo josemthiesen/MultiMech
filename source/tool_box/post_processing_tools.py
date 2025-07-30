@@ -37,6 +37,18 @@ def post_processingSelectionSingleField(post_processes, context_class):
 
         for i in range(len(available_processes[process_name
         ].additional_information)):
+            
+            # Gets the name of this additional information
+
+            additional_infoName = available_processes[process_name
+            ].additional_information[i]
+
+            # If it is a list, i.e. there's a default value, takes the 
+            # name only
+
+            if isinstance(additional_infoName, list):
+
+                additional_infoName = additional_infoName[0]
 
             # Initializes a flag to inform if this information exists in
             # the given information
@@ -47,8 +59,7 @@ def post_processingSelectionSingleField(post_processes, context_class):
 
             for additional_info, info in additional_informationDict.items():
 
-                if available_processes[process_name
-                ].additional_information[i]==additional_info:
+                if additional_infoName==additional_info:
 
                     # Updates the existence flag and substitute the 
                     # method data for the actual data
@@ -69,10 +80,32 @@ def post_processingSelectionSingleField(post_processes, context_class):
 
             if not info_existence:
 
-                raise NameError("The additional information '"+str(
-                available_processes[process_name
-                ].additional_information[i])+"' has not been found for"+
-                " the "+str(process_name)+" process.")
+                if isinstance(available_processes[process_name
+                ].additional_information[i], list):
+                    
+                    # Gets the default value
+
+                    if len(available_processes[process_name
+                    ].additional_information[i])<2:
+                        
+                        raise IndexError("The additional information '"+
+                        str(additional_infoName)+"' is supposed to hav"+
+                        "e a default value, but it was not provided in"+
+                        " the class of the process '"+str(process_name)+
+                        "'")
+                    
+                    else:
+
+                        available_processes[process_name
+                        ].additional_information[i] = copy.deepcopy(
+                        available_processes[process_name
+                        ].additional_information[i][1])
+
+                else:
+
+                    raise NameError("The additional information '"+str(
+                    additional_infoName)+"' has not been found for the"+
+                    " "+str(process_name)+" process.")
             
         # Verifies if any keys have been left out in the original dic-
         # tionary of additional information

@@ -684,6 +684,30 @@ def verify_path(parent_path, file_name):
 
     return parent_path+"//"+file_name
 
+# Defines a function to take out the termination file name of a string
+
+def take_outFileNameTermination(file_name):
+
+    # Initializes the new name
+
+    clean_fileName = ""
+
+    # Iterates through the file name
+
+    for character in file_name:
+
+        if character=="." or character=='.':
+
+            break 
+
+        else:
+
+            clean_fileName += character
+
+    # Returns the file name without the termination
+
+    return clean_fileName
+
 ########################################################################
 #                              txt files                               #
 ########################################################################

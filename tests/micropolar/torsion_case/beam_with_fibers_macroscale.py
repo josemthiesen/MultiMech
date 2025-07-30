@@ -213,11 +213,66 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*0
+    
+    characteristic_lengthFiber = fiber_radius*0
+
+    test42 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*0.5
+    
+    characteristic_lengthFiber = fiber_radius*0.5
+
+    test43 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*2.5
+    
+    characteristic_lengthFiber = fiber_radius*2.5
+
+    test44 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*1.8
+    
+    characteristic_lengthFiber = fiber_radius*1.8
+
+    test45 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
 
     # Sets a dictionary with names and parameters sets
 
-    parameters_sets = {"simulation_31": test31, "simulation_33": test33,
-    "simulation_41": test41}
+    parameters_sets = {"simulation_45": test45}
 
     # Saves the parameters set
 

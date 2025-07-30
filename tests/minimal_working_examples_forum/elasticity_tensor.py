@@ -6,7 +6,7 @@ import numpy as np
 import os
 
 L, H, W = 1.0, 0.2, 0.3
-mesh = BoxMesh(Point(0,0,0), Point(W,H,L), 10,10,10)
+mesh = BoxMesh(Point(0,0,0), Point(W,H,L), 5,5,5)
 
 lower_facet = CompiledSubDomain("near(x[1], 0)")
 left_facet = CompiledSubDomain("near(x[2], 0)")
@@ -110,6 +110,9 @@ Res = NonlinearVariationalProblem(residual_form, u_solution, bc, J=residual_deri
 solver = NonlinearVariationalSolver(Res)
 solver.solve()
 
+file = XDMFFile(os.getcwd()+"//tests//minimal_working_examples_forum//displacement.xdmf")
+file.write(u_solution)
+
 # Gets the fourth order tensor
 """
 W_tensor = TensorFunctionSpace(mesh, "CG", 1, shape=(3,3,3,3))
@@ -120,7 +123,7 @@ txt_file = open(os.getcwd()+"//tests//minimal_working_examples_forum//dS_dC_tens
 txt_file.write(str(C_tensor))
 txt_file.close()"""
 
-W_index = FunctionSpace(mesh, "CG", 1)
+W_index = FunctionSpace(mesh, "DG", 0)
 C_array = np.zeros((3,3,3,3))
 for i in range(3):
     for j in range(3):
@@ -128,7 +131,7 @@ for i in range(3):
             for l in range(3):
                 C_array[i,j,k,l] = project(constitutive_model.second_elasticityTensor(
                 u_solution)[i,j,k,l], W_index, form_compiler_parameters={
-                "quadrature_degree": 2})(Point(0.5*W, 0.5*H, 0.5*L))
+                "quadrature_degree": 2})(Point(0.55*W, 0.55*H, 0.55*L))
 
 txt_file = open(os.getcwd()+"//tests//minimal_working_examples_forum//dS_dC_array.txt", "w")
 txt_file.write(str(C_array))
