@@ -54,13 +54,15 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     gamma_fiber = 0.0
 
-    characteristic_lengthMatrix = RVE_length*1.0
-    
-    characteristic_lengthFiber = RVE_length*1.0
-
     # Defines the fiber radius
 
     fiber_radius = 0.25
+
+    # Defines the micropolar coupling numbers for fiber and matrix
+
+    N_fiber = 0.08
+
+    N_matrix = 0.08
 
     # Sets the x, y, and z indices of the RVE to be selected for homoge-
     # nization. These indices begin with 1
@@ -92,19 +94,31 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 1.0*E_matrix
 
-    test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
+    characteristic_lengthMatrix = fiber_radius*4
+    
+    characteristic_lengthFiber = fiber_radius*4
+
+    test11 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+
+    characteristic_lengthMatrix = fiber_radius*2.0
     
-    test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
+    characteristic_lengthFiber = fiber_radius*2.0
+    
+    test12 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+
+    characteristic_lengthMatrix = fiber_radius*2.0
     
-    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
+    characteristic_lengthFiber = fiber_radius*2.0
+    
+    test13 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -114,19 +128,31 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 10*E_matrix
 
-    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
+    characteristic_lengthMatrix = fiber_radius*0.02
+    
+    characteristic_lengthFiber = fiber_radius*0.02
+
+    test21 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+
+    characteristic_lengthMatrix = fiber_radius*0.2
     
-    test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
+    characteristic_lengthFiber = fiber_radius*0.2
+    
+    test22 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber,
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+
+    characteristic_lengthMatrix = fiber_radius*2.0
     
-    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
+    characteristic_lengthFiber = fiber_radius*2.0
+    
+    test23 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber,
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -136,19 +162,53 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 100*E_matrix
 
-    test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.001, 0.001, 
+    characteristic_lengthMatrix = RVE_length*1.0
+    
+    characteristic_lengthFiber = RVE_length*1.0
+
+    N_fiber = 0.001
+
+    N_matrix = 0.001
+
+    test31 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber,
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+
+    characteristic_lengthMatrix = fiber_radius*0.2
+    
+    characteristic_lengthFiber = fiber_radius*0.2
+    
+    test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber,
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+
+    characteristic_lengthMatrix = RVE_length*1.0
+    
+    characteristic_lengthFiber = RVE_length*1.0
+
+    N_fiber = 0.08
+
+    N_matrix = 0.08
+    
+    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber,
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
     RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
     
-    test32 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.01, 0.01, 
-    characteristic_lengthMatrix, characteristic_lengthFiber, 
-    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
-    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
-    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*3
     
-    test33 = [E_matrix, E_fiber, nu_matrix, nu_fiber, 0.08, 0.08, 
+    characteristic_lengthFiber = fiber_radius*3
+
+    test41 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -156,8 +216,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets a dictionary with names and parameters sets
 
-    parameters_sets = {"simulation_11": test11, "simulation_13": test13, 
-    "simulation_31": test31, "simulation_33": test33}
+    parameters_sets = {"simulation_31": test31, "simulation_33": test33,
+    "simulation_41": test41}
 
     # Saves the parameters set
 
@@ -389,9 +449,9 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
             homogenized_cauchyFileName[1], "subdomain": ["RVE matrix", 
             "RVE fiber"]}
 
-            post_processes[-1][-1]["SaveReferentialTractionField"] = {
+            """post_processes[-1][-1]["SaveReferentialTractionField"] = {
             "directory path": results_pathGraphics, "file name": 
-            traction_fileName, "polynomial degree":1}
+            traction_fileName, "polynomial degree":1}"""
 
         # Adds a pair of field number following the variational conven-
         # tion and the dictionary for post processes

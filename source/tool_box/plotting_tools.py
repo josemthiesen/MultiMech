@@ -26,7 +26,8 @@ color_map=False, flag_noTicks=False, aspect_ratio='auto', x_grid=None,
 y_grid=None, color_bar=False, color_barMaximum=None, color_barMinimum=
 None, color_barTicks=None, color_barTitle=None, color_barIntegerTicks=
 False, color_barNumberOfTicks=5, color_barIncludeMinMaxTicks=False,
-x_ticksLabels=None, y_ticksLabels=None):
+x_ticksLabels=None, y_ticksLabels=None, ticks_fontsize=12, 
+label_fontsize=14, legend_fontsize=12):
     
     """
     You can provide an array of data, where the first column will be in
@@ -751,6 +752,11 @@ x_ticksLabels=None, y_ticksLabels=None):
         subplots_tuple.ticklabel_format(style='sci', axis='both', 
         scilimits=(0,0))
 
+        # Sets the ticks' font size
+
+        subplots_tuple.tick_params(axis='both', which='major', labelsize=
+        ticks_fontsize)
+
     elif flag_noTicks:
 
         subplots_tuple.tick_params(axis='both', which='both', length=0, 
@@ -788,6 +794,12 @@ x_ticksLabels=None, y_ticksLabels=None):
 
         subplots_tuple.set_xticklabels(tick_names, minor=True)
 
+        # Sets the font size of the x ticks
+
+        for tick_label in subplots_tuple.get_xminorticklabels():
+
+            tick_label.set_fontsize(ticks_fontsize)
+
     if isinstance(y_ticksLabels, dict):
 
         # Gets the tick values and the location
@@ -800,15 +812,21 @@ x_ticksLabels=None, y_ticksLabels=None):
 
         subplots_tuple.set_yticklabels(tick_names, minor=True)
 
+        # Sets the font size of the y ticks
+
+        for tick_label in subplots_tuple.get_yminorticklabels():
+
+            tick_label.set_fontsize(ticks_fontsize)
+
     # Verifies and uses if necessary other optional attributes
 
     if not (x_label is None):
 
-        plt.xlabel(x_label)
+        plt.xlabel(x_label, fontsize=label_fontsize)
 
     if not (y_label is None):
 
-        plt.ylabel(y_label)
+        plt.ylabel(y_label, fontsize=label_fontsize)
 
     if not (title is None):
 
@@ -822,7 +840,8 @@ x_ticksLabels=None, y_ticksLabels=None):
 
         else:
 
-            plt.legend(loc=legend, bbox_to_anchor=(1.0, 1.0))
+            plt.legend(loc=legend, bbox_to_anchor=(1.0, 1.0), fontsize=
+            legend_fontsize)
 
     # Adjust the size of the plot to contain ticks and labels
 

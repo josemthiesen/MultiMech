@@ -582,8 +582,8 @@ domain_physicalGroupsNameToTag=None):
 
     # Assign the mesh coordinates to the function
 
-    x_submesh.interpolate(Expression(("x[0]", "x[1]", "x[2]"), degree=1, 
-    element=V_positionVector.ufl_element()))
+    x_submesh.interpolate(Expression(("x[0]", "x[1]", "x[2]"), element=
+    V_positionVector.ufl_element()))
 
     # Returns the submesh, the updated cell markers, and the DOF mappings
 

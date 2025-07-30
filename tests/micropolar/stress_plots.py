@@ -26,40 +26,42 @@ def plot_stress():
 
     # Defines a list of simulations to be considered
 
-    simulations = ["simulation_11", "simulation_13", "simulation_31", 
-    "simulation_33"]
+    simulations = ["simulation_31", "simulation_33"]
 
     # Defines a list of lists to each plot to be made. Each sublist con-
     # tains respectively: the name of the stress file for the macroscale,
     # the name of the file for the macroscale displacement gradient, the
     # name of the file for the microscale stress, name of the plot file,
     # component of the deformation gradient to be used as x axis, compo-
-    # nents of the stress tensor to be plotted, the labels of the curves
+    # nents of the stress tensor to be plotted, the labels of the curves,
+    # and the symbol in LaTeX for the stress tensor
 
     files_list = [["homogenized_first_piola", "homogenized_displacemen"+
     "t_gradient", "MinimallyConstrainedFirstOrderBC_MinimallyConstrain"+
     "edFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
-    "homogenized_first_piola_minimally_constrained_BC.pdf", "3,2", ["1"+
-    ",2", "1,3", "2,1", "3,1"]], ["homogenized_couple_first_piola", "h"+
-    "omogenized_displacement_gradient", "MinimallyConstrainedFirstOrde"+
-    "rBC_MinimallyConstrainedFirstOrderBC//homogenized_couple_first_pi"+
-    "ola_microscale", "homogenized_couple_first_piola_minimally_constr"+
-    "ained_BC.pdf", "3,2", ["1,2", "1,3", "2,1", "3,1"]], [
-    "homogenized_first_piola", "homogenized_displacement_gradient", "L"+
-    "inearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mic"+
-    "roscale_fluctuation", "homogenized_first_piola_linear_BC.pdf", "3"+
-    ",2", ["1,2", "1,3", "2,1", "3,1"]], 
-    ["homogenized_first_piola", "homogenized_displacement_gradient", "P"+
-    "eriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_first_piola"+
-    "_microscale_fluctuation", "homogenized_first_piola_periodic_BC.pd"+
-    "f", "3,2", ["1,2", "1,3", "2,1", "3,1"]], ["homogenized_first_pio"+
-    "la", "homogenized_displacement_gradient", ["LinearFirstOrderBC_Li"+
-    "nearFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
+    "homogenized_first_piola_minimally_constrained_BC.pdf", "3,20", ["1"+
+    ",2", "1,3", "2,1", "3,1"], "\\boldsymbol{P}"], 
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", "MinimallyConstrainedFirstOrderBC_MinimallyConstrainedFirst"+
+    "OrderBC//homogenized_couple_first_piola_microscale", "homogenized"+
+    "_couple_first_piola_minimally_constrained_BC.pdf", "3,20", ["1,2", 
+    "1,3", "2,1", "3,1"], "\\boldsymbol{P}^{c}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", 
+    "LinearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mi"+
+    "croscale_fluctuation", "homogenized_first_piola_linear_BC.pdf", 
+    "3,20", ["1,2", "1,3", "2,1", "3,1"], "\\boldsymbol{P}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", 
     "PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_first_piol"+
-    "a_microscale_fluctuation", "MinimallyConstrainedFirstOrderBC_Mini"+
-    "mallyConstrainedFirstOrderBC//homogenized_first_piola_microscale_"+
-    "fluctuation"], "homogenized_first_piola_BCs_comparison.pdf", 
-    "3,2", [], ["Linear", "Periodic", "Minimally C."]]]
+    "a_microscale_fluctuation", "homogenized_first_piola_periodic_BC.p"+
+    "df", "3,20", ["1,2", "1,3", "2,1", "3,1"], "\\boldsymbol{P}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", [
+    "LinearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mi"+
+    "croscale_fluctuation", "PeriodicFirstOrderBC_PeriodicFirstOrderBC"+
+    "//homogenized_first_piola_microscale_fluctuation", "MinimallyCons"+
+    "trainedFirstOrderBC_MinimallyConstrainedFirstOrderBC//homogenized"+
+    "_first_piola_microscale_fluctuation"], "homogenized_first_piola_B"+
+    "Cs_comparison.pdf", "3,20", [], ["Linear", "Periodic", "Min. C."], 
+    "\\boldsymbol{P}^{c}"]]
 
     # Adds the paths to the torsion simulations
 
@@ -98,27 +100,37 @@ def plot_stress():
     files_list = [["homogenized_first_piola", "homogenized_displacemen"+
     "t_gradient", "MinimallyConstrainedFirstOrderBC_MinimallyConstrain"+
     "edFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
-    "homogenized_first_piola_minimally_constrained_BC.pdf", "3,3", ["2"+
-    ",2", "2,3", "3,2", "3,3"]], ["homogenized_couple_first_piola", "h"+
-    "omogenized_displacement_gradient", "MinimallyConstrainedFirstOrde"+
-    "rBC_MinimallyConstrainedFirstOrderBC//homogenized_couple_first_pi"+
-    "ola_microscale", "homogenized_couple_first_piola_minimally_constr"+
-    "ained_BC.pdf", "3,3", ["1,1", "1,2", "1,3", "2,3"]], 
-    ["homogenized_first_piola", "homogeni"+
-    "zed_displacement_gradient", "LinearFirstOrderBC_LinearFirstOrderB"+
-    "C//homogenized_first_piola_microscale_fluctuation", "homogenized_"+
-    "first_piola_linear_BC.pdf", "3,3", ["2,2", "2,3", "3,2", "3,3"]], [
-    "homogenized_first_piola", "homogenized_displacement_gradient", "P"+
-    "eriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_first_piola"+
-    "_microscale_fluctuation", "homogenized_first_piola_periodic_BC.pd"+
-    "f", "3,3", ["2,2", "2,3", "3,2", "3,3"]], ["homogenized_first_pio"+
-    "la", "homogenized_displacement_gradient", ["LinearFirstOrderBC_Li"+
-    "nearFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
+    "homogenized_first_piola_minimally_constrained_BC.pdf", "2,3", ["2"+
+    ",2", "2,3", "3,2", "3,3"], "\\boldsymbol{P}"], 
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", "MinimallyConstrainedFirstOrderBC_MinimallyConstrainedFirst"+
+    "OrderBC//homogenized_couple_first_piola_microscale", "homogenized"+
+    "_couple_first_piola_minimally_constrained_BC.pdf", "2,3", ["1,1", 
+    "1,2", "1,3"], "\\boldsymbol{P}^{c}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", 
+    "LinearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mi"+
+    "croscale_fluctuation", "homogenized_first_piola_linear_BC.pdf", 
+    "2,3", ["2,2", "2,3", "3,2", "3,3"], "\\boldsymbol{P}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", 
     "PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_first_piol"+
-    "a_microscale_fluctuation", "MinimallyConstrainedFirstOrderBC_Mini"+
-    "mallyConstrainedFirstOrderBC//homogenized_first_piola_microscale_"+
-    "fluctuation"], "homogenized_first_piola_BCs_comparison.pdf", 
-    "3,2", [], ["Linear", "Periodic", "Minimally C."]]]
+    "a_microscale_fluctuation", "homogenized_first_piola_periodic_BC.p"+
+    "df", "2,3", ["2,2", "2,3", "3,2", "3,3"], "\\boldsymbol{P}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", [
+    "LinearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mi"+
+    "croscale_fluctuation", "PeriodicFirstOrderBC_PeriodicFirstOrderBC"+
+    "//homogenized_first_piola_microscale_fluctuation", "MinimallyCons"+
+    "trainedFirstOrderBC_MinimallyConstrainedFirstOrderBC//homogenized"+
+    "_first_piola_microscale_fluctuation"], "homogenized_first_piola_B"+
+    "Cs_comparison.pdf", "2,3", [], ["Linear", "Periodic", "Min. C."], 
+    "\\boldsymbol{P}"],
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", ["LinearFirstOrderBC_LinearFirstOrderBC//homogenized_couple"+
+    "_first_piola_microscale", "PeriodicFirstOrderBC_PeriodicFirstOrde"+
+    "rBC//homogenized_couple_first_piola_microscale", "MinimallyConstr"+
+    "ainedFirstOrderBC_MinimallyConstrainedFirstOrderBC//homogenized_c"+
+    "ouple_first_piola_microscale"], "homogenized_couple_first_piola_B"+
+    "Cs_comparison.pdf", "2,3", [], ["Linear", "Periodic", "Min. C."], 
+    "\\boldsymbol{P}^{c}"]]
 
     # Adds the paths to the bending simulations
 
@@ -291,9 +303,28 @@ def plot_stress():
 
         y_data = []
 
-        x_data = F_dict[homogenized_files[i][4]]
+        x_data = []
 
-        y_label = "$\\boldsymbol{P}$"
+        x_label = ""
+
+        if homogenized_files[i][4] in F_dict.keys():
+
+            x_data = F_dict[homogenized_files[i][4]]
+
+            x_label = "$\\boldsymbol{F}_{"+homogenized_files[i][4]+"}$"
+
+        else:
+
+            x_label = "$t$"
+
+            # If the component is not in the keys of the deformation 
+            # gradient, puts the time values
+
+            for instant in read_displacementGradient:
+
+                x_data.append(instant[0])
+
+        y_label = "$"+homogenized_files[i][-1]+"$"
 
         label = []
 
@@ -324,9 +355,11 @@ def plot_stress():
 
             y_data.append(microscale_stressDict[component])
 
-            label.append("$\\boldsymbol{P}_{M,"+component+"}$")
+            label.append("$"+homogenized_files[i][-1]+"_{M,"+component+
+            "}$")
 
-            label.append("$\\boldsymbol{P}_{H,"+component+"}$")
+            label.append("$"+homogenized_files[i][-1]+"_{H,"+component+
+            "}$")
 
             line_styles.extend(["solid", "dashed"])
 
@@ -360,7 +393,7 @@ def plot_stress():
 
             y_data.append(stress_norm)
 
-            y_label = "$\\|\\boldsymbol{P}\\|_{F}$"
+            y_label = "$\\|"+homogenized_files[i][-1]+"\\|_{F}$"
 
             label.append("DNS")
 
@@ -432,20 +465,28 @@ def plot_stress():
                         
             y_data.append(micro_scaleStressNorm)
 
-            label.append("$\\|\\boldsymbol{P}_{M}\\|_{F}$")
+            label.append("$\\|"+homogenized_files[i][-1]+"_{M}\\|_{F}$")
 
-            label.append("$\\|\\boldsymbol{P}_{H}\\|_{F}$")
+            label.append("$\\|"+homogenized_files[i][-1]+"_{H}\\|_{F}$")
 
             line_styles.extend(["solid", "dashed"])
 
             color.extend([color_map(1.0), color_map(1.0)])
 
         # Plots and saves the figure
+        
+        """print(homogenized_files[i][3])
+
+        print(label)
+
+        print(y_data)
+
+        print("\n")"""
 
         plotting_tools.plane_plot(homogenized_files[i][3], x_data=x_data, 
-        y_data=y_data, x_label="$\\boldsymbol{F}_{"+homogenized_files[i
-        ][4]+"}$", y_label=y_label, highlight_points=True, 
-        flag_scientificNotation=True, label=label, element_style=
-        line_styles, color=color, legend='upper left')
+        y_data=y_data, x_label=x_label, y_label=y_label, 
+        highlight_points=True, flag_scientificNotation=True, label=label, 
+        element_style=line_styles, color=color, legend='upper left',
+        ticks_fontsize=20, label_fontsize=20, legend_fontsize=16)
 
 plot_stress()
