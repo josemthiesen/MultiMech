@@ -24,6 +24,10 @@ import CuboidGmsh.tests.micropolar_meshes.beam_micropolar_case_1 as beam_gmsh
 
 def case1_varyingMicropolarNumber(flag_newMesh=False):
 
+    # Sets the flag to save each time step independently as well
+
+    intermediate_savingFlag = True
+
     # Defines the load factor
 
     load_factor = 0.75
@@ -260,11 +264,53 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 100.0*E_matrix
 
-    characteristic_lengthMatrix = fiber_radius*1.8
+    characteristic_lengthMatrix = fiber_radius*2.25
     
-    characteristic_lengthFiber = fiber_radius*1.8
+    characteristic_lengthFiber = fiber_radius*2.25
 
     test45 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*2.16
+    
+    characteristic_lengthFiber = fiber_radius*2.16
+
+    test46 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*0.4
+    
+    characteristic_lengthFiber = fiber_radius*0.4
+
+    test47 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
+    characteristic_lengthMatrix, characteristic_lengthFiber, 
+    flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
+    RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
+    RVE_localizationZ, n_RVEsX, n_RVEsY, n_RVEsZ]
+    
+    E_matrix = 100E6
+
+    E_fiber = 100.0*E_matrix
+
+    characteristic_lengthMatrix = fiber_radius*0.2
+    
+    characteristic_lengthFiber = fiber_radius*0.2
+
+    test48 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, load_factor, gamma_matrix, gamma_fiber, RVE_width, 
     RVE_length, fiber_radius, RVE_localizationX, RVE_localizationY, 
@@ -272,7 +318,7 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets a dictionary with names and parameters sets
 
-    parameters_sets = {"simulation_45": test45}
+    parameters_sets = {"simulation_33": test33, "simulation_48": test48}
 
     # Saves the parameters set
 
@@ -307,7 +353,8 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
             n_RVEsY, n_RVEsZ=n_RVEsZ, RVE_localizationX=
             RVE_localizationX, RVE_localizationY=RVE_localizationY, 
             RVE_localizationZ=RVE_localizationZ, flag_newMesh=flag_mesh, 
-            subfolder_name=simulation_name)
+            subfolder_name=simulation_name, intermediate_savingFlag=
+            intermediate_savingFlag)
 
         # Shows the exception and keeps going
 
@@ -330,7 +377,8 @@ N_micropolarMatrix, N_micropolarFiber, characteristic_lengthMatrix,
 characteristic_lengthFiber, flag_bending, load_factor, gamma_matrix=0.0, 
 gamma_fiber=0.0, RVE_width=1.0, RVE_length=1.0, fiber_radius=0.25, 
 n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
-1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation"):
+1, RVE_localizationZ=3, flag_newMesh=True, subfolder_name="simulation",
+intermediate_savingFlag=False):
 
     # Gets the coefficient k2 for torsion of rectangular shafts from 
     # Gere's Mechanics of Materials
@@ -463,7 +511,8 @@ n_RVEsX=1, n_RVEsY=1, n_RVEsZ=5, RVE_localizationX=1, RVE_localizationY=
         post_processes.append([fields_names[i], dict()])
 
         post_processes[-1][-1]["SaveField"] = {"directory path":
-        results_pathGraphics, "file name":displacement_fileName[i]}
+        results_pathGraphics, "file name":displacement_fileName[i],
+        "intermediate saving flag": intermediate_savingFlag}
 
         # Put "" in the subdomain to integrate over the entire domain
 

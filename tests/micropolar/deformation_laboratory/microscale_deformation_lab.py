@@ -30,7 +30,7 @@ def case_3(flag_newMesh=False):
 
     # Sets the mesh refinement
 
-    transfinite_directions = [12, 12, 12, 6, 8]
+    transfinite_directions = [16, 16, 12, 6, 8]
 
     bias_directions = {"cylinder radial": 1.5, "box radial": 1.1}
 
@@ -109,16 +109,21 @@ def case_3(flag_newMesh=False):
 
     null_tensor = [null_vector, null_vector, null_vector]
 
-    displacement_gradients = [null_tensor, null_tensor, null_tensor, [[
+    displacement_gradients = [null_tensor, null_tensor, null_tensor, 
+    null_tensor, [[0.0, 0.1, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], [[
     0.1, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], [[0.0, 0.1, 0.0], 
     [0.1, 0.0, 0.0], [0.0, 0.0, 0.0]], [[0.0, 0.0, 0.1], [0.0, 0.1, 0.0
     ], [0.1, 0.0, 0.0]]]
 
     # Sets the same for the microrotation gradient
 
-    microrotation_gradients = [[[2.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 
-    0.0, 0.0]], [[0.0, 0.0, 1.5], [0.0, 1.5, 0.0], [1.5, 0.0, 0.0]], [[
-    0.0, 1.5, 0.0], [1.5, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, 
+    phi_component = 0.35
+
+    microrotation_gradients = [[[0.0, phi_component, 0.0], [0.0, 0.0, 
+    0.0], [0.0, 0.0, 0.0]], [[phi_component, 0.0, 0.0], [0.0, 0.0, 0.0], 
+    [0.0, 0.0, 0.0]], [[0.0, 0.0, phi_component], [0.0, phi_component, 
+    0.0], [phi_component, 0.0, 0.0]], [[0.0, phi_component, 0.0], [
+    phi_component, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, null_tensor,
     null_tensor, null_tensor]
 
     # Sets the displacements and microrotations as null vectors
@@ -197,7 +202,7 @@ def case_3(flag_newMesh=False):
 
                 flag_mesh = False
 
-                if flag_newMesh and counter==0:
+                if flag_newMesh and counter==1:
 
                     flag_mesh = True
 
@@ -394,13 +399,13 @@ bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
     if (displacement_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and microrotation_multiscaleBC!="PeriodicFirstOrderBC"):
     
-        fields_names.extend(["displacement_lagrange_multiplier", "disp"+
+        fields_names.extend(["Displacement_lagrange_multiplier", "Disp"+
         "lacement_gradient_lagrange_multiplier"]) 
 
     if (microrotation_multiscaleBC=="MinimallyConstrainedFirstOrderBC"
     and displacement_multiscaleBC!="PeriodicFirstOrderBC"):
     
-        fields_names.extend(["microrotation_lagrange_multiplier", "mic"+
+        fields_names.extend(["Microrotation_lagrange_multiplier", "Mic"+
         "rorotation_gradient_lagrange_multiplier"])
 
     # Iterates through the fields (displacement and microrotation)
@@ -434,13 +439,13 @@ bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
 
         if i==0:
 
-            post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
+            """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
             "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[0], "polynomial degree": 1}
 
             post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
             "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[1], "polynomial degree": 1}
+            stress_fieldFileName[1], "polynomial degree": 1}"""
 
             post_processes[-1][-1]["HomogenizeFirstPiola"] = {"directo"+
             "ry path": results_pathText, "file name": 
@@ -450,13 +455,13 @@ bias_directions={"cylinder radial": 1.5, "box radial": 1.5}):
             "irectory path": results_pathText, "file name": 
             homogenized_piolaFileName[1], "subdomain":""}
 
-            post_processes[-1][-1]["HomogenizeCauchy"] = {"directo"+
+            """post_processes[-1][-1]["HomogenizeCauchy"] = {"directo"+
             "ry path": results_pathText, "file name": 
             homogenized_cauchyFileName[0], "subdomain":""}
 
             post_processes[-1][-1]["HomogenizeCoupleCauchy"] = {
             "directory path": results_pathText, "file name": 
-            homogenized_cauchyFileName[1], "subdomain":""}
+            homogenized_cauchyFileName[1], "subdomain":""}"""
 
     ####################################################################
     #                       Material properties                        #

@@ -5,6 +5,8 @@ import ufl_legacy as ufl
 import numpy as np
 import os
 
+parameters["form_compiler"]["representation"] = "quadrature"
+
 L, H, W = 1.0, 0.2, 0.3
 mesh = BoxMesh(Point(0,0,0), Point(W,H,L), 5,5,5)
 
@@ -123,7 +125,7 @@ txt_file = open(os.getcwd()+"//tests//minimal_working_examples_forum//dS_dC_tens
 txt_file.write(str(C_tensor))
 txt_file.close()"""
 
-W_index = FunctionSpace(mesh, "DG", 0)
+W_index = FunctionSpace(mesh, "DG", 1)
 C_array = np.zeros((3,3,3,3))
 for i in range(3):
     for j in range(3):
@@ -132,6 +134,20 @@ for i in range(3):
                 C_array[i,j,k,l] = project(constitutive_model.second_elasticityTensor(
                 u_solution)[i,j,k,l], W_index, form_compiler_parameters={
                 "quadrature_degree": 2})(Point(0.55*W, 0.55*H, 0.55*L))
+
+txt_file = open(os.getcwd()+"//tests//minimal_working_examples_forum//dS_dC_array.txt", "w")
+txt_file.write(str(C_array))
+txt_file.close()
+
+quadrature_element = VectorElement("Quadrature", mesh.ufl_cell(), degree=2,
+quad_scheme="default")
+C_array = np.zeros((3,3,3,3))
+for i in range(3):
+    for j in range(3):
+        for k in range(3):
+            for l in range(3):
+                C_array[i,j,k,l] = project(constitutive_model.second_elasticityTensor(
+                u_solution)[i,j,k,l], quadrature_element)(Point(0.55*W, 0.55*H, 0.55*L))
 
 txt_file = open(os.getcwd()+"//tests//minimal_working_examples_forum//dS_dC_array.txt", "w")
 txt_file.write(str(C_array))

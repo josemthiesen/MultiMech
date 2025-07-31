@@ -230,13 +230,13 @@ n_RVEsXMacro=1, n_RVEsYMacro=1, n_RVEsZMacro=1, bias_directions={"cyli"+
 
         if i==0:
 
-            post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
+            """post_processes[-1][-1]["SaveCauchyStressField"] = {"direct"+
             "ory path": results_pathGraphics, "file name": 
             stress_fieldFileName[0], "polynomial degree": 1}
 
             post_processes[-1][-1]["SaveCoupleCauchyStressField"] = {
             "directory path": results_pathGraphics, "file name": 
-            stress_fieldFileName[1], "polynomial degree": 1}
+            stress_fieldFileName[1], "polynomial degree": 1}"""
 
             post_processes[-1][-1]["SaveFirstPiolaStressField"] = {"di"+
             "rectory path": results_pathGraphics, "file name": 
@@ -254,13 +254,13 @@ n_RVEsXMacro=1, n_RVEsYMacro=1, n_RVEsZMacro=1, bias_directions={"cyli"+
             "irectory path": results_pathText, "file name": 
             homogenized_piolaFileName[1], "subdomain":""}
 
-            post_processes[-1][-1]["HomogenizeCauchy"] = {"directo"+
+            """post_processes[-1][-1]["HomogenizeCauchy"] = {"directo"+
             "ry path": results_pathText, "file name": 
             homogenized_cauchyFileName[0], "subdomain":""}
 
             post_processes[-1][-1]["HomogenizeCoupleCauchy"] = {
             "directory path": results_pathText, "file name": 
-            homogenized_cauchyFileName[1], "subdomain":""}
+            homogenized_cauchyFileName[1], "subdomain":""}"""
 
     ####################################################################
     #                       Material properties                        #
@@ -421,4 +421,4 @@ n_RVEsXMacro=1, n_RVEsYMacro=1, n_RVEsZMacro=1, bias_directions={"cyli"+
     polynomial_degreeMicrorotation, verbose=verbose, fluctuation_field=
     fluctuation_field)
 
-case1_varyingMicropolarNumber(flag_newMesh=True)
+case1_varyingMicropolarNumber(flag_newMesh=False)
