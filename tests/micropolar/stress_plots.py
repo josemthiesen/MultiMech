@@ -24,9 +24,9 @@ def plot_stress():
 
     homogenized_files = []
 
-    # Defines a list of simulations to be considered
+    # Defines a list of simulations to be considered for torsion
 
-    simulations = ["simulation_31", "simulation_33"]
+    simulations = ["simulation_48", "simulation_33"]
 
     # Defines a list of lists to each plot to be made. Each sublist con-
     # tains respectively: the name of the stress file for the macroscale,
@@ -39,28 +39,40 @@ def plot_stress():
     files_list = [["homogenized_first_piola", "homogenized_displacemen"+
     "t_gradient", "MinimallyConstrainedFirstOrderBC_MinimallyConstrain"+
     "edFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
-    "homogenized_first_piola_minimally_constrained_BC.pdf", "3,20", ["1"+
-    ",2", "1,3", "2,1", "3,1"], "\\boldsymbol{P}"], 
+    "homogenized_first_piola_minimally_constrained_BC.pdf", "2,3", ["1"+
+    ",1", "2,3", "3,3"], "\\boldsymbol{P}"], 
     ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
     "ent", "MinimallyConstrainedFirstOrderBC_MinimallyConstrainedFirst"+
     "OrderBC//homogenized_couple_first_piola_microscale", "homogenized"+
-    "_couple_first_piola_minimally_constrained_BC.pdf", "3,20", ["1,2", 
-    "1,3", "2,1", "3,1"], "\\boldsymbol{P}^{c}"], 
+    "_couple_first_piola_minimally_constrained_BC.pdf", "2,3", ["1,1", 
+    "2,1", "3,1"], "\\boldsymbol{P}^{c}"], 
     ["homogenized_first_piola", "homogenized_displacement_gradient", 
     "LinearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mi"+
     "croscale_fluctuation", "homogenized_first_piola_linear_BC.pdf", 
-    "3,20", ["1,2", "1,3", "2,1", "3,1"], "\\boldsymbol{P}"], 
+    "2,3", ["1,1", "2,3", "3,3"], "\\boldsymbol{P}"], 
     ["homogenized_first_piola", "homogenized_displacement_gradient", 
     "PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_first_piol"+
     "a_microscale_fluctuation", "homogenized_first_piola_periodic_BC.p"+
-    "df", "3,20", ["1,2", "1,3", "2,1", "3,1"], "\\boldsymbol{P}"], 
+    "df", "2,3", ["1,1", "2,3", "3,3"], "\\boldsymbol{P}"], 
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", "PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_cou"+
+    "ple_first_piola_microscale", "homogenized_couple_first_piola_peri"+
+    "odic_BC.pdf", "2,3", ["1,1", "2,1", "3,1"], "\\boldsymbol{P}^{c}"], 
     ["homogenized_first_piola", "homogenized_displacement_gradient", [
     "LinearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mi"+
     "croscale_fluctuation", "PeriodicFirstOrderBC_PeriodicFirstOrderBC"+
     "//homogenized_first_piola_microscale_fluctuation", "MinimallyCons"+
     "trainedFirstOrderBC_MinimallyConstrainedFirstOrderBC//homogenized"+
     "_first_piola_microscale_fluctuation"], "homogenized_first_piola_B"+
-    "Cs_comparison.pdf", "3,20", [], ["Linear", "Periodic", "Min. C."], 
+    "Cs_comparison.pdf", "2,3", [], ["Linear", "Periodic", "Min. C."], 
+    "\\boldsymbol{P}"],
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", ["LinearFirstOrderBC_LinearFirstOrderBC//homogenized_couple"+
+    "_first_piola_microscale", "PeriodicFirstOrderBC_PeriodicFirstOrde"+
+    "rBC//homogenized_couple_first_piola_microscale", "MinimallyConstr"+
+    "ainedFirstOrderBC_MinimallyConstrainedFirstOrderBC//homogenized_c"+
+    "ouple_first_piola_microscale"], "homogenized_couple_first_piola_B"+
+    "Cs_comparison.pdf", "2,3", [], ["Linear", "Periodic", "Min. C."], 
     "\\boldsymbol{P}^{c}"]]
 
     # Adds the paths to the torsion simulations
@@ -89,6 +101,10 @@ def plot_stress():
             "//"+file_name[0], base_pathTorsion+"//"+simulation+"//"+
             file_name[1], micro_files, base_pathTorsion+"//"+simulation+
             "//"+file_name[3], *file_name[4:len(file_name)]])
+
+    # Defines a list of simulations to be considered for bending
+
+    simulations = ["simulation_31", "simulation_33"]
 
     # Defines a list of lists to each plot to be made. Each sublist con-
     # tains respectively: the name of the stress file for the macroscale,

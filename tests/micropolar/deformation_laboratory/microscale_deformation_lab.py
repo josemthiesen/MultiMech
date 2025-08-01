@@ -113,7 +113,12 @@ def case_3(flag_newMesh=False):
     null_tensor, [[0.0, 0.1, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], [[
     0.1, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], [[0.0, 0.1, 0.0], 
     [0.1, 0.0, 0.0], [0.0, 0.0, 0.0]], [[0.0, 0.0, 0.1], [0.0, 0.1, 0.0
-    ], [0.1, 0.0, 0.0]]]
+    ], [0.1, 0.0, 0.0]], [[0.0, 0.0, 0.0], [0.0, 0.0, 0.1], [0.0, 0.0, 
+    0.0]], [[0.0, 0.0, 0.0], [0.0, 0.0, 0.1], [0.0, 0.1, 0.0]], 
+    null_tensor] 
+    
+    displacement_gradients = [[[0.0, 0.0, 0.0], [0.0, 0.0, 0.1], [0.0, 0.0, 0.0]],
+    null_tensor]
 
     # Sets the same for the microrotation gradient
 
@@ -124,7 +129,11 @@ def case_3(flag_newMesh=False):
     [0.0, 0.0, 0.0]], [[0.0, 0.0, phi_component], [0.0, phi_component, 
     0.0], [phi_component, 0.0, 0.0]], [[0.0, phi_component, 0.0], [
     phi_component, 0.0, 0.0], [0.0, 0.0, 0.0]], null_tensor, null_tensor,
-    null_tensor, null_tensor]
+    null_tensor, null_tensor, null_tensor, null_tensor, [[0.0, 0.0, 0.0
+    ], [0.0, 0.0, phi_component], [0.0, phi_component, 0.0]]]
+
+    microrotation_gradients = [null_tensor, [[0.0, 0.0, 0.0
+    ], [0.0, 0.0, phi_component], [0.0, 0.0, 0.0]]]
 
     # Sets the displacements and microrotations as null vectors
 
@@ -136,7 +145,7 @@ def case_3(flag_newMesh=False):
 
     # Iterates through the multiscale boundary conditions
 
-    counter = 0
+    counter = 19
 
     # Gets the number of simulations
 
