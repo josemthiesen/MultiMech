@@ -75,6 +75,39 @@ def plot_stress():
     "Cs_comparison.pdf", "2,3", [], ["Linear", "Periodic", "Min. C."], 
     "\\boldsymbol{P}^{c}"]]
 
+    """files_list = [["homogenized_first_piola", "homogenized_displacemen"+
+    "t_gradient", "MinimallyConstrainedFirstOrderBC_MinimallyConstrain"+
+    "edFirstOrderBC//homogenized_first_piola_microscale_fluctuation", 
+    "homogenized_first_piola_minimally_constrained_BC.pdf", "2,3", ["1"+
+    ",1", "2,3", "3,3"], "\\boldsymbol{P}"], 
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", "MinimallyConstrainedFirstOrderBC_MinimallyConstrainedFirst"+
+    "OrderBC//homogenized_couple_first_piola_microscale", "homogenized"+
+    "_couple_first_piola_minimally_constrained_BC.pdf", "2,3", ["1,1", 
+    "2,1", "3,1"], "\\boldsymbol{P}^{c}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", 
+    "LinearFirstOrderBC_LinearFirstOrderBC//homogenized_first_piola_mi"+
+    "croscale_fluctuation", "homogenized_first_piola_linear_BC.pdf", 
+    "2,3", ["1,1", "2,3", "3,3"], "\\boldsymbol{P}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", 
+    "PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_first_piol"+
+    "a_microscale_fluctuation", "homogenized_first_piola_periodic_BC.p"+
+    "df", "2,3", ["1,1", "2,3", "3,3"], "\\boldsymbol{P}"], 
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", "PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_cou"+
+    "ple_first_piola_microscale", "homogenized_couple_first_piola_peri"+
+    "odic_BC.pdf", "2,3", ["1,1", "2,1", "3,1"], "\\boldsymbol{P}^{c}"], 
+    ["homogenized_first_piola", "homogenized_displacement_gradient", [
+    "PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized"+
+    "_first_piola_microscale_fluctuation"], "homogenized_first_piola_B"+
+    "Cs_comparison.pdf", "2,3", [], ["RVE"], 
+    "\\boldsymbol{P}"],
+    ["homogenized_couple_first_piola", "homogenized_displacement_gradi"+
+    "ent", ["PeriodicFirstOrderBC_PeriodicFirstOrderBC//homogenized_c"+
+    "ouple_first_piola_microscale"], "homogenized_couple_first_piola_B"+
+    "Cs_comparison.pdf", "2,3", [], ["RVE"], 
+    "\\boldsymbol{P}^{c}"]]"""
+
     # Adds the paths to the torsion simulations
 
     base_pathTorsion = base_path+"//torsion_case//results//text"
@@ -359,7 +392,7 @@ def plot_stress():
                 raise ValueError("When multiple microscale BCs are giv"+
                 "en, stress components cannot be individually plotted")
         
-        else:
+        elif len(homogenized_files[i][5])>0:
             
             delta_color = 1/(len(homogenized_files[i][5]))
 
@@ -417,7 +450,9 @@ def plot_stress():
 
             color.append("black")
 
-            delta_color = 1/(len(homogenized_files[i][2])-1)
+            if len(homogenized_files[i][2])>1:
+
+                delta_color = 1/(len(homogenized_files[i][2])-1)
 
             for k in range(len(homogenized_files[i][2])):
 

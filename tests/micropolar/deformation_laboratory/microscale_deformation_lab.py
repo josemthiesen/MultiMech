@@ -40,6 +40,9 @@ def case_3(flag_newMesh=False):
     "llyConstrainedFirstOrderBC"], ["LinearFirstOrderBC", "LinearFirst"+
     "OrderBC"], ["PeriodicFirstOrderBC", "PeriodicFirstOrderBC"]]
 
+    multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
+    "llyConstrainedFirstOrderBC"]]
+
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
 
@@ -84,23 +87,23 @@ def case_3(flag_newMesh=False):
 
     E_fiber = 100.0*E_matrix
 
-    N_matrix = 0.2
+    N_matrix = 0.001#0.2
 
-    N_fiber = 0.2
+    N_fiber = 0.001#0.2
 
     parameters_set = [[E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix,
     N_fiber, characteristic_lengthMatrix, characteristic_lengthFiber, 
     flag_bending, gamma_matrix, gamma_fiber, RVE_width, RVE_length, 
     fiber_radius]]
 
-    N_matrix = 0.08
+    """N_matrix = 0.08
 
     N_fiber = 0.08
     
     parameters_set.append([E_matrix, E_fiber, nu_matrix, nu_fiber, 
     N_matrix, N_fiber, characteristic_lengthMatrix, 
     characteristic_lengthFiber, flag_bending, gamma_matrix, gamma_fiber, 
-    RVE_width, RVE_length, fiber_radius])
+    RVE_width, RVE_length, fiber_radius])"""
 
     # Sets the list of final values of displacement gradient. The gradi-
     # ent will be set as null
@@ -120,6 +123,11 @@ def case_3(flag_newMesh=False):
     displacement_gradients = [[[0.0, 0.0, 0.0], [0.0, 0.0, 0.1], [0.0, 0.0, 0.0]],
     null_tensor]
 
+    displacement_gradients = [[[0.1, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 
+    0.0, 0.0]], [[0.0,0.0,0.0],[0.0,0.0,0.1],[0.0,0.0,0.0]], [[0.0,0.0,
+    0.0],[0.0,0.0,0.1],[0.0,0.1,0.0]], null_tensor, null_tensor, 
+    null_tensor]
+
     # Sets the same for the microrotation gradient
 
     phi_component = 0.35
@@ -135,6 +143,11 @@ def case_3(flag_newMesh=False):
     microrotation_gradients = [null_tensor, [[0.0, 0.0, 0.0
     ], [0.0, 0.0, phi_component], [0.0, 0.0, 0.0]]]
 
+    microrotation_gradients = [null_tensor, null_tensor, null_tensor, [[
+    phi_component, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], [[0.0, 
+    0.0, 0.0], [0.0, 0.0, phi_component], [0.0, 0.0, 0.0]], [[0.0, 0.0,
+    0.0], [0.0, 0.0, phi_component], [0.0, phi_component, 0.0]]]
+
     # Sets the displacements and microrotations as null vectors
 
     displacement_macro = interpolate_macroQuantities(null_vector, 
@@ -145,7 +158,7 @@ def case_3(flag_newMesh=False):
 
     # Iterates through the multiscale boundary conditions
 
-    counter = 19
+    counter = 23
 
     # Gets the number of simulations
 
