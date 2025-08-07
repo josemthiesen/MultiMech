@@ -27,7 +27,8 @@ element_style='-', element_size=1.5,  legend_position=None, plot_type=
 color_barMinimum=None, color_barTicks=None, color_barTitle=None, 
 color_barIntegerTicks=False, color_barNumberOfTicks=5, 
 color_barIncludeMinMaxTicks=False, x_ticksLabels=None, y_ticksLabels=
-None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
+None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12,
+highlight_pointsColors='black'):
     
     """
     You can provide an array of data, where the first column will be in
@@ -105,6 +106,11 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
     # Initializes a flag to inform if mutliple curves are supplied
 
     multiple_curves = False
+
+    # Initializes a flag to inform whether each curve has a different
+    # number of points
+
+    different_nPoints = False
 
     # Checks if all variables data, x_data, and y_data are None
 
@@ -224,12 +230,51 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
 
             multiple_curves = len(y_data)
 
-            if len(x_data)!=len(y_data[0]):
+            if not isinstance(x_data[0], list):
 
-                raise IndexError("The x data and y data are lists of d"+
-                "ifferent sizes. Multiple curves are to be plotted, bu"
-                "t, different number of points have been given for eac"+
-                "h curve. Thus, cannot be used for plotting")
+                if len(x_data)!=len(y_data[0]):
+
+                    raise IndexError("The x data and y data are lists "+
+                    "of different sizes. Length(x_data)="+str(len(x_data
+                    ))+", length(y_data[0])="+str(len(y_data[0]))+" Mu"+
+                    "ltiple curves are to be plotted, but, different n"+
+                    "umber of points have been given for each curve. T"+
+                    "hus, cannot be used for plotting")
+                
+            elif len(x_data)!=len(y_data):
+
+                raise IndexError("Multiple curves have been given, and"+
+                " the number of x lists is also more than one, thus, e"+
+                "ach curve is supposed to have its own set of x values"+
+                ". But the number of x lists is different thant those "+
+                "of y lists")
+            
+            else:
+
+                # Updates the flag that informs whether each curve has
+                # different numbers of points
+
+                different_nPoints = True
+
+                # Checks each curve
+
+                for i in range(len(y_data)):
+
+                    if not isinstance(x_data[i], list):
+
+                        raise TypeError("The "+str(i+1)+"-th curve doe"+
+                        "s not have the x_data as a list.")
+
+                    elif not isinstance(y_data[i], list):
+
+                        raise TypeError("The "+str(i+1)+"-th curve doe"+
+                        "s not have the y_data as a list.")
+
+                    elif len(x_data[i])!=len(y_data[i]):
+
+                        raise IndexError("The "+str(i+1)+"-th curve do"+
+                        "es not have the same length for the sublists "+
+                        "x_data and of y_data")
 
         elif len(x_data)!=len(y_data):
 
@@ -479,9 +524,17 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
 
                 if plot_type=="line":
 
-                    plotted_entities = subplots_tuple.plot(x_data, 
-                    y_data[i], linestyle=element_style[i], linewidth=
-                    element_size[i], color=color[i])
+                    if different_nPoints:
+
+                        plotted_entities = subplots_tuple.plot(x_data[i], 
+                        y_data[i], linestyle=element_style[i], linewidth=
+                        element_size[i], color=color[i])
+
+                    else:
+
+                        plotted_entities = subplots_tuple.plot(x_data, 
+                        y_data[i], linestyle=element_style[i], linewidth=
+                        element_size[i], color=color[i])
 
                 elif plot_type=="scatter":
 
@@ -489,9 +542,19 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
 
                     if isinstance(y_data[i], list):
 
-                        plotted_entities = subplots_tuple.scatter(x_data, 
-                        y_data[i], marker=element_style[i], s=
-                        element_size[i]**2, color=color[i], zorder=3)
+                        if different_nPoints:
+
+                            plotted_entities = subplots_tuple.scatter(
+                            x_data[i], y_data[i], marker=element_style[i
+                            ], s=element_size[i]**2, color=color[i], 
+                            zorder=3)
+
+                        else:
+
+                            plotted_entities = subplots_tuple.scatter(
+                            x_data, y_data[i], marker=element_style[i], 
+                            s=element_size[i]**2, color=color[i], zorder=
+                            3)
 
                     # If it is just the default treatment of scatter 
                     # plots
@@ -549,9 +612,17 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
                 
                 if plot_type=="line":
 
-                    plotted_entities = subplots_tuple.plot(x_data, 
-                    y_data[i], linestyle=element_style[i], linewidth=
-                    element_size[i], color=color[i], label=label[i])
+                    if different_nPoints:
+
+                        plotted_entities = subplots_tuple.plot(x_data[i], 
+                        y_data[i], linestyle=element_style[i], linewidth=
+                        element_size[i], color=color[i], label=label[i])
+
+                    else:
+
+                        plotted_entities = subplots_tuple.plot(x_data, 
+                        y_data[i], linestyle=element_style[i], linewidth=
+                        element_size[i], color=color[i], label=label[i])
 
                 elif plot_type=="scatter":
 
@@ -559,9 +630,19 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
 
                     if isinstance(y_data[i], list):
 
-                        plotted_entities = subplots_tuple.scatter(x_data, 
-                        y_data[i], marker=element_style[i], s=
-                        element_size[i]**2, color=color[i], zorder=3)
+                        if different_nPoints:
+
+                            plotted_entities = subplots_tuple.scatter(
+                            x_data[i], y_data[i], marker=element_style[i
+                            ], s=element_size[i]**2, color=color[i], 
+                            zorder=3)
+
+                        else:
+
+                            plotted_entities = subplots_tuple.scatter(
+                            x_data, y_data[i], marker=element_style[i], 
+                            s=element_size[i]**2, color=color[i], 
+                            zorder=3)
 
                     # If it is just the default treatment of scatter 
                     # plots
@@ -606,17 +687,52 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
 
     if highlight_points:
 
+        if highlight_points==True:
+
+            highlight_points = 'x'
+
         if multiple_curves:
 
             for i in range(multiple_curves):
 
-                subplots_tuple.scatter(x_data, y_data[i], color='black', 
-                marker='x', zorder=3)
+                if isinstance(highlight_pointsColors, str):
+
+                    if different_nPoints:
+
+                        subplots_tuple.scatter(x_data[i], y_data[i], 
+                        color=highlight_pointsColors, marker=
+                        highlight_points, zorder=3)
+
+                    else:
+
+                        subplots_tuple.scatter(x_data, y_data[i], color=
+                        highlight_pointsColors, marker=highlight_points, 
+                        zorder=3)
+
+                else:
+
+                    if different_nPoints:
+
+                        subplots_tuple.scatter(x_data[i], y_data[i], 
+                        color=[i], marker=highlight_points, zorder=3)
+
+                    else:
+
+                        subplots_tuple.scatter(x_data, y_data[i], color=
+                        [i], marker=highlight_points, zorder=3)
 
         else:
 
-            subplots_tuple.scatter(x_data, y_data, color='black', 
-            marker='x', zorder=3)
+            if isinstance(highlight_pointsColors, str):
+
+                subplots_tuple.scatter(x_data, y_data, color=
+                highlight_pointsColors, marker=highlight_points, zorder=
+                3)
+
+            else:
+
+                subplots_tuple.scatter(x_data, y_data, color='black', 
+                marker=highlight_points, zorder=3)
 
     # Verifies if a color bar is asked for
 
@@ -648,10 +764,19 @@ None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
 
             else:
 
-                plotted_entities = subplots_tuple.scatter(x_data[0:2], 
-                y_data[0][0:2], c=[color_map[1], color_map[2]], cmap=
-                color_map[0], vmin=color_map[1], vmax=color_map[2], 
-                marker='x', zorder=3, s=0.001)
+                if different_nPoints:
+
+                    plotted_entities = subplots_tuple.scatter(x_data[0][
+                    0:2], y_data[0][0:2], c=[color_map[1], color_map[2]], 
+                    cmap=color_map[0], vmin=color_map[1], vmax=color_map[
+                    2], marker='x', zorder=3, s=0.001)
+
+                else:
+
+                    plotted_entities = subplots_tuple.scatter(x_data[0:2
+                    ], y_data[0][0:2], c=[color_map[1], color_map[2]], 
+                    cmap=color_map[0], vmin=color_map[1], vmax=color_map[
+                    2], marker='x', zorder=3, s=0.001)
 
         else:
 
