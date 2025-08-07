@@ -28,7 +28,7 @@ color_barMinimum=None, color_barTicks=None, color_barTitle=None,
 color_barIntegerTicks=False, color_barNumberOfTicks=5, 
 color_barIncludeMinMaxTicks=False, x_ticksLabels=None, y_ticksLabels=
 None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12,
-highlight_pointsColors='black'):
+highlight_pointsColors='black', parent_path=None):
     
     """
     You can provide an array of data, where the first column will be in
@@ -714,12 +714,13 @@ highlight_pointsColors='black'):
                     if different_nPoints:
 
                         subplots_tuple.scatter(x_data[i], y_data[i], 
-                        color=[i], marker=highlight_points, zorder=3)
+                        color=color[i], marker=highlight_points, zorder=
+                        3)
 
                     else:
 
                         subplots_tuple.scatter(x_data, y_data[i], color=
-                        [i], marker=highlight_points, zorder=3)
+                        color[i], marker=highlight_points, zorder=3)
 
         else:
 
@@ -930,7 +931,21 @@ highlight_pointsColors='black'):
 
     # Sets the tick labels
 
-    if isinstance(x_ticksLabels, dict):
+    if isinstance(x_ticksLabels, list):
+
+        # Gets the tick values and the location
+
+        subplots_tuple.set_xticks(x_ticksLabels, minor=True)
+
+        subplots_tuple.set_xticklabels(x_ticksLabels, minor=True)
+
+        # Sets the font size of the x ticks
+
+        for tick_label in subplots_tuple.get_xminorticklabels():
+
+            tick_label.set_fontsize(ticks_fontsize)
+
+    elif isinstance(x_ticksLabels, dict):
 
         # Gets the tick values and the location
 
@@ -948,7 +963,21 @@ highlight_pointsColors='black'):
 
             tick_label.set_fontsize(ticks_fontsize)
 
-    if isinstance(y_ticksLabels, dict):
+    if isinstance(y_ticksLabels, list):
+
+        # Gets the tick values and the location
+
+        subplots_tuple.set_yticks(y_ticksLabels, minor=True)
+
+        subplots_tuple.set_yticklabels(y_ticksLabels, minor=True)
+
+        # Sets the font size of the y ticks
+
+        for tick_label in subplots_tuple.get_yminorticklabels():
+
+            tick_label.set_fontsize(ticks_fontsize)
+
+    elif isinstance(y_ticksLabels, dict):
 
         # Gets the tick values and the location
 
@@ -997,7 +1026,32 @@ highlight_pointsColors='black'):
 
     else:
 
-        plt.savefig(file_name)
+        # Verifies the file name
+
+        file_name, termination = file_tools.take_outFileNameTermination(
+        file_name, get_termination=True)
+
+        # Verifies if the termination is empty
+
+        if len(termination)==0:
+
+            # Adds pdf
+
+            termination = "pdf"
+
+        # Adds the termination again
+
+        file_name = file_tools.verify_path(parent_path, file_name+"."+
+        termination)
+
+        try:
+
+            plt.savefig(file_name)
+
+        except:
+
+            raise InterruptedError("The file is probably open on a vis"+
+            "ualizer. Close it and try again")
 
     print("Finishes plotting\n")
 

@@ -625,6 +625,10 @@ def float_toString(number):
 
 def verify_path(parent_path, file_name):
 
+    if parent_path is None:
+
+        return file_name
+
     # Checks if the parent path exists
 
     if not os.path.exists(parent_path):
@@ -686,11 +690,17 @@ def verify_path(parent_path, file_name):
 
 # Defines a function to take out the termination file name of a string
 
-def take_outFileNameTermination(file_name):
+def take_outFileNameTermination(file_name, get_termination=False):
 
     # Initializes the new name
 
     clean_fileName = ""
+
+    # Initializes the termination
+
+    termination = ""
+
+    termination_reading = False
 
     # Iterates through the file name
 
@@ -698,15 +708,33 @@ def take_outFileNameTermination(file_name):
 
         if character=="." or character=='.':
 
-            break 
+            if not get_termination:
+
+                break 
+
+            else:
+
+                termination_reading = True
 
         else:
 
-            clean_fileName += character
+            if termination_reading:
+
+                termination += character
+
+            else:
+
+                clean_fileName += character
 
     # Returns the file name without the termination
 
-    return clean_fileName
+    if get_termination:
+
+        return clean_fileName, termination
+    
+    else:
+
+        return clean_fileName
 
 ########################################################################
 #                              txt files                               #
