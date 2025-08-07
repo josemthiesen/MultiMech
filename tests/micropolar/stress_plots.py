@@ -537,7 +537,8 @@ def plot_stress():
         plotting_tools.plane_plot(homogenized_files[i][3], x_data=x_data, 
         y_data=y_data, x_label=x_label, y_label=y_label, 
         highlight_points=True, flag_scientificNotation=True, label=label, 
-        element_style=line_styles, color=color, legend='upper left',
-        ticks_fontsize=20, label_fontsize=20, legend_fontsize=16)
+        element_style=line_styles, color=color, legend_position='upper'+
+        ' left', ticks_fontsize=20, label_fontsize=20, legend_fontsize=
+        16)
 
 plot_stress()

@@ -20,14 +20,14 @@ import source.tool_box.file_handling_tools as file_tools
 
 def plane_plot(file_name=None, data=None, x_data=None, y_data=None, 
 label=None, x_label=None, y_label=None, title=None, flag_grid=True, 
-highlight_points=False, color='orange', flag_scientificNotation=False,
-element_style='-', element_size=1.5,  legend=None, plot_type="line", 
-color_map=False, flag_noTicks=False, aspect_ratio='auto', x_grid=None,
-y_grid=None, color_bar=False, color_barMaximum=None, color_barMinimum=
-None, color_barTicks=None, color_barTitle=None, color_barIntegerTicks=
-False, color_barNumberOfTicks=5, color_barIncludeMinMaxTicks=False,
-x_ticksLabels=None, y_ticksLabels=None, ticks_fontsize=12, 
-label_fontsize=14, legend_fontsize=12):
+highlight_points=False, color=None, flag_scientificNotation=False,
+element_style='-', element_size=1.5,  legend_position=None, plot_type=
+"line", color_map=False, flag_noTicks=False, aspect_ratio='auto', x_grid
+=None, y_grid=None, color_bar=False, color_barMaximum=None, 
+color_barMinimum=None, color_barTicks=None, color_barTitle=None, 
+color_barIntegerTicks=False, color_barNumberOfTicks=5, 
+color_barIncludeMinMaxTicks=False, x_ticksLabels=None, y_ticksLabels=
+None, ticks_fontsize=12, label_fontsize=14, legend_fontsize=12):
     
     """
     You can provide an array of data, where the first column will be in
@@ -60,8 +60,8 @@ label_fontsize=14, legend_fontsize=12):
     element_size                          - float with the width of the 
     line or the area of the marker. 1.5 as default
 
-    legend                                - text for the legend. None is 
-    the default value
+    legend_position                       - position for the legend. 'upper
+    right' is the default value
 
     plot_type                             - informs if the plot is with 
     lines ("line"), or scattered ("scatter")
@@ -227,7 +227,9 @@ label_fontsize=14, legend_fontsize=12):
             if len(x_data)!=len(y_data[0]):
 
                 raise IndexError("The x data and y data are lists of d"+
-                "ifferent sizes. Thus, cannot be used for plotting")
+                "ifferent sizes. Multiple curves are to be plotted, bu"
+                "t, different number of points have been given for eac"+
+                "h curve. Thus, cannot be used for plotting")
 
         elif len(x_data)!=len(y_data):
 
@@ -312,7 +314,19 @@ label_fontsize=14, legend_fontsize=12):
         
         # Verifies the color vector
 
-        if isinstance(color, str):
+        if color is None:
+
+            if color_map:
+
+                color = [color_map(i) for i in np.linspace(0, 1,
+                multiple_curves)]
+
+            else:
+
+                color = [plt.get_cmap('viridis')(i) for i in np.linspace(0,
+                1, multiple_curves)]
+
+        elif isinstance(color, str):
 
             color = [color for i in range(multiple_curves)]
 
@@ -443,6 +457,10 @@ label_fontsize=14, legend_fontsize=12):
 
                     color = color[0]
 
+        elif color is None:
+
+            color = 'orange'
+
     # Sets the aspect ratio of the plot
 
     subplots_tuple.set_aspect(aspect_ratio)
@@ -514,13 +532,18 @@ label_fontsize=14, legend_fontsize=12):
 
     else:
 
-        if len(label)!=multiple_curves:
-
-            raise IndexError("The length of the label list, "+str(len(
-            label))+", is not equal to the number of curves, "+str(
-            multiple_curves))
-
         if multiple_curves:
+
+            if not isinstance(label, list):
+
+                raise TypeError("The label is not a list, but there ar"+
+                "e multiple curves to be plotted.")
+
+            if len(label)!=multiple_curves:
+
+                raise IndexError("The length of the label list, "+str(
+                len(label))+", is not equal to the number of curves, "+
+                str(multiple_curves))
 
             for i in range(multiple_curves):
                 
@@ -834,14 +857,8 @@ label_fontsize=14, legend_fontsize=12):
 
     if not (label is None):
 
-        if legend is None:
-
-            plt.legend()
-
-        else:
-
-            plt.legend(loc=legend, bbox_to_anchor=(1.0, 1.0), fontsize=
-            legend_fontsize)
+        plt.legend(loc=legend_position, bbox_to_anchor=(1.0, 1.0), 
+        fontsize=legend_fontsize)
 
     # Adjust the size of the plot to contain ticks and labels
 
