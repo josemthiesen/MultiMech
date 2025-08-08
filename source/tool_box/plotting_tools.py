@@ -21,9 +21,9 @@ import source.tool_box.file_handling_tools as file_tools
 def plane_plot(file_name=None, data=None, x_data=None, y_data=None, 
 label=None, x_label=None, y_label=None, title=None, flag_grid=True, 
 highlight_points=False, color=None, flag_scientificNotation=False,
-element_style='-', element_size=1.5,  legend_position=None, plot_type=
-"line", color_map=False, flag_noTicks=False, aspect_ratio='auto', x_grid
-=None, y_grid=None, color_bar=False, color_barMaximum=None, 
+element_style='-', element_size=1.5,  legend_position='upper left', 
+plot_type="line", color_map=False, flag_noTicks=False, aspect_ratio='a'+
+'uto', x_grid=None, y_grid=None, color_bar=False, color_barMaximum=None, 
 color_barMinimum=None, color_barTicks=None, color_barTitle=None, 
 color_barIntegerTicks=False, color_barNumberOfTicks=5, 
 color_barIncludeMinMaxTicks=False, x_ticksLabels=None, y_ticksLabels=
@@ -933,11 +933,12 @@ highlight_pointsColors='black', parent_path=None):
 
     if isinstance(x_ticksLabels, list):
 
-        # Gets the tick values and the location
+        # Gets the tick values and the location. Do not use minor ticks
+        # when they are given as lists
 
-        subplots_tuple.set_xticks(x_ticksLabels, minor=True)
+        subplots_tuple.set_xticks(x_ticksLabels)
 
-        subplots_tuple.set_xticklabels(x_ticksLabels, minor=True)
+        subplots_tuple.set_xticklabels(x_ticksLabels)
 
         # Sets the font size of the x ticks
 
@@ -965,11 +966,12 @@ highlight_pointsColors='black', parent_path=None):
 
     if isinstance(y_ticksLabels, list):
 
-        # Gets the tick values and the location
+        # Gets the tick values and the location. Do not use minor ticks
+        # when they are given as lists
 
-        subplots_tuple.set_yticks(y_ticksLabels, minor=True)
+        subplots_tuple.set_yticks(y_ticksLabels)
 
-        subplots_tuple.set_yticklabels(y_ticksLabels, minor=True)
+        subplots_tuple.set_yticklabels(y_ticksLabels)
 
         # Sets the font size of the y ticks
 
