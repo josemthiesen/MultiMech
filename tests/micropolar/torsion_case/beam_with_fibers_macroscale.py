@@ -278,9 +278,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     E_fiber = 100.0*E_matrix
 
-    characteristic_lengthMatrix = fiber_radius*2.16
+    characteristic_lengthMatrix = fiber_radius*2.2
     
-    characteristic_lengthFiber = fiber_radius*2.16
+    characteristic_lengthFiber = fiber_radius*2.2
 
     test46 = [E_matrix, E_fiber, nu_matrix, nu_fiber, N_matrix, N_fiber, 
     characteristic_lengthMatrix, characteristic_lengthFiber, 
@@ -318,7 +318,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
 
     # Sets a dictionary with names and parameters sets
 
-    parameters_sets = {"simulation_33": test33, "simulation_48": test48}
+    parameters_sets = {"simulation_33": test33, "simulation_46": test46}
+
+    parameters_sets = {"simulation_46": test46}
 
     # Saves the parameters set
 

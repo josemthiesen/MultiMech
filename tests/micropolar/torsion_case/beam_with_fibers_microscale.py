@@ -30,6 +30,9 @@ def case1_varyingMicropolarNumber(flag_newMesh=False):
     "llyConstrainedFirstOrderBC"], ["LinearFirstOrderBC", "LinearFirst"+
     "OrderBC"], ["PeriodicFirstOrderBC", "PeriodicFirstOrderBC"]]
 
+    multiscale_BCsSets = [["MinimallyConstrainedFirstOrderBC", "Minima"+
+    "llyConstrainedFirstOrderBC"]]
+
     # Defines a flag to use the fluctuation of the field instead of the
     # field proper in the BVP
 
