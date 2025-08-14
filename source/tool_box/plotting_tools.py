@@ -8,9 +8,9 @@ import matplotlib.colors as plt_colors
 
 import matplotlib.ticker as ticker
 
-import source.tool_box.numerical_tools as numerical_tools
-
 import source.tool_box.file_handling_tools as file_tools
+
+import source.tool_box.programming_tools as programming_tools
 
 ########################################################################
 #                          Bidimensional plots                         #
@@ -1248,7 +1248,7 @@ scaling_function="linear", scaling_functionAdditionalParams=None):
 
     # Gets the scaling function
 
-    scaling_function, scaling_functionTitle = numerical_tools.generate_scalingFunctions(
+    scaling_function, scaling_functionTitle = generate_scalingFunctions(
     scaling_function, additional_parameters=
     scaling_functionAdditionalParams)
 
@@ -1312,3 +1312,132 @@ scaling_function="linear", scaling_functionAdditionalParams=None):
     return (list_of_matrices, scaling_function(min_component), 
     scaling_function(max_component), scaling_function, 
     scaling_functionTitle)
+    
+########################################################################
+#                           Scaling functions                          #
+########################################################################
+
+# Defines a function to give different options of scaling functions u-
+# sing numpy functions. These scaling functions will be used for plot-
+# ting for instance
+
+@programming_tools.optional_argumentsInitializer({('additional_paramet'+
+'ers'): lambda: dict()})
+
+def generate_scalingFunctions(curve_name, additional_parameters=
+None, verify_curveNameExistence=False):
+    
+    # The flag verify_curveNameExistence is True when the interest is 
+    # just to point out if the curve name is in the scope of the imple-
+    # mented functions 
+
+    # Tests if it is linear
+
+    if curve_name=="linear":
+
+        if verify_curveNameExistence:
+
+            return True
+        
+        # Check out if additional parameters have been been given
+
+        default_parameters = check_additionalParameters(
+        additional_parameters, {"end_point": [1.0, 1.0], "starting_poi"+
+        "nt": [0.0, 0.0]})
+
+        a1 = ((default_parameters["end_point"][1]-default_parameters[
+        "starting_point"][1])/(default_parameters["end_point"][0]-
+        default_parameters["starting_point"][0]))
+
+        a0 = (default_parameters["starting_point"][1]-(a1*
+        default_parameters["starting_point"][1]))
+
+        return lambda x: (a1*x)+a0, "$\\left(\\cdot\\right)$"
+
+    # Tests if the function is the logarithmic filter
+
+    elif curve_name=="logarithmic filter":
+
+        if verify_curveNameExistence:
+
+            return True
+        
+        # Check out if additional parameters have been been given
+
+        default_parameters = check_additionalParameters(
+        additional_parameters, {"alpha": 3})
+
+        def log_filter(x):
+
+            value = np.log10(np.abs(x)+1.0)
+
+            if value>default_parameters["alpha"]:
+
+                return np.sign(x)*(value-default_parameters["alpha"]) 
+            
+            else:
+
+                return 0.0
+            
+        alpha = str(default_parameters["alpha"])
+
+        return log_filter, ("$sgn\\left(\\cdot\\right)argmax\\left(log"+
+        "\\left(\\|\\cdot\\|+1\\right)-"+alpha+",0\\right)$")
+
+    else:
+
+        if verify_curveNameExistence:
+
+            return False
+        
+        else:
+
+            raise NameError("The scaling function '"+str(curve_name)+
+            "' has not yet been implemented")
+        
+# Defines a function to check additional parameters to each loading cur-
+# ve
+
+def check_additionalParameters(additional_parameters, default_parameters):
+
+    if additional_parameters is None:
+
+        return default_parameters 
+    
+    elif not isinstance(additional_parameters, dict):
+
+        raise TypeError("The additional_parameters must be a dictionar"+
+        "y to get the simple generators of load curves. Whereas it cur"+
+        "rently is: "+str(additional_parameters))
+    
+    else:
+
+        # Iterates through the dictionary of default parameters
+
+        for name in additional_parameters:
+
+            if name in default_parameters:
+
+                # Checks if they have the same type
+
+                if not (type(default_parameters[name])==type(
+                additional_parameters[name])):
+                    
+                    raise TypeError("The '"+str(name)+"' additional pa"+
+                    "rameter to create a loading curve has not the sam"+
+                    "e type as of the default one. Look at the default"+
+                    " parameter: "+str(default_parameters[name])+"\nan"+
+                    "d the given parameter: "+str(additional_parameters[
+                    name]))
+
+                default_parameters[name] = additional_parameters[name]
+
+            else:
+
+                raise KeyError("The dictionary of additional parameter"+
+                "s to get a simple generator of load curves has the ke"+
+                "y '"+str(name)+"', but this key is not a valid additi"+
+                "onal information. Check out the valid ones and their "+
+                "respective default values: "+str(default_parameters))
+            
+        return default_parameters
