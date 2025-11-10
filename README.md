@@ -1,2 +1,1 @@
-This repository is a collection of codes to solve multiscale problems in
-Computational Mechanics using FEniCS
+This repository contains the FEniCS (UFL) implementation for the homogenization of micropolar-to-micropolar hyperelastic continuum, The code presents a two-scale formulation for the theory of micropolar (Cosserat) continua. This approach extends the Method of Multiscale Virtual Power (MMVP) to accommodate large macroscopic displacements while assuming small microrotations, enabling the robust capture of size effects in complex materials.
